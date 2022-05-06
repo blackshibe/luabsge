@@ -1,0 +1,21 @@
+{
+	"files.associations": {
+		"chrono": "cpp",
+		"iostream": "cpp",
+		"ostream": "cpp",
+		"thread": "cpp",
+		"array": "cpp",
+		"string": "cpp",
+		"string_view": "cpp",
+		"random": "cpp",
+		"vector": "cpp"
+	},
+	"Lua.diagnostics.globals": [
+		"now",
+		"World",
+		"Vector3",
+		"Transform",
+		"Color",
+		"Vector2",
+	]
+}

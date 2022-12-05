@@ -1,8 +1,6 @@
 #version 330 core
 out vec4 FragColor;
 
-in vec3 pos;
-in vec3 normal;
 in vec2 tex_coord;
 
 uniform float time;

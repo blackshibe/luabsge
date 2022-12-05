@@ -4,14 +4,10 @@ if [ -z "$1" ]
     echo "Specify the name of a folder inside ./projects as the first argument"
     echo "Ex. test"
 else
-	echo "[run.sh] compiling"
-	make   
-
 	echo "[run.sh] running"
 
-	# todo: fix
 	cd projects/$1
-	../../bin/program
+	../../luabsge
 	cd ../../
 fi
 

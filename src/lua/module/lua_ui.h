@@ -5,7 +5,7 @@
 #include "../../opengl/window.h"
 #include "../../opengl/freetype.h"
 #include "../luax.h"
-#include "../class/font.h"
+#include "../class/textlabel.h"
 
 struct bsgeImage {
 	int width;

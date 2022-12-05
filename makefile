@@ -1,13 +1,73 @@
-CFLAGS = -std=c++17 -O2 -Wall
-LDFLAGS = -llua -lfreetype -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp
+# https://stackoverflow.com/questions/5178125/how-to-place-object-files-in-separate-subdirectory
 
-SRC = src/glad/glad.c src/main.cpp src/opengl/*.cpp src/lua/*.cpp src/lua/module/*.cpp src/lua/class/*.cpp
-OBJ = *.o
+# Compiler and Linker
+CC		  := g++
 
-all: compile link
+#The Target Binary Program
+TARGET	  := program
 
-compile:
-	ccache g++ -c $(SRC) 
+#The Directories, Source, Includes, Objects, Binary and Resources
+SRCDIR	  := src
+INCDIR	  := inc
+BUILDDIR	:= obj
+TARGETDIR   := bin
+RESDIR	  := res
+SRCEXT	  := cpp
+DEPEXT	  := d
+OBJEXT	  := o
 
-link:
-	ccache g++ $(CFLAGS) $(OBJ) -o luabsge $(LDFLAGS)
+#Flags, Libraries and Includes
+CFLAGS	  := -std=c++17 -O2 -Wall
+LIB		 := -llua -lfreetype -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp
+INC		 := -I$(INCDIR) -I/usr/local/include
+INCDEP	  := -I$(INCDIR)
+
+#---------------------------------------------------------------------------------
+#DO NOT EDIT BELOW THIS LINE
+#---------------------------------------------------------------------------------
+SOURCES	 := $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
+OBJECTS	 := $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.$(OBJEXT)))
+
+#Defauilt Make
+all: resources $(TARGET)
+
+#Remake
+remake: cleaner all
+
+#Copy Resources from Resources Directory to Target Directory
+resources: directories
+	@cp $(RESDIR)/* $(TARGETDIR)/
+
+#Make the Directories
+directories:
+	@mkdir -p $(TARGETDIR)
+	@mkdir -p $(BUILDDIR)
+
+#Clean only Objecst
+clean:
+	@$(RM) -rf $(BUILDDIR)
+
+#Full Clean, Objects and Binaries
+cleaner: clean
+	@$(RM) -rf $(TARGETDIR)
+
+#Pull in dependency info for *existing* .o files
+-include $(OBJECTS:.$(OBJEXT)=.$(DEPEXT))
+
+#Link
+$(TARGET): $(OBJECTS)
+	$(CC) -o $(TARGETDIR)/$(TARGET) $^ $(LIB)
+
+#Compile
+$(BUILDDIR)/%.$(OBJEXT): $(SRCDIR)/%.$(SRCEXT)
+	@mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
+	@$(CC) $(CFLAGS) $(INCDEP) -MM $(SRCDIR)/$*.$(SRCEXT) > $(BUILDDIR)/$*.$(DEPEXT)
+	@cp -f $(BUILDDIR)/$*.$(DEPEXT) $(BUILDDIR)/$*.$(DEPEXT).tmp
+	@sed -e 's|.*:|$(BUILDDIR)/$*.$(OBJEXT):|' < $(BUILDDIR)/$*.$(DEPEXT).tmp > $(BUILDDIR)/$*.$(DEPEXT)
+	@sed -e 's/.*://' -e 's/\\$$//' < $(BUILDDIR)/$*.$(DEPEXT).tmp | fmt -1 | sed -e 's/^ *//' -e 's/$$/:/' >> $(BUILDDIR)/$*.$(DEPEXT)
+	@rm -f $(BUILDDIR)/$*.$(DEPEXT).tmp
+
+#Non-File Targets
+.PHONY: all remake clean cleaner resources
+	

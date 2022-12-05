@@ -7,6 +7,5 @@ uniform vec3 textColor;
 
 void main() {   
 	if (texture(text, TexCoords).r == 0) discard;
-	
     color = vec4(textColor.rgb, texture(text, TexCoords).r);
 }

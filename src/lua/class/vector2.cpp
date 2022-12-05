@@ -1,5 +1,7 @@
 #include "vector2.h"
 
+// TODO: REMOVE
+
 int lua_bsge_new_vector2(lua_State* L) {
 	lua_newtable(L);
 	luaL_getmetatable(L, "Vector2");

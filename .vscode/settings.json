@@ -8,14 +8,29 @@
 		"string": "cpp",
 		"string_view": "cpp",
 		"random": "cpp",
-		"vector": "cpp"
+		"vector": "cpp",
+		"*.tcc": "cpp",
+		"iomanip": "cpp",
+		"istream": "cpp",
+		"*.rh": "cpp",
+		"bitset": "cpp",
+		"*.ipp": "cpp",
+		"atomic": "cpp",
+		"bit": "cpp",
+		"deque": "cpp",
+		"list": "cpp",
+		"unordered_map": "cpp",
+		"algorithm": "cpp",
+		"memory_resource": "cpp",
+		"memory": "cpp",
+		"fstream": "cpp",
+		"initializer_list": "cpp",
+		"sstream": "cpp",
+		"stdexcept": "cpp",
+		"tuple": "cpp",
+		"type_traits": "cpp",
+		"valarray": "cpp"
 	},
-	"Lua.diagnostics.globals": [
-		"now",
-		"World",
-		"Vector3",
-		"Transform",
-		"Color",
-		"Vector2",
-	]
+	"Lua.diagnostics.globals": ["now", "World", "Vector3", "Transform", "Color", "Vector2"],
+	"robloxLsp.diagnostics.disable": ["undefined-global"]
 }

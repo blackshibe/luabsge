@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/blackshibe/Documents/projects/2022/code/cpp/luabsge'
+ccache g++ -c -g src/glad/glad.c src/main.cpp src/opengl/*.cpp src/lua/*.cpp src/lua/module/*.cpp src/lua/class/*.cpp 
+ccache g++ -std=c++17 -Wall -g *.o -o luabsge -llua -lfreetype -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp
+make: Leaving directory '/home/blackshibe/Documents/projects/2022/code/cpp/luabsge'
+ 

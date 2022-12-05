@@ -1,1 +1,3 @@
-*.o
+luabsge
+bin
+obj

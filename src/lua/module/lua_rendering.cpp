@@ -1,6 +1,5 @@
 #include <lua.hpp>
 
-
 #include "../luax.h"
 #include "../class/signal.h"
 #include "../../opengl/freetype.h"
@@ -27,23 +26,26 @@ int bsge_call_lua_render(lua_State* L, float delta_time) {
 	lua_insert(L, -2);
 	lua_getfield(L, -1, "step");
 	lua_remove(L, -2);
+
+	// Rendering.step:fire(delta_time: number)
 	lua_pushnumber(L, delta_time);
 	lua_pcall(L, 2, 0, fuck_function);
 
 	return 0;
 }
 
+// deprecated probably
 int lua_bsge_draw_font(lua_State* L) {
 
 	const char* text = lua_tostring(L, 1);
-	struct Font* font = (Font*)lua_touserdata(L, 2);
+	// struct Textlabel* font = (Textlabel*)lua_touserdata(L, 2);
 
-	freetype_render(
-		text,
-		font,
-		freetype_text_shader,
-		glm::vec3(1.0f, 1.0f, 1.0f)
-	);
+	// freetype_render(
+	// 	text,
+	// 	font,
+	// 	freetype_text_shader,
+	// 	glm::vec3(1.0f, 1.0f, 1.0f)
+	// );
 
 	return 0;
 }
@@ -56,6 +58,7 @@ static const luaL_Reg bsge_rendering_methods[] = {
 int lua_bsge_init_rendering(lua_State* L) {
 	lua_pushcfunction(L, fuck);
 	fuck_function = lua_gettop(L);
+	return 0;
 }
 
 int lua_bsge_connect_rendering(BSGEWindow _window, lua_State* L) {

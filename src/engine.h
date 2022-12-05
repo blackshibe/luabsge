@@ -1,0 +1,2 @@
+#define BSGE_VERSION_MAJOR "0"
+#define BSGE_VERSION_MINOR "1"

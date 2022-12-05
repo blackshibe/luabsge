@@ -2,7 +2,9 @@
 
 #include "shader.h"
 #include "freetype.h"
-#include "../lua/module/rendering.h"
+#include "../lua/module/lua_rendering.h"
+#include "../include/colors.h"
+#include "../lua/class/camera.h"
 
 BSGEWindow::BSGEWindow() {
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
@@ -28,6 +30,7 @@ void BSGEWindow::init() {
 
 	glEnable(GL_DEPTH_TEST);
 }
+
 
 void BSGEWindow::size_callback(int width, int height) {
 	printf("[window.cpp] resized window to %i, %i\n", width, height);
@@ -58,91 +61,86 @@ void BSGEWindow::render_loop() {
 		return;
 	};
 
-
 	this->default_shader = default_shader;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	// camera projection
-	glm::mat4 proj = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 0.1f, 100.0f);
+	// probably disables vsync
+	// glfwSwapInterval(0);
 
+	// camera projection
 	float last_frame = glfwGetTime();
 	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	bool waiting_for_press_false = false;
+	bool wireframe = false;
+	int stack_warning_threshold = 100;
 
 	while (!glfwWindowShouldClose(window)) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
 
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+			if (!waiting_for_press_false) {
+				wireframe = !wireframe;
+				if (!wireframe) {
+					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+				}
+				else {
+					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+				}
+
+			}
+			waiting_for_press_false = true;
+		}
+		else {
+			waiting_for_press_false = false;
+		}
+
+		// frame start
 		float current_frame = glfwGetTime();
 		float delta_time = current_frame - last_frame;
 
-		// if(glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-		// 	if (!waiting_for_press_false) {
-		// 		wireframe = !wireframe;
-		// 		if (!wireframe) {
-		// 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-		// 			printf("reloading shaders\n");
-		// 			glDeleteProgram(default_shader);
-
-		// 			bool success = bsge_compile_shader(&default_shader, "default_shader/vertex_default.glsl", "default_shader/frag_default.glsl");
-		// 			if (!success) {
-		// 				printf("[main.cpp] exit: couldn't compile default shaders\n");
-		// 				return EXIT_FAILURE;
-		// 			};
-
-		// 		} else {
-		// 			glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
-		// 		}
-
-
-
-		// 	}
-		// 	waiting_for_press_false = true;
-		// } else {
-		// 	waiting_for_press_false = false;
-		// }
-
+		// clear the screen
 		glClearColor(0.1, 0.1, 0.1, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// 2. use our default_shader program when we want to render an object
-		glUseProgram(default_shader);
+		// get camera projection and coordinates from the Lua context
+		luaL_getmetatable(L, "Rendering");
+		lua_getfield(L, -1, "camera");
+		if (lua_isnil(L, -1)) {
+			printf("%s", ANSI_RED);
 
-		// float timeValue = glfwGetTime();
-		// float value = abs(sin(timeValue) / /2.0f);
+			printf("[window.cpp] no camera defined!\n");
+			printf("[window.cpp] as there is currently no fallback, the window will shut down.\n");
 
-		// glm::vec4 vec(1.0f, 0.0f, 0.0f, 1.0f);
-		// glm::mat4 trans = glm::mat4(1.0f);
+			printf("%s", ANSI_NC);
 
-		// glUniform1f(glGetUniformLocation(default_shader, "time"), value);
+			glfwSetWindowShouldClose(window, true);
+		} else {
+			BSGECameraMetadata* camera = (BSGECameraMetadata*)lua_touserdata(L, -1);
+			glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
 
-		glActiveTexture(GL_TEXTURE0);
-		// glBindTexture(GL_TEXTURE_2D, texture);
-		// glBindBuffer(GL_ELEMENT_ARRAY_BUFFER EBO);
-		// glBindVertexArray(VAO);
+			glUseProgram(default_shader);
+			glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
+			glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
-		glm::mat4 camera_pos = glm::mat4(1.0f);
-		camera_pos = glm::translate(camera_pos, -glm::vec3(0.0f, 0.0f, 5.0f));
+			// run the lua shit
+			bsge_call_lua_render(L, delta_time);
+		}
 
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera_pos));
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+		// clear the stack from the camera check
+		lua_remove(L, -1);
+		lua_remove(L, -1);
+		
+		int stack_size = lua_gettop(L);
+		if (stack_warning_threshold < stack_size) printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
 
-		// for (unsigned int i = 0; i < 10; i++) {
-		// 	glm::mat4 trans = glm::mat4(1.0f);
-		// 	trans = glm::translate(trans, cubePositions[i]);
-		// 	trans = glm::rotate(trans, glm::radians(timeValue * 90.0f * i), glm::vec3(0.5, 1, 0.2));
-		// 	// trans = glm::translate(trans, glm::vec3(value, 0.0f, 0.0f));	
-		// 	glUniformMatrix4fv(glGetUniformLocation(default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(trans));
-		// 	glDrawArrays(GL_TRIANGLES, 0, 36);
-		// }
-
-		bsge_call_lua_render(L, delta_time);
-
+		// frame end
 		float calc_time = glfwGetTime() - current_frame;
 		last_frame = current_frame;
-
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();

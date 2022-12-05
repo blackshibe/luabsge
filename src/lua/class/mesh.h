@@ -8,7 +8,7 @@
 
 #include "../../glad/glad.h"
 #include <glm/glm.hpp>
-#include "../module/ui.h"
+#include "../module/lua_ui.h"
 #include <GLFW/glfw3.h>
 
 struct meshVertexData {

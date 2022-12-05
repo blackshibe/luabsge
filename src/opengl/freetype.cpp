@@ -11,28 +11,29 @@ GLuint freetype_vao, freetype_vbo;
 FT_Library ft;
 
 void freetype_render(
-	const char* text,
-	struct Font* font,
-	GLuint shader,
-	glm::vec3 color
+	struct Textlabel label,
+	GLuint shader
 ) {
 	glUseProgram(shader);
-	glUniform3f(glGetUniformLocation(shader, "textColor"), color.r, color.g, color.b);
+	glUniform3f(glGetUniformLocation(shader, "textColor"), label.color.r, label.color.g, label.color.b);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(freetype_vao);
 
-	float y = font->position.y + FREETYPE_BASE_FONT_HEIGHT * font->scale;
-	float x = font->position.x;
+	float y = label.position.y + FREETYPE_BASE_FONT_HEIGHT * label.scale;
+	float x = label.position.x;
+	const char* text = label.text;
+	Font font = label.font;
 
 	for (int i = 0; i < strlen(text); i++) {
-		struct Character ch = font->characters[(int)text[i]];
-		float w = ch.size.x * font->scale;
-		float h = ch.size.y * font->scale;
+		struct Character ch = font.data[(int)text[i]];
 
-		float xpos = x + (ch.bearing.x * font->scale);
-		float ypos = y + (ch.size.y - ch.bearing.y) * font->scale;
+		float w = ch.size.x * label.scale;
+		float h = ch.size.y * label.scale;
 
-		// update VBO for each character
+		float xpos = x + (ch.bearing.x * label.scale);
+		float ypos = y + (ch.size.y - ch.bearing.y) * label.scale;
+
+		// // update VBO for each character
 		float vertices[6][4] = {
 			{ xpos,     ypos - h,   0.0f, 0.0f },
 			{ xpos,     ypos,       0.0f, 1.0f },
@@ -43,24 +44,27 @@ void freetype_render(
 			{ xpos + w, ypos - h,   1.0f, 0.0f }
 
 		};
+
 		// render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.texture_id);
+
 		// update content of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, freetype_vbo);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // be sure to use glBufferSubData and not glBufferData
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		// render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.advance >> 6) * font->scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		x += (ch.advance >> 6) * label.scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
 
 	glUseProgram(0);
 }
 
 void freetype_init(lua_State* L) {
-	printf("[freetype.h] compiling text shader\n");
+	printf("[freetype.h] init\n");
 
 	lua_pushnumber(L, FREETYPE_BASE_FONT_HEIGHT);
 	lua_setglobal(L, "BASE_FONT_HEIGHT");
@@ -76,6 +80,7 @@ void freetype_init(lua_State* L) {
 		printf("%s[freetype.h] couldn't compile nosampling shader%s\n", ANSI_RED, ANSI_NC);
 
 	}
+
 	// configure VAO/VBO for texture quads
 	// -----------------------------------
 	glGenVertexArrays(1, &freetype_vao);
@@ -118,8 +123,6 @@ void freetype_resize_window(float width, float height) {
 }
 
 bool freetype_load_font(struct Font* font, const char* font_directory) {
-	printf("[freetype.h] compiling text shaders\n");
-
 	if (FT_Init_FreeType(&ft)) {
 		printf("[freetype.h] couldn't initialize\n");
 		return false;
@@ -130,6 +133,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 		printf("[freetype.h] couldn't load font\n");
 		return false;
 	}
+	
 	else {
 		// set size to load glyphs as
 		FT_Set_Pixel_Sizes(face, 0, FREETYPE_BASE_FONT_HEIGHT);
@@ -138,8 +142,8 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		// load first 256 characters of ASCII set
-		for (unsigned char c = 0; c < 255; c++) {
-
+		for (unsigned char c = 0; c < FREETYPE_CHARSET_SIZE-1; c++) {
+			
 			// Load character glyph 
 			if (FT_Load_Char(face, c, FT_LOAD_RENDER)) continue;
 
@@ -173,7 +177,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top)
 			};
 
-			font->characters[(int)c] = character;
+			font->data[c] = character;
 		}
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}

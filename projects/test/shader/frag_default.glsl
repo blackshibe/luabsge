@@ -1,3 +1,5 @@
+// LuaBSGE - Default fragment shader for 3D meshes.
+
 #version 330 core
 out vec4 FragColor;
 

@@ -2,27 +2,21 @@
 
 Small "game engine" that integrates Lua with OpenGL.<br/>
 
-# Problems
+## cross-platform compilation
 
-I HATE C++
+LuaBSGE is only tested on Linux right now
 
--   fix the font rendering it's completely broken
-
-# Cross-platform support
-
-There is none
-
-# Dependencies
+## dependencies
 
 -   glm
 -   freetype2
 
-# Installation
+## compilation
 
-Glad is already in the project files rather than the build directory. <br/>
-glm and glfw must be in the include path. <br/>
+run `./run.sh test` to run the test project
 
-# Todo
+## Todo
 
-Create a universal class constructor
-Make creating new classes easier
+-   fix the font rendering it's completely broken
+-   Create a universal class constructor
+-   Make creating new classes easier

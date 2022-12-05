@@ -2,10 +2,6 @@
 
 Small "game engine" that integrates Lua with OpenGL.<br/>
 
-## cross-platform compilation
-
-LuaBSGE is only tested on Linux right now
-
 ## dependencies
 
 -   glm
@@ -15,7 +11,9 @@ LuaBSGE is only tested on Linux right now
 
 run `./run.sh test` to run the test project
 
-## Todo
+note: LuaBSGE is only tested on Linux right now
+
+## todo
 
 -   fix the font rendering it's completely broken
 -   Create a universal class constructor

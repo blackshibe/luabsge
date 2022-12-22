@@ -8,7 +8,7 @@ for i, v in pairs(files) do
 		warn("----------------------------------------------------------------------------------------")
 		error(string.format("test %s: %s.lua failed!", i, v))
 	else
-		print(string.format("finished test %s: %s.lua", i, v))
+		print(string.format("test passed: %s: %s.lua", i, v))
 	end
 end
 

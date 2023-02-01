@@ -44,7 +44,6 @@ int lua_bsge_glm_mat4_translate_vec3(lua_State* L) {
 	// printf("vec3: %i\n", arg2->length()); 
 	// printf("mat4 props: %f %f %f %f\n", arg1[0], arg1[1], arg1[2], arg1[3]); 
 	// printf("vec3 props: %f %f %f\n", arg2->x, arg2->y, arg2->z); 
-	// printf("result: %f %f %f %f\n", result[0], result[1], result[2], result[3]);
 
 	luaL_getmetatable(L, "Glm");
 	lua_setmetatable(L, -2);

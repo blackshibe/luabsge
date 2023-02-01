@@ -2,10 +2,13 @@
 
 Small "game engine" that integrates Lua with OpenGL.<br/>
 
+![screenshot](luabsge.png)
+
 ## dependencies
 
 -   glm
 -   freetype2
+-   imgui
 
 ## compilation
 

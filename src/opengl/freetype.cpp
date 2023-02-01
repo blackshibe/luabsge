@@ -24,8 +24,18 @@ void freetype_render(
 	const char* text = label.text;
 	Font font = label.font;
 
+	printf(text);
+	printf("\n");
+	
 	for (int i = 0; i < strlen(text); i++) {
 		struct Character ch = font.data[(int)text[i]];
+
+		// newline
+		if (text[i] == 10) {
+			y += FREETYPE_BASE_FONT_HEIGHT * label.scale;
+			x = label.position.x;
+			continue;
+		}
 
 		float w = ch.size.x * label.scale;
 		float h = ch.size.y * label.scale;

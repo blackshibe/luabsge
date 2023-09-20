@@ -33,12 +33,12 @@ struct Font {
 // storing pointers ended up extremely broken
 struct Textlabel {
 	struct Font font;
-	const char* text;
 
 	glm::vec3 color; // vertex color
 	glm::vec2 position; // currently uses a fixed top-left anchor
 	float scale; // width of the font is FREETYPE_BASE_FONT_HEIGHT * 96
 
+	const char* text;
 };
 
 extern GLuint freetype_text_shader;

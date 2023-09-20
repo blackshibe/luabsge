@@ -22,7 +22,9 @@ int lua_bsge_glm_vec3(lua_State* L) {
 	float y = lua_tonumber(L, 2);
 	float z = lua_tonumber(L, 3);
 
+	// calling this causes memory corruption
 	glm::vec3* pointer = (glm::vec3*)lua_newuserdata(L, sizeof(glm::vec3));
+
 	*pointer = glm::vec3(x, y, z);
 
 	luaL_getmetatable(L, "Glm");
@@ -32,7 +34,7 @@ int lua_bsge_glm_vec3(lua_State* L) {
 }
 
 int lua_bsge_glm_mat4_translate_vec3(lua_State* L) {
-    // printf("[lua_glm_bindings.cpp] mat4_translate_vec3\n");
+    printf("[lua_glm_bindings.cpp] mat4_translate_vec3\n");
 
 	glm::mat4* arg1 = (glm::mat4*)lua_touserdata(L, 1);
 	glm::vec3* arg2 = (glm::vec3*)lua_touserdata(L, 2);

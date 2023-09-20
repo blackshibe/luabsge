@@ -24,9 +24,6 @@ void freetype_render(
 	const char* text = label.text;
 	Font font = label.font;
 
-	printf(text);
-	printf("\n");
-	
 	for (int i = 0; i < strlen(text); i++) {
 		struct Character ch = font.data[(int)text[i]];
 

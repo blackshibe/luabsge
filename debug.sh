@@ -15,7 +15,7 @@ else
 	echo "[run.sh] running"
 
 	cd projects/$1
-	gdb ../../luabsge
+	gdb ../../bin/program
 	cd ../../
 
 	echo "[run.sh] cleanup"

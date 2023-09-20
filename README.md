@@ -9,6 +9,7 @@ Small "game engine" that integrates Lua with OpenGL.<br/>
 -   glm
 -   freetype2
 -   imgui
+-   glfw
 
 ## compilation
 

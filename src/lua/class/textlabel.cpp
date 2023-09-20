@@ -2,6 +2,7 @@
 
 int textlabel_render(lua_State* L) {
 	struct Textlabel* label = (Textlabel*)lua_touserdata(L, 1);
+
 	freetype_render(*label, freetype_text_shader);
 
 	return 0;
@@ -33,7 +34,7 @@ int textlabel_newindex(lua_State* L) {
 	} else if (strcmp(index, "text") == 0) {
 		struct Textlabel* label = (Textlabel*)lua_touserdata(L, 1);
 		const char* text = lua_tostring(L, 3);
-		label->text = text;
+		label->text = strdup(text);
 	}
 
 	return 0;
@@ -48,10 +49,10 @@ const luaL_Reg bsge_lua_textlabel_metatable_access[] = {
 
 int lua_bsge_instance_textlabel(lua_State* L) {
 	struct Textlabel* font = (Textlabel*)lua_newuserdata(L, sizeof(Textlabel));
-	font->text = "Hello world";
 	font->position = glm::vec2(10.0f, 10.0f);
 	font->color = glm::vec3(1.0f, 1.0f, 1.0f);
 	font->scale = 0.2f;
+	font->text = "Hello world";
 
 	luaL_getmetatable(L, "Textlabel");
 	lua_setmetatable(L, -2);

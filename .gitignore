@@ -1,3 +1,4 @@
 luabsge
 bin
 obj
+.vscode/*

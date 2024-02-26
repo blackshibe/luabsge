@@ -35,6 +35,11 @@ int textlabel_newindex(lua_State* L) {
 		struct Textlabel* label = (Textlabel*)lua_touserdata(L, 1);
 		const char* text = lua_tostring(L, 3);
 		label->text = strdup(text);
+	} else if (strcmp(index, "position") == 0) {
+		struct Textlabel* label = (Textlabel*)lua_touserdata(L, 1);
+		glm::vec3* new_position = (glm::vec3*)lua_touserdata(L, 3);
+
+		label->position = glm::vec2(new_position->x, new_position->y);
 	}
 
 	return 0;

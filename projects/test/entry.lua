@@ -6,6 +6,9 @@ font:load("font/FiraCode-Regular.ttf")
 local textlabel = _temp_TextLabel()
 textlabel.font = font
 
+local demo_label = _temp_TextLabel()
+demo_label.font = font
+
 local camera = _temp_Camera()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
@@ -43,20 +46,13 @@ World.rendering.step:connect(function(delta_time)
 
 	local to_render = objects[(i % #objects) + 1]
 
-	-- incredibly fast way to corrupt memory
-	for i = 1,1000 do
-		glm.mat4(1)
-		glm.vec3(1)
-
-	end
-
 	local pos = glm.vec3(math.sin(now() * 0.001) * 0.5, 0, -1)
 	camera.position = base_matrix:mat4_translate_vec3(pos)
 
 	to_render[2]:render()
 
 	if now() > next_check then
-		textlabel.text = string.format("memory: %.2f kb\nText rendering breaks constantly", collectgarbage("count"))
+		textlabel.text = string.format("memory: %.2f kb", collectgarbage("count"))
 
 		next_check = now() + 2000
 		fps = 0
@@ -64,8 +60,11 @@ World.rendering.step:connect(function(delta_time)
 		i = i + 1
 	end
 
-	textlabel:render()
+	demo_label.text = now()
+	demo_label.position = glm.vec3(10, 40, 0)
 
+	demo_label:render()
+	textlabel:render()
 end)
 
 print("Lua entry file finished")

@@ -16,7 +16,7 @@ camera.far_clip = 100
 
 local objects = {}
 local paths = {
-	{ "image/fox.jpg", "mesh/box.obj" },
+	{ "image/fox.jpg",   "mesh/box.obj" },
 	{ "image/eotek.png", "mesh/sphere.obj" },
 }
 
@@ -58,6 +58,9 @@ World.rendering.step:connect(function(delta_time)
 		fps = 0
 
 		i = i + 1
+	end
+
+	for i = 1, 100000000 do
 	end
 
 	demo_label.text = now()

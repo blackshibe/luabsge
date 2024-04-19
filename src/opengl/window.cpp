@@ -153,13 +153,13 @@ void BSGEWindow::render_loop() {
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
-			auto t1 = std::chrono::high_resolution_clock::now();
+			// auto t1 = std::chrono::high_resolution_clock::now();
 
 			// run the lua shit
 			bsge_call_lua_render(L, delta_time);
 
-			auto t2 = std::chrono::high_resolution_clock::now();
-			auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+			// auto t2 = std::chrono::high_resolution_clock::now();
+			// auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
 
 			{
 				ImGui_ImplOpenGL3_NewFrame();
@@ -168,7 +168,6 @@ void BSGEWindow::render_loop() {
 				ImGui::NewFrame();
 				ImGui::Begin("LuaBSGE Engine Info"); 
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-				ImGui::Text("Lua context runtime %.2f ms last frame", duration);
 				
 				ImGui::End();
 			}

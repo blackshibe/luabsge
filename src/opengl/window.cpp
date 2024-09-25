@@ -1,17 +1,17 @@
 #include "window.h"
-#include "shader.h"
 #include "freetype.h"
+#include "shader.h"
 
-#include "../lua/module/lua_rendering.h"
 #include "../include/colors.h"
 #include "../lua/class/camera.h"
+#include "../lua/module/lua_rendering.h"
 
 #include "../include/imgui/imgui.h"
 #include "../include/imgui/imgui_impl_glfw.h"
 #include "../include/imgui/imgui_impl_opengl3.h"
 
-#include <stdlib.h>
 #include <chrono>
+#include <stdlib.h>
 
 BSGEWindow::BSGEWindow() {
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
@@ -38,7 +38,6 @@ void BSGEWindow::init() {
 	glEnable(GL_DEPTH_TEST);
 }
 
-
 void BSGEWindow::size_callback(int width, int height) {
 	printf("[window.cpp] resized window to %i, %i\n", width, height);
 
@@ -50,8 +49,7 @@ void BSGEWindow::size_callback(int width, int height) {
 	if (width > height) {
 		this->height = width;
 		glViewport(0, (height - width) / 2, width, width);
-	}
-	else {
+	} else {
 		this->width = height;
 		glViewport((width - height) / 2, 0, height, height);
 	}
@@ -84,24 +82,25 @@ void BSGEWindow::render_loop() {
 	bool wireframe = false;
 	int stack_warning_threshold = 100;
 
-    bool show_demo_window = true;
-    bool show_another_window = false;
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	bool show_demo_window = true;
+	bool show_another_window = false;
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO &io = ImGui::GetIO();
+	(void)io;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-    // Setup Dear ImGui style
-    ImGui::StyleColorsDark();
-    //ImGui::StyleColorsLight();
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	// ImGui::StyleColorsLight();
 
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init();
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
 
 	while (!glfwWindowShouldClose(window)) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -113,15 +112,12 @@ void BSGEWindow::render_loop() {
 				wireframe = !wireframe;
 				if (!wireframe) {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				}
-				else {
+				} else {
 					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 				}
-
 			}
 			waiting_for_press_false = true;
-		}
-		else {
+		} else {
 			waiting_for_press_false = false;
 		}
 
@@ -134,6 +130,8 @@ void BSGEWindow::render_loop() {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// get camera projection and coordinates from the Lua context
+		lua_State *L = lua->lua_state();
+
 		luaL_getmetatable(L, "Rendering");
 		lua_getfield(L, -1, "camera");
 		if (lua_isnil(L, -1)) {
@@ -145,30 +143,26 @@ void BSGEWindow::render_loop() {
 			printf("%s", ANSI_NC);
 
 			glfwSetWindowShouldClose(window, true);
+
+			return;
 		} else {
-			BSGECameraMetadata* camera = (BSGECameraMetadata*)lua_touserdata(L, -1);
+			BSGECameraMetadata *camera = (BSGECameraMetadata *)lua_touserdata(L, -1);
 			glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
 
 			glUseProgram(default_shader);
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
-			// auto t1 = std::chrono::high_resolution_clock::now();
-
-			// run the lua shit
-			bsge_call_lua_render(L, delta_time);
-
-			// auto t2 = std::chrono::high_resolution_clock::now();
-			// auto duration = std::chrono::duration_cast<std::chrono::milliseconds>( t2 - t1 ).count();
+			bsge_call_lua_render(lua, delta_time);
 
 			{
 				ImGui_ImplOpenGL3_NewFrame();
 				ImGui_ImplGlfw_NewFrame();
 
 				ImGui::NewFrame();
-				ImGui::Begin("LuaBSGE Engine Info"); 
+				ImGui::Begin("LuaBSGE Engine Info");
 				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-				
+
 				ImGui::End();
 			}
 
@@ -178,19 +172,20 @@ void BSGEWindow::render_loop() {
 		// clear the stack from the camera check
 		lua_remove(L, -1);
 		lua_remove(L, -1);
-		
+
 		int stack_size = lua_gettop(L);
-		if (stack_warning_threshold < stack_size) printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
+		if (stack_warning_threshold < stack_size)
+			printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
 
 		// frame end
 		float calc_time = glfwGetTime() - current_frame;
 		last_frame = current_frame;
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+
 		const GLenum err = glGetError();
 		if (err != GL_NO_ERROR) {
 			printf("[main.cpp] exit: OpenGL error: %i\n", err);

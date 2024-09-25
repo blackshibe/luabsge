@@ -17,8 +17,11 @@ DEPEXT	  := d
 OBJEXT	  := o
 
 #Flags, Libraries and Includes
-CFLAGS	  := -std=c++17 -O2 -Wall
-LIB		 := -llua -lfreetype -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp
+
+# pkg-config --cflags freetype2
+FREETYPE_FLAGS = -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/sysprof-6 -pthread
+CFLAGS	  := -std=c++17 -O2 -Wall $(FREETYPE_FLAGS)
+LIB		 := -llua -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp -lfreetype
 INC		 := -I$(INCDIR) -I/usr/local/include
 INCDEP	  := -I$(INCDIR)
 

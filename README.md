@@ -7,9 +7,11 @@ Small "game engine" that integrates Lua with OpenGL.<br/>
 ## dependencies
 
 -   glm
+-   glfw
 -   freetype2
 -   imgui
--   glfw
+-   assimp
+-   sol2
 
 ## compilation
 
@@ -19,6 +21,5 @@ note: LuaBSGE is only tested on Linux right now
 
 ## todo
 
--   fix the font rendering it's completely broken
 -   Create a universal class constructor
 -   Make creating new classes easier

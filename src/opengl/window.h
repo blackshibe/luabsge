@@ -3,6 +3,7 @@
 #include "../glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <lua.hpp>
+#include <sol/sol.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,9 +17,9 @@ public:
 	unsigned int default_shader;
 	float program_time = 0;
 
-	GLFWwindow* window;
-	lua_State* L;
-	const char* name = "Window";
+	GLFWwindow *window;
+	sol::state *lua;
+	const char *name = "Window";
 
 	BSGEWindow();
 	void init();

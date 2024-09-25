@@ -1,4 +1,5 @@
-#include <lua.hpp>
 #include "../../opengl/freetype.h"
+#include <lua.hpp>
+#include <sol/sol.hpp>
 
-void lua_bsge_init_template(lua_State* L);
+void lua_bsge_init_template(sol::state &lua);

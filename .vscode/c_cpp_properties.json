@@ -1,14 +1,17 @@
 {
-	"configurations": [
-		{
-			"name": "Linux",
-			"includePath": ["src/"],
-			"defines": [],
-			"compilerPath": "/usr/bin/clang",
-			"cStandard": "c17",
-			"cppStandard": "c++17",
-			"intelliSenseMode": "linux-clang-x64"
-		}
-	],
-	"version": 4
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "src/",
+                "/usr/include/freetype2"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/g++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
 }

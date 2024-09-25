@@ -1,15 +1,15 @@
 #include <lua.hpp>
 
-#include "../luax.h"
-#include "../class/signal.h"
-#include "../../opengl/freetype.h"
 #include "../../include/colors.h"
+#include "../../opengl/freetype.h"
+#include "../class/signal.h"
+#include "../luax.h"
 
 #include "../../opengl/window.h"
 #include "../lua.h"
 
 int fuck_function;
-int fuck(lua_State* L) {
+int fuck(lua_State *L) {
 	printf("%s[rendering.cpp] error in luarender:\n%s\n", ANSI_RED, lua_tostring(L, -1));
 
 	luaL_traceback(L, L, NULL, 2);
@@ -17,7 +17,8 @@ int fuck(lua_State* L) {
 	return 0;
 }
 
-int bsge_call_lua_render(lua_State* L, float delta_time) {
+int bsge_call_lua_render(sol::state *lua, float delta_time) {
+	lua_State *L = lua->lua_state();
 
 	luaL_getmetatable(L, "Rendering");
 	lua_getfield(L, -1, "step");
@@ -35,9 +36,9 @@ int bsge_call_lua_render(lua_State* L, float delta_time) {
 }
 
 // deprecated probably
-int lua_bsge_draw_font(lua_State* L) {
+int lua_bsge_draw_font(lua_State *L) {
 
-	const char* text = lua_tostring(L, 1);
+	const char *text = lua_tostring(L, 1);
 	// struct Textlabel* font = (Textlabel*)lua_touserdata(L, 2);
 
 	// freetype_render(
@@ -55,13 +56,17 @@ static const luaL_Reg bsge_rendering_methods[] = {
 	{NULL, NULL},
 };
 
-int lua_bsge_init_rendering(lua_State* L) {
+int lua_bsge_init_rendering(sol::state &lua) {
+	lua_State *L = lua.lua_state();
+
 	lua_pushcfunction(L, fuck);
 	fuck_function = lua_gettop(L);
 	return 0;
 }
 
-int lua_bsge_connect_rendering(BSGEWindow _window, lua_State* L) {
+int lua_bsge_connect_rendering(BSGEWindow _window, sol::state &lua) {
+	lua_State *L = lua.lua_state();
+
 	luaL_newmetatable(L, "Rendering");
 	luaL_setfuncs(L, bsge_rendering_methods, 0);
 

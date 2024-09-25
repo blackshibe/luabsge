@@ -1,16 +1,18 @@
+#define SOL_ALL_SAFETIES_ON 1
+
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include <cstdio>
-#include <lua.hpp>
 #include <iostream>
+#include <lua.hpp>
 
-#include "unistd.h"
 #include "math.h"
+#include "unistd.h"
 
-#include "opengl/window.h"
+#include "lua/lua.h"
 #include "lua/luax.h"
 #include "opengl/freetype.h"
-#include "lua/lua.h"
+#include "opengl/window.h"
 
 using std::cout;
 
@@ -18,17 +20,16 @@ using std::cout;
 // https://csl.name/post/lua-and-cpp/
 // https://www.lua.org/pil/28.1.html
 
-void window_resize(GLFWwindow* window, int width, int height) {
-	((BSGEWindow*)glfwGetWindowUserPointer(window))->size_callback(width, height);
+void window_resize(GLFWwindow *window, int width, int height) {
+	((BSGEWindow *)glfwGetWindowUserPointer(window))->size_callback(width, height);
 	freetype_resize_window(width, height);
 }
 
-void err(int error_code, const char* description) {
+void err(int error_code, const char *description) {
 	printf("[main.cpp] glfw error callback called because '%s'\n", description);
-
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 	cout << "[main.cpp] running " << LUA_VERSION << "\n";
 
 	glfwInit();
@@ -37,23 +38,22 @@ int main(int argc, char* argv[]) {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	lua_State* L = luaL_newstate();
+	sol::state lua;
 	BSGEWindow window = BSGEWindow();
 	window.init();
-	window.L = L;
+	window.lua = &lua;
 
 	if (window.status != 0) {
 		return EXIT_FAILURE;
 	}
 
-	if (bsge_lua_init_state(&window, L) == -1) {
+	if (bsge_lua_init_state(&window, lua) == -1) {
 		return EXIT_FAILURE;
 	}
 
-	if (luax_run_script(L, "entry.lua")) {
-
+	if (luax_run_script(lua, "entry.lua")) {
 		glfwSetFramebufferSizeCallback(window.window, window_resize);
-		freetype_init(L);
+		freetype_init(lua);
 
 		if (window.status == -1) {
 			return EXIT_FAILURE;
@@ -61,12 +61,10 @@ int main(int argc, char* argv[]) {
 
 		window_resize(window.window, window.width, window.height);
 		window.render_loop();
-	}
-	else {
+	} else {
 		printf("[main.cpp] entry.lua failed to run. game closed.\n");
 	}
 
-	lua_close(L);
 	glfwTerminate();
 	freetype_quit();
 

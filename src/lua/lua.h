@@ -22,8 +22,6 @@
 #include "class/signal.h"
 #include "class/template.h"
 #include "class/textlabel.h"
-#include "class/vector2.h"
-#include "class/vector3.h"
 
 int64_t now();
 

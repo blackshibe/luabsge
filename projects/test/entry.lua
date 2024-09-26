@@ -68,9 +68,10 @@ World.rendering.step:connect(function(delta_time)
 -- 	for i = 1, 100000000 do
 -- 	end
 
--- 	demo_label.text = now()
+	-- demo_label.text = tostring(now())
 -- 	demo_label.position = glm.vec3(10, 40, 0)
 
+    demo_label.position = Vec2.new(10, 40 + math.sin(now() / 100) * 100)
     demo_label:render()
 	-- textlabel:render()
 end)

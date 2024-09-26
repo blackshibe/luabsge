@@ -27,7 +27,7 @@ int get_info_for_char(lua_State *L) {
 void lua_bsge_init_font(sol::state &lua) {
 	lua_State *L = lua.lua_state();
 	auto load = [&L](Font *font, const char *path) {
-		if (!freetype_load_font(*font, path)) {
+		if (!freetype_load_font(font, path)) {
 			luax_push_error(L, "couldn't load font");
 			return 1;
 		}
@@ -37,6 +37,6 @@ void lua_bsge_init_font(sol::state &lua) {
 
 	lua.new_usertype<Font>("Font",
 						   "load", load,
-						   "get_info_for_char", get_info_for_char,
-						   "dbg_get_data", dbg_get_data);
+						   "get_info_for_char", &get_info_for_char,
+						   "dbg_get_data", &dbg_get_data);
 }

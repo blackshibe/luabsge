@@ -1,14 +1,4 @@
 
-local textlabel = _temp_TextLabel()
-textlabel.font = font
-
-local demo_label = _temp_TextLabel()
-demo_label.font = font
-
-local camera = _temp_Camera()
-camera.fov = 70 -- degrees
-camera.near_clip = 0.1
-camera.far_clip = 100
 
 local objects = {}
 local paths = {

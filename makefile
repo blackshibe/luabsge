@@ -1,7 +1,7 @@
 # https://stackoverflow.com/questions/5178125/how-to-place-object-files-in-separate-subdirectory
 
 # Compiler and Linker
-CC		  := g++
+CC		  := ccache g++
 
 #The Target Binary Program
 TARGET	  := program
@@ -20,7 +20,7 @@ OBJEXT	  := o
 
 # pkg-config --cflags freetype2
 FREETYPE_FLAGS = -I/usr/include/freetype2 -I/usr/include/libpng16 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/sysprof-6 -pthread
-CFLAGS	  := -std=c++17 -O2 -Wall $(FREETYPE_FLAGS)
+CFLAGS	  := -std=c++17 -Wall $(FREETYPE_FLAGS)
 LIB		 := -llua -lglfw -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp -lfreetype
 INC		 := -I$(INCDIR) -I/usr/local/include
 INCDEP	  := -I$(INCDIR)

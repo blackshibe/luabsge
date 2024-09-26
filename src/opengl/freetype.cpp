@@ -1,9 +1,9 @@
 #include "freetype.h"
 
-#include "../opengl/shader.h"
-#include "../lua/luax.h"
 #include "../include/colors.h"
 #include "../lua/lua.h"
+#include "../lua/luax.h"
+#include "../opengl/shader.h"
 
 GLuint freetype_text_shader;
 GLuint freetype_text_shader_nosampling;
@@ -12,17 +12,18 @@ FT_Library ft;
 
 void freetype_render(
 	struct Textlabel label,
-	GLuint shader
-) {
-	glUseProgram(shader);
-	glUniform3f(glGetUniformLocation(shader, "textColor"), label.color.r, label.color.g, label.color.b);
-	glActiveTexture(GL_TEXTURE0);
-	glBindVertexArray(freetype_vao);
+	GLuint shader) {
+
+	const char *text = label.text;
+	Font font = label.font;
 
 	float y = label.position.y + FREETYPE_BASE_FONT_HEIGHT * label.scale;
 	float x = label.position.x;
-	const char* text = label.text;
-	Font font = label.font;
+
+	glUseProgram(shader);
+	glUniform3f(glGetUniformLocation(shader, "textColor"), label.color.x, label.color.y, label.color.z);
+	glActiveTexture(GL_TEXTURE0);
+	glBindVertexArray(freetype_vao);
 
 	for (int i = 0; i < strlen(text); i++) {
 		struct Character ch = font.data[(int)text[i]];
@@ -42,13 +43,13 @@ void freetype_render(
 
 		// // update VBO for each character
 		float vertices[6][4] = {
-			{ xpos,     ypos - h,   0.0f, 0.0f },
-			{ xpos,     ypos,       0.0f, 1.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
+			{xpos, ypos - h, 0.0f, 0.0f},
+			{xpos, ypos, 0.0f, 1.0f},
+			{xpos + w, ypos, 1.0f, 1.0f},
 
-			{ xpos,     ypos - h,   0.0f, 0.0f },
-			{ xpos + w, ypos,       1.0f, 1.0f },
-			{ xpos + w, ypos - h,   1.0f, 0.0f }
+			{xpos, ypos - h, 0.0f, 0.0f},
+			{xpos + w, ypos, 1.0f, 1.0f},
+			{xpos + w, ypos - h, 1.0f, 0.0f}
 
 		};
 
@@ -70,7 +71,7 @@ void freetype_render(
 	glUseProgram(0);
 }
 
-void freetype_init(lua_State* L) {
+void freetype_init(lua_State *L) {
 	printf("[freetype.h] init\n");
 
 	lua_pushnumber(L, FREETYPE_BASE_FONT_HEIGHT);
@@ -85,7 +86,6 @@ void freetype_init(lua_State* L) {
 	}
 	if (!compiled_nosampling) {
 		printf("%s[freetype.h] couldn't compile nosampling shader%s\n", ANSI_RED, ANSI_NC);
-
 	}
 
 	// configure VAO/VBO for texture quads
@@ -114,8 +114,7 @@ void freetype_resize_window(float width, float height) {
 
 	if (width > height) {
 		offset_y = (height - width) / 2;
-	}
-	else {
+	} else {
 		offset_x = (width - height) / 2;
 	}
 
@@ -129,7 +128,7 @@ void freetype_resize_window(float width, float height) {
 	glUniformMatrix4fv(glGetUniformLocation(freetype_text_shader_nosampling, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 }
 
-bool freetype_load_font(struct Font* font, const char* font_directory) {
+bool freetype_load_font(struct Font *font, const char *font_directory) {
 	if (FT_Init_FreeType(&ft)) {
 		printf("[freetype.h] couldn't initialize\n");
 		return false;
@@ -140,7 +139,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 		printf("[freetype.h] couldn't load font\n");
 		return false;
 	}
-	
+
 	else {
 		// set size to load glyphs as
 		FT_Set_Pixel_Sizes(face, 0, FREETYPE_BASE_FONT_HEIGHT);
@@ -149,10 +148,11 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 		// load first 256 characters of ASCII set
-		for (unsigned char c = 0; c < FREETYPE_CHARSET_SIZE-1; c++) {
-			
-			// Load character glyph 
-			if (FT_Load_Char(face, c, FT_LOAD_RENDER)) continue;
+		for (unsigned char c = 0; c < FREETYPE_CHARSET_SIZE - 1; c++) {
+
+			// Load character glyph
+			if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+				continue;
 
 			// generate texture
 			unsigned int texture;
@@ -167,8 +167,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 				0,
 				GL_RED,
 				GL_UNSIGNED_BYTE,
-				face->glyph->bitmap.buffer
-			);
+				face->glyph->bitmap.buffer);
 
 			// set texture options
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -181,8 +180,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 				texture,
 				face->glyph->advance.x,
 				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
-				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top)
-			};
+				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top)};
 
 			font->data[c] = character;
 		}
@@ -191,6 +189,7 @@ bool freetype_load_font(struct Font* font, const char* font_directory) {
 
 	// destroy FreeType once we're finished
 	FT_Done_Face(face);
+
 	return true;
 }
 

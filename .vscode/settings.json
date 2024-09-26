@@ -72,7 +72,12 @@
 		"cinttypes": "cpp",
 		"typeindex": "cpp",
 		"typeinfo": "cpp",
-		"variant": "cpp"
+		"variant": "cpp",
+		"span": "cpp",
+		"any": "cpp",
+		"format": "cpp",
+		"stdfloat": "cpp",
+		"text_encoding": "cpp"
 	},
 	"Lua.diagnostics.globals": ["now", "World", "Vector3", "Transform", "Color", "Vector2"],
 	"robloxLsp.diagnostics.disable": ["undefined-global"]

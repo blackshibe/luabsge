@@ -29,13 +29,18 @@ struct Font {
 	const char *path;
 };
 
-// storing pointers ended up extremely broken
 struct Textlabel {
-	struct Font font;
+	Textlabel() {
+		color = glm::vec3(1.0f, 1.0f, 1.0f);
+		position = glm::vec2(10.0f, 10.0f);
+		scale = 1.0f;
+		text = "Hello world";
+	};
 
 	glm::vec3 color;	// vertex color
 	glm::vec2 position; // currently uses a fixed top-left anchor
 	float scale;		// width of the font is FREETYPE_BASE_FONT_HEIGHT * 96
+	struct Font font;
 
 	const char *text;
 };

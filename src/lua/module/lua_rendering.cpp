@@ -35,27 +35,6 @@ int bsge_call_lua_render(sol::state *lua, float delta_time) {
 	return 0;
 }
 
-// deprecated probably
-int lua_bsge_draw_font(lua_State *L) {
-
-	const char *text = lua_tostring(L, 1);
-	// struct Textlabel* font = (Textlabel*)lua_touserdata(L, 2);
-
-	// freetype_render(
-	// 	text,
-	// 	font,
-	// 	freetype_text_shader,
-	// 	glm::vec3(1.0f, 1.0f, 1.0f)
-	// );
-
-	return 0;
-}
-
-static const luaL_Reg bsge_rendering_methods[] = {
-	{"draw_font", lua_bsge_draw_font},
-	{NULL, NULL},
-};
-
 int lua_bsge_init_rendering(sol::state &lua) {
 	lua_State *L = lua.lua_state();
 
@@ -68,7 +47,6 @@ int lua_bsge_connect_rendering(BSGEWindow _window, sol::state &lua) {
 	lua_State *L = lua.lua_state();
 
 	luaL_newmetatable(L, "Rendering");
-	luaL_setfuncs(L, bsge_rendering_methods, 0);
 
 	lua_bsge_new_signal(L);
 	lua_setfield(L, -2, "step");

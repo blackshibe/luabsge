@@ -1,4 +1,3 @@
-#define SOL_ALL_SAFETIES_ON 1
 
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -14,8 +13,6 @@
 #include "opengl/freetype.h"
 #include "opengl/window.h"
 
-using std::cout;
-
 // https://learnopengl.com/Getting-started/Transformations
 // https://csl.name/post/lua-and-cpp/
 // https://www.lua.org/pil/28.1.html
@@ -30,7 +27,7 @@ void err(int error_code, const char *description) {
 }
 
 int main(int argc, char *argv[]) {
-	cout << "[main.cpp] running " << LUA_VERSION << "\n";
+	printf("[main.cpp] running %s\n", LUA_VERSION);
 
 	glfwInit();
 	glfwSetErrorCallback(err);
@@ -47,13 +44,13 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	freetype_init(lua);
 	if (bsge_lua_init_state(&window, lua) == -1) {
 		return EXIT_FAILURE;
 	}
 
 	if (luax_run_script(lua, "entry.lua")) {
 		glfwSetFramebufferSizeCallback(window.window, window_resize);
-		freetype_init(lua);
 
 		if (window.status == -1) {
 			return EXIT_FAILURE;

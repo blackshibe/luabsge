@@ -5,7 +5,14 @@ if [ -z "$1" ]
     echo "Ex. test"
 else
 	echo "[run.sh] compiling"
-	make   
+
+	# run make and don't run program if it errors
+	if make; then
+		echo "[run.sh] compiled"
+	else
+		echo "[run.sh] failed to compile"
+		exit
+	fi
 
 	echo "[run.sh] running"
 

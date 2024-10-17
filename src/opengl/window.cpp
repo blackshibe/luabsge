@@ -181,7 +181,7 @@ void BSGEWindow::render_loop() {
 		float calc_time = glfwGetTime() - current_frame;
 		last_frame = current_frame;
 
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		// ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

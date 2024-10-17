@@ -13,7 +13,8 @@ void lua_bsge_init_textlabel(sol::state &lua) {
 								"color", &Textlabel::color,
 								"position", &Textlabel::position,
 								"scale", &Textlabel::scale,
-								"text", &Textlabel::text,
+								// "text", &Textlabel::text,
+								"text", sol::property(&Textlabel::get_text, &Textlabel::set_text),
 								"font", &Textlabel::font,
 								"render", &render);
 }

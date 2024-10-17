@@ -1,15 +1,14 @@
 ---@diagnostic disable: undefined-global
 
-collectgarbage("stop")
+local function map(a, b, c, d, e)
+	return (a - b) / (c - b) * (e - d) + d
+end
+
 local font = Font.new()
 font:dbg_get_data()
 font:load("font/FiraCode-Regular.ttf")
-print(font)
 
 font:dbg_get_data()
-
-local demo_label = Textlabel.new()
-demo_label.font = font
 
 local camera = Camera.new()
 camera.fov = 70 -- degrees
@@ -18,6 +17,56 @@ camera.far_clip = 100
 
 Template.new()
 Template.function_calls = 1
+
+local tbl = {
+	1, 1, 1, 1, 1, 5, 5, 5, 2, 1, 5
+}
+
+local str_tbl = "Dane: "
+for i, v in pairs(tbl) do
+	str_tbl = str_tbl .. tostring(v)
+	if i ~= #tbl then
+		str_tbl = str_tbl .. " "
+	end
+end
+
+local min_appearances = #tbl / 2
+local appearances = {}
+
+for i, v in pairs(tbl) do
+	appearances[v] = appearances[v] or 0
+	appearances[v] = appearances[v] + 1
+end
+
+local winner = "Brak lidera"
+for i, v in pairs(appearances) do
+	if v > min_appearances then
+		winner = "Lider: " .. tostring(i)
+		break
+	end
+end
+
+local steps = {
+	"Kalkulowanie lidera!!",
+	str_tbl,
+	tostring(winner),
+}
+
+local state = {}
+local time_ms = 0
+for i, v in pairs(steps) do
+	local data = {
+		label = Textlabel.new();
+	}
+
+	data.label.font = font
+	data.label.text = v
+	data.show_time = i * 2000
+	data.show_time_finish = data.show_time + 2000
+	data.label.position = Vec2.new(0, 64 * (i - 1))
+
+	state[i] = data
+end
 
 -- local objects = {}
 -- local paths = {
@@ -47,7 +96,14 @@ Template.function_calls = 1
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)
--- 	fps = fps + 1
+	time_ms = time_ms + (delta_time * 1000)
+
+	for i, v in pairs(state) do
+		local alpha = math.max(math.min(map(time_ms, v.show_time, v.show_time_finish, 0, 1), 1), 0)
+		v.label.scale = alpha * 0.5
+		v.label.color = Vec3.new(1, 1, math.abs(math.sin(now() / 5000)))
+		v.label:render()
+	end
 
 -- 	local to_render = objects[(i % #objects) + 1]
 
@@ -65,12 +121,6 @@ World.rendering.step:connect(function(delta_time)
 -- 		i = i + 1
 -- 	end
 
-	demo_label.text = tostring(now())
-	demo_label.color = Vec3.new(0.5, 0.1, math.abs(math.sin(now() / 1000)))
-
-	demo_label.position = Vec2.new(10, 40)
-    demo_label:render()
-	-- textlabel:render()
 end)
 
 -- print("Lua entry file finished")

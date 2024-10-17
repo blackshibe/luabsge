@@ -23,3 +23,5 @@ note: LuaBSGE is only tested on Linux right now
 
 -   Create a universal class constructor
 -   Make creating new classes easier
+-   Text rendering has really weird positioning
+-   Text rendering cuts off with high scale

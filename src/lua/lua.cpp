@@ -85,16 +85,15 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 
 	printf("[lua.cpp] init modules\n");
 	lua_bsge_init_rendering(lua);
-	lua_bsge_init_window(L);
 	lua_bsge_init_glm_bindings(lua);
 
 	// World = {...}
 	printf("[lua.cpp] init World\n");
 	lua_newtable(L);
 
-	lua_bsge_connect_rendering(*window, lua);
-	lua_bsge_connect_window(*window, L);
-	lua_bsge_connect_ui(*window, L);
+	lua_bsge_connect_rendering(window, lua);
+	lua_bsge_connect_window(window, lua);
+	lua_bsge_connect_ui(window, L);
 
 	lua_setglobal(L, "World");
 

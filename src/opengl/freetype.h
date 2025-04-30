@@ -33,6 +33,7 @@ struct Textlabel {
 	Textlabel() {
 		color = glm::vec3(1.0f, 1.0f, 1.0f);
 		position = glm::vec2(10.0f, 10.0f);
+		anchor = glm::vec2(0.0f, 0.0f);
 		scale = 1.0f;
 		text = "Hello world";
 	};
@@ -45,9 +46,10 @@ struct Textlabel {
 		text = strdup(new_text);
 	}
 
-	glm::vec3 color;	// vertex color
-	glm::vec2 position; // currently uses a fixed top-left anchor
-	float scale;		// width of the font is FREETYPE_BASE_FONT_HEIGHT * 96
+	glm::vec3 color; // vertex color
+	glm::vec2 position;
+	glm::vec2 anchor;
+	float scale; // width of the font is FREETYPE_BASE_FONT_HEIGHT * 96
 	struct Font font;
 
 	const char *text;

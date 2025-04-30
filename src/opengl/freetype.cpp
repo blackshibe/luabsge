@@ -10,6 +10,13 @@ GLuint freetype_text_shader_nosampling;
 GLuint freetype_vao, freetype_vbo;
 FT_Library ft;
 
+struct TextRenderData {
+	float w;
+	float h;
+	float x;
+	float y;
+};
+
 void freetype_render(
 	struct Textlabel label,
 	GLuint shader) {
@@ -17,29 +24,63 @@ void freetype_render(
 	const char *text = label.text;
 	Font font = label.font;
 
-	float y = label.position.y + FREETYPE_BASE_FONT_HEIGHT * label.scale;
-	float x = label.position.x;
+	float total_y = FREETYPE_BASE_FONT_HEIGHT;
+	float total_x = 0;
 
 	glUseProgram(shader);
 	glUniform3f(glGetUniformLocation(shader, "textColor"), label.color.x, label.color.y, label.color.z);
 	glActiveTexture(GL_TEXTURE0);
 	glBindVertexArray(freetype_vao);
 
+	// count text size data
+	int text_length = strlen(text);
+	TextRenderData data[text_length];
+
 	for (int i = 0; i < strlen(text); i++) {
 		struct Character ch = font.data[(int)text[i]];
 
 		// newline
 		if (text[i] == 10) {
-			y += FREETYPE_BASE_FONT_HEIGHT * label.scale;
-			x = label.position.x;
+			total_y += FREETYPE_BASE_FONT_HEIGHT;
+			total_x = label.position.x;
 			continue;
 		}
 
-		float w = ch.size.x * label.scale;
-		float h = ch.size.y * label.scale;
+		float w = ch.size.x;
+		float h = ch.size.y;
 
-		float xpos = x + (ch.bearing.x * label.scale);
-		float ypos = y + (ch.size.y - ch.bearing.y) * label.scale;
+		float xpos = total_x + (ch.bearing.x);
+		float ypos = total_y + (ch.size.y - ch.bearing.y);
+
+		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
+		total_x += (ch.advance >> 6); // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+
+		data[i] = {w, h, xpos, ypos};
+	}
+
+	total_x *= label.scale;
+	total_y *= label.scale;
+
+	for (int i = 0; i < strlen(text); i++) {
+		struct Character ch = font.data[(int)text[i]];
+		TextRenderData entry = data[i];
+
+		// process newline
+		if (text[i] == 10) {
+			continue;
+		}
+
+		float w = entry.w * label.scale;
+		float h = entry.h * label.scale;
+		float xpos = entry.x * label.scale;
+		float ypos = entry.y * label.scale;
+
+		//  use anchor
+		xpos = (xpos - total_x * label.anchor.x);
+		ypos = (ypos - total_y * label.anchor.y);
+
+		xpos += label.position.x;
+		ypos += label.position.y;
 
 		// // update VBO for each character
 		float vertices[6][4] = {
@@ -63,9 +104,6 @@ void freetype_render(
 
 		// render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-
-		// now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.advance >> 6) * label.scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
 	}
 
 	glUseProgram(0);

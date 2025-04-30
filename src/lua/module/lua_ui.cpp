@@ -1,6 +1,6 @@
 #include "lua_ui.h"
 
-int lua_bsge_load_font(lua_State* L) {
+int lua_bsge_load_font(lua_State *L) {
 
 	// struct Textlabel* font = (Textlabel*)lua_newuserdata(L, sizeof(Textlabel));
 	// font->position = glm::vec2(0.0f, 0.0f);
@@ -17,7 +17,7 @@ int lua_bsge_load_font(lua_State* L) {
 	return 1;
 }
 
-int lua_bsge_load_image(lua_State* L) {
+int lua_bsge_load_image(lua_State *L) {
 	return 0;
 	// bsgeImage* texture = (bsgeImage*)lua_newuserdata(L, sizeof(bsgeImage));
 
@@ -69,7 +69,7 @@ const luaL_Reg bsge_ui_methods[] = {
 	{NULL, NULL},
 };
 
-int lua_bsge_connect_ui(BSGEWindow _window, lua_State* L) {
+int lua_bsge_connect_ui(BSGEWindow *_window, lua_State *L) {
 	luaL_newmetatable(L, "Ui");
 	luaL_setfuncs(L, bsge_ui_methods, 0);
 
@@ -79,4 +79,3 @@ int lua_bsge_connect_ui(BSGEWindow _window, lua_State* L) {
 
 	return 0;
 }
-

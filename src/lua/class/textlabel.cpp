@@ -12,8 +12,8 @@ void lua_bsge_init_textlabel(sol::state &lua) {
 	lua.new_usertype<Textlabel>("Textlabel",
 								"color", &Textlabel::color,
 								"position", &Textlabel::position,
+								"anchor", &Textlabel::anchor,
 								"scale", &Textlabel::scale,
-								// "text", &Textlabel::text,
 								"text", sol::property(&Textlabel::get_text, &Textlabel::set_text),
 								"font", &Textlabel::font,
 								"render", &render);

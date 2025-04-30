@@ -1,33 +1,19 @@
-#include <lua.hpp>
+#include "lua_window.h"
 
-#include "../lua.h"
+BSGEWindow *window;
 
-BSGEWindow window;
-int lua_bsge_window_quit(lua_State *L) {
-	printf("The program appears to have been told to fuck off\n");
-	glfwSetWindowShouldClose(window.window, true);
-
-	return 0;
+void lua_bsge_window_quit() {
+	glfwSetWindowShouldClose(window->window, true);
 }
 
-static const luaL_Reg bsge_window_methods[] = {
-	{"quit", lua_bsge_window_quit},
-	{NULL, NULL},
-};
-
-int lua_bsge_init_window(lua_State *L) {
-	return 0;
+glm::vec2 get_window_dimensions() {
+	return glm::vec2(window->width, window->height);
 }
 
-int lua_bsge_connect_window(BSGEWindow _window, lua_State *L) {
+void lua_bsge_connect_window(BSGEWindow *_window, sol::state &lua) {
 	window = _window;
 
-	luaL_newmetatable(L, "Window");
-	luaL_setfuncs(L, bsge_window_methods, 0);
-
-	// lua_pushstring(L, "i fuck men");
-	// lua_setfield(L, -2, "ass");
-	lua_setfield(L, -2, "window");
-
-	return 0;
+	lua["Window"] = lua.create_table_with(
+		"quit", &lua_bsge_window_quit,
+		"get_window_dimensions", &get_window_dimensions);
 }

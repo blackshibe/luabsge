@@ -38,6 +38,7 @@ void BSGEWindow::init() {
 	glEnable(GL_DEPTH_TEST);
 }
 
+// todo: dynamic resizing that works with textlabels
 void BSGEWindow::size_callback(int width, int height) {
 	printf("[window.cpp] resized window to %i, %i\n", width, height);
 
@@ -45,7 +46,6 @@ void BSGEWindow::size_callback(int width, int height) {
 	this->height = height;
 	glViewport(0, 0, width, height);
 
-	// todo: dynamic resizing that works with textlabels
 	if (width > height) {
 		this->height = width;
 		glViewport(0, (height - width) / 2, width, width);
@@ -53,6 +53,8 @@ void BSGEWindow::size_callback(int width, int height) {
 		this->width = height;
 		glViewport((width - height) / 2, 0, height, height);
 	}
+
+	freetype_resize_window(width, height);
 }
 
 void BSGEWindow::render_loop() {
@@ -139,7 +141,6 @@ void BSGEWindow::render_loop() {
 
 			printf("[window.cpp] no camera defined!\n");
 			printf("[window.cpp] as there is currently no fallback, the window will shut down.\n");
-
 			printf("%s", ANSI_NC);
 
 			glfwSetWindowShouldClose(window, true);

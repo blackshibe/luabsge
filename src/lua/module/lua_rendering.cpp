@@ -43,7 +43,7 @@ int lua_bsge_init_rendering(sol::state &lua) {
 	return 0;
 }
 
-int lua_bsge_connect_rendering(BSGEWindow _window, sol::state &lua) {
+int lua_bsge_connect_rendering(BSGEWindow *_window, sol::state &lua) {
 	lua_State *L = lua.lua_state();
 
 	luaL_newmetatable(L, "Rendering");

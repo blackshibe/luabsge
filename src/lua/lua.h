@@ -10,6 +10,7 @@
 #include "../opengl/window.h"
 
 #include "module/lua_glm_bindings.h"
+#include "module/lua_imgui_bindings.h"
 #include "module/lua_rendering.h"
 #include "module/lua_ui.h"
 #include "module/lua_window.h"

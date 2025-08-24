@@ -8,10 +8,21 @@ int mesh_load(meshData* bsgemesh, const char* path) {
 
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
+	
+	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+		printf("[mesh.cpp] ERROR: Failed to load mesh: %s\n", importer.GetErrorString());
+		return 1;
+	}
+	
+	if (scene->mNumMeshes == 0) {
+		printf("[mesh.cpp] ERROR: No meshes found in file: %s\n", path);
+		return 1;
+	}
+	
 	aiNode* root_node = scene->mRootNode;
 
 	if (root_node->mNumMeshes > 1) {
-		return 1;
+		printf("[mesh.cpp] WARNING: Multiple meshes found, using first mesh only\n");
 	}
 
 	aiMesh* mesh = scene->mMeshes[0];
@@ -131,6 +142,7 @@ void lua_bsge_init_mesh(sol::state &lua) {
 	};
 
 	lua.new_usertype<meshData>("Mesh",
+							  sol::constructors<meshData()>(),
 							  "load", load,
 							  "render", render,
 							  "texture", sol::property([](meshData *mesh) { return mesh->texture; }, set_texture));

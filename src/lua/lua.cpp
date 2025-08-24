@@ -86,6 +86,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	printf("[lua.cpp] init modules\n");
 	lua_bsge_init_rendering(lua);
 	lua_bsge_init_glm_bindings(lua);
+	lua_bsge_init_imgui_bindings(lua);
 
 	// World = {...}
 	printf("[lua.cpp] init World\n");

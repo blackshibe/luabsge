@@ -129,7 +129,7 @@ void BSGEWindow::render_loop() {
 
 		// clear the screen
 		glClearColor(0.1, 0.1, 0.1, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// get camera projection and coordinates from the Lua context
 		lua_State *L = lua->lua_state();
@@ -154,18 +154,11 @@ void BSGEWindow::render_loop() {
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
 			glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
+			ImGui_ImplOpenGL3_NewFrame();
+			ImGui_ImplGlfw_NewFrame();
+			ImGui::NewFrame();
+
 			bsge_call_lua_render(lua, delta_time);
-
-			{
-				ImGui_ImplOpenGL3_NewFrame();
-				ImGui_ImplGlfw_NewFrame();
-
-				ImGui::NewFrame();
-				ImGui::Begin("LuaBSGE Engine Info");
-				ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-
-				ImGui::End();
-			}
 
 			ImGui::Render();
 		}
@@ -182,10 +175,9 @@ void BSGEWindow::render_loop() {
 		float calc_time = glfwGetTime() - current_frame;
 		last_frame = current_frame;
 
-		// ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		const GLenum err = glGetError();
 		if (err != GL_NO_ERROR) {

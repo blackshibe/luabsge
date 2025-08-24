@@ -33,10 +33,9 @@ for i, v in pairs(paths) do
 	objects[i] = { texture, mesh }
 end
 
-local next_check = now() + 1
-local fps = 0
 local i = 0
 local time_ms = 0
+local camera_z = 0
 
 local base_matrix = Mat4.new(1)
 camera.position = base_matrix
@@ -55,21 +54,36 @@ World.rendering.step:connect(function(delta_time)
 	-- display_label:render()
 
 	local to_render = objects[(i % #objects) + 1]
-	local pos = Vec3.new(math.sin(now() * 0.001) * 0.5, 0, -1)
-	camera.position = base_matrix:translate(Vec3.new(0, 0, -1))
+
+	camera.position = base_matrix:translate(Vec3.new(0, 0, camera_z))
 
 	to_render[2]:render()
 
-	-- to_render[2]:render()
+	-- ImGui demo window
+	if ImGui.Begin("LuaBSGE ImGui Demo") then
+		ImGui.Text("Hello from Lua ImGui bindings!")
+		ImGui.Separator()
 
-	-- if now() > next_check then
-	-- 	textlabel.text = string.format("memory: %.2f kb", collectgarbage("count"))
+		if ImGui.Button("Click me!") then
+			warn("Button clicked from ImGui!")
+		end
 
-	-- 	next_check = now() + 2000
-	-- 	fps = 0
+		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
+		ImGui.Text("Delta time: " .. string.format("%.3f ms", delta_time * 1000))
 
-	-- 	i = i + 1
-	-- end
+		local alpha_val = math.sin(now() * 0.001) * 0.5 + 0.5
+		ImGui.Text("Animated alpha: " .. string.format("%.2f", alpha_val))
+
+		ImGui.TextColored(1.0, alpha_val, 0.5, 1.0, "Colored text!")
+
+		-- Demo slider
+		local changed, slider_val = ImGui.SliderFloat("Test Slider", 0.5, -10, 10)
+		if changed then
+			camera_z = slider_val
+			ImGui.Text("Slider changed to: " .. string.format("%.2f", slider_val))
+		end
+	end
+	ImGui.End()
 end)
 
 -- print("Lua entry file finished")

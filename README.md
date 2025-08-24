@@ -1,6 +1,6 @@
 # Luabsge
 
-Small "game engine" that integrates Lua with OpenGL.<br/>
+Small rendering engine that integrates Lua with OpenGL.<br/>
 
 ![screenshot](luabsge.png)
 
@@ -21,6 +21,7 @@ note: LuaBSGE is only tested on Linux right now
 
 ## todo
 
+-   Meshes don't render with non-RT
 -   Create a universal class constructor
 -   Make creating new classes easier
 -   Text rendering has really weird positioning

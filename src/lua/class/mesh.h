@@ -26,5 +26,4 @@ struct meshData {
 	unsigned int ebo;
 };
 
-int lua_bsge_new_mesh(lua_State* L);
-void lua_bsge_init_mesh(lua_State* L);
+void lua_bsge_init_mesh(sol::state &lua);

@@ -4,7 +4,7 @@ Small "game engine" that integrates Lua with OpenGL.<br/>
 
 ![screenshot](luabsge.png)
 
-## dependencies
+## dependencies (archlinux)
 
 -   glm
 -   glfw

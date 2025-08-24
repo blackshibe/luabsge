@@ -73,14 +73,14 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 
 	printf("[lua.cpp] init classes\n");
 	lua_bsge_init_template(lua);
-	// lua_bsge_init_mesh(L);
+	lua_bsge_init_mesh(lua);
 	lua_bsge_init_signal(L);
 	// lua_bsge_init_vector3(L);
 	// lua_bsge_init_vector2(L);
 	// lua_bsge_init_color(L);
 	lua_bsge_init_textlabel(lua);
 	lua_bsge_init_font(lua);
-	// lua_bsge_init_image(L);
+	lua_bsge_init_image(lua);
 	lua_bsge_init_camera(lua);
 
 	printf("[lua.cpp] init modules\n");

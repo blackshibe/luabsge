@@ -26,6 +26,7 @@
 #include "class/textlabel.h"
 #include "class/shader.h"
 #include "class/vfx.h"
+#include "class/input.h"
 
 int64_t now();
 

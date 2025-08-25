@@ -88,7 +88,8 @@
 		"queue": "cpp",
 		"ranges": "cpp",
 		"shared_mutex": "cpp",
-		"stack": "cpp"
+		"stack": "cpp",
+		"*.inc": "cpp"
 	},
 	"Lua.diagnostics.globals": [
 		"now",

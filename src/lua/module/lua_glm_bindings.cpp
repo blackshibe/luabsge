@@ -92,6 +92,11 @@ int lua_bsge_init_glm_bindings(sol::state &lua) {
 								"translate", [](const glm::mat4& m, const glm::vec3& v) { 
 									return glm::translate(m, v); 
 								},
+
+								"inverse", [](const glm::mat4& m) { 
+									return glm::inverse(m); 
+								},
+								
 								"rotate", [](const glm::mat4& m, float angle, const glm::vec3& axis) {
 									return glm::rotate(m, angle, axis);
 								},

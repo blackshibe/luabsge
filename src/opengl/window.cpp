@@ -4,6 +4,7 @@
 
 #include "../include/colors.h"
 #include "../lua/class/camera.h"
+#include "../lua/class/input.h"
 #include "../lua/module/lua_rendering.h"
 
 #include "../include/imgui/imgui.h"
@@ -49,6 +50,10 @@ void BSGEWindow::init() {
 	size_callback(framebuffer_width, framebuffer_height);
 	printf("[window.cpp] initialized viewport with framebuffer callback: %i, %i\n", 
 		   framebuffer_width, framebuffer_height);
+	
+	// Initialize input system
+	// TODO move everything to lua_window
+	set_input_window(window);
 }
 
 // todo: dynamic resizing that works with textlabels
@@ -130,6 +135,9 @@ void BSGEWindow::render_loop() {
 		// frame start
 		float current_frame = glfwGetTime();
 		float delta_time = current_frame - last_frame;
+		
+		// update input system
+		update_mouse_input();
 
 		// clear the screen
 		glClearColor(0.1, 0.1, 0.1, 1.0f);

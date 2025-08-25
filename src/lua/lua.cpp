@@ -75,8 +75,6 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_template(lua);
 	lua_bsge_init_mesh(lua);
 	lua_bsge_init_signal(L);
-	// lua_bsge_init_vector3(L);
-	// lua_bsge_init_vector2(L);
 	// lua_bsge_init_color(L);
 	lua_bsge_init_shader(lua);
 	lua_bsge_init_textlabel(lua);
@@ -100,6 +98,8 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_connect_ui(window, L);
 
 	lua_setglobal(L, "World");
+	
+	lua_bsge_init_input(lua);
 
 	printf("[lua.cpp] start\n");
 

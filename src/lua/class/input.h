@@ -1,10 +1,20 @@
-#include "template.h"
+#pragma once
 
-struct TemplateStruct {
-	int function_calls;
-};
+#include <sol/sol.hpp>
+#include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 
-void lua_bsge_init_template(sol::state &lua) {
-	lua.new_usertype<TemplateStruct>("Template",
-									 "function_calls", &TemplateStruct::function_calls);
-}
+void update_mouse_input();
+bool is_left_mouse_down();
+bool is_right_mouse_down();
+bool is_middle_mouse_down();
+void lock_mouse();
+void unlock_mouse();
+bool is_mouse_locked();
+
+glm::vec2 get_mouse_delta();
+glm::vec2 get_mouse_position();
+
+void set_input_window(GLFWwindow* window);
+
+void lua_bsge_init_input(sol::state &lua);

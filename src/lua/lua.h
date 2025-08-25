@@ -11,6 +11,7 @@
 
 #include "module/lua_glm_bindings.h"
 #include "module/lua_imgui_bindings.h"
+#include "module/lua_opengl_constants.h"
 #include "module/lua_rendering.h"
 #include "module/lua_ui.h"
 #include "module/lua_window.h"
@@ -23,6 +24,7 @@
 #include "class/signal.h"
 #include "class/template.h"
 #include "class/textlabel.h"
+#include "class/shader.h"
 
 int64_t now();
 

@@ -12,6 +12,7 @@ struct  meshTBOTriangle {
 struct meshTBOMetadata {
     glm::mat4 matrix;
     float triangles;
+    float padding[3]; 
 };
 
 int meshCount = 0;

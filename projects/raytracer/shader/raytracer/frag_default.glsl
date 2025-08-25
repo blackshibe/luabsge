@@ -261,12 +261,6 @@ RayPixelData TraceRay(Ray ray) {
             triangle.p2 = (mesh.matrix * vec4(triangle.p2, 1.0)).xyz;
             triangle.p3 = (mesh.matrix * vec4(triangle.p3, 1.0)).xyz;
 
-            if (RaySphereIntersect(triangle.p1, 0.5, ray).hit || RaySphereIntersect(triangle.p2, 0.5, ray).hit || RaySphereIntersect(triangle.p3, 0.5, ray).hit) {
-                data.hit = true;
-                data.color = vec3(1.0, 1.0, 1.0);
-                continue;
-            }
-
             TracerRayHitInfo ray_test = ray_intersects_triangle(ray.origin, ray.direction, triangle.p1, triangle.p2, triangle.p3);
             if (ray_test.hit && min_distance > ray_test.intersect_distance) {
                 min_distance = ray_test.intersect_distance;

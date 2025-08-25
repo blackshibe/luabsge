@@ -35,12 +35,21 @@ World.rendering.step:connect(function(delta_time)
 	display_label:render()
 
 	local camera_z = camera_z_spring:update(delta_time)
-	camera.matrix = Mat4.new(1):translate(Vec3.new(0, 0, camera_z)):rotate((now() / 5000) % math.pi * 2, Vec3.new(1))
+	camera.matrix = Mat4.new(1)
+		:translate(Vec3.new(0, 0, -5))
+		:rotate(0.25, Vec3.new(1, 0, 0))
+		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
 	mesh.position = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
-
 	mesh:render()
 
-	-- ImGui demo window
+	Gizmo.set_line_width(0.05)
+	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
+
+	Gizmo.set_line_width(2)
+	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+
 	if ImGui.Begin("LuaBSGE ImGui Demo") then
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()

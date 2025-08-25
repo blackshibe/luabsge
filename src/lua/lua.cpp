@@ -82,6 +82,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_image(lua);
 	lua_bsge_init_camera(lua);
 	lua_bsge_init_vfx(lua);
+	lua_bsge_init_gizmo(lua);
 
 	// temporary
 	lua_bsge_init_sphere_tbo(lua);

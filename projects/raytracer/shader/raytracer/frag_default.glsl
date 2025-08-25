@@ -27,8 +27,7 @@ vec2 hash2(inout float seed) {
 }
 
 // https://www.shadertoy.com/view/fdS3zw
-vec3 cosineSampleHemisphere(vec3 n, inout float seed)
-{
+vec3 cosineSampleHemisphere(vec3 n, inout float seed) {
     vec2 u = hash2(seed);
 
     float r = sqrt(u.x);
@@ -47,11 +46,10 @@ struct Sphere {
     float emissive;
 };
 
+// Each sphere takes 4 texels (vec3+vec3+float+bool = 12+12+4+4 = 32 bytes)
+// 32 bytes / 16 bytes per texel = 2 texels per sphere
 Sphere getSphereAtIndex(int index) {
-    // Each sphere takes 4 texels (vec3+vec3+float+bool = 12+12+4+4 = 32 bytes)
-    // 32 bytes / 16 bytes per texel = 2 texels per sphere
     int baseIndex = index * 2;
-    
     vec4 data0 = texelFetch(spheres_texture, baseIndex);
     vec4 data1 = texelFetch(spheres_texture, baseIndex + 1);
     
@@ -66,8 +64,9 @@ Sphere getSphereAtIndex(int index) {
 
 vec3 GetPixelWorldDirection(vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0; // convert uv to clip space (-1, 1)
-    vec4 clipPos = vec4(-ndc.xy, 0.0, 1.0); // clip position is camera clip position
+    vec4 clipPos = vec4(-ndc.xy, 0.0, -1.0); // clip position is camera clip position
     vec4 viewPos = camera_inv_proj * clipPos; // transform it from clip space to camera space or something
+    viewPos /= viewPos.w;
 
     vec3 viewDir = normalize(viewPos.xyz / viewPos.w); // viewDir is the direction from the camera to the pixel in view space
     vec3 worldRayDirection = normalize(mat3x3(camera_to_world) * viewDir); // unity_CameraInvView is the camera-to-world matrix
@@ -91,7 +90,7 @@ struct Ray {
 TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray ray) {
     TracerRayHitInfo rayInfo;
     rayInfo.hit = false;
-    rayInfo.intersectDistance = -1;
+    rayInfo.intersectDistance = 0;
 
     vec3 origin = ray.origin - sphere_center;
     vec3 rayOrigin = origin;
@@ -104,8 +103,8 @@ TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray 
     float delta = b * b - 4 * a * c;
 
     if (delta >= 0) {
-        float t1 = (-b + sqrt(delta)) / 2 * a;
-        float t2 = (-b - sqrt(delta)) / 2 * a;
+        float t1 = (-b + sqrt(delta)) / (2 * a);
+        float t2 = (-b - sqrt(delta)) / (2 * a);
 
         float t = min(t1, t2);
         if (t < 0.0) t = max(t1, t2);
@@ -136,7 +135,6 @@ RayPixelData TraceRay(Ray ray) {
     data.color = vec3(0.0, 0.0, 0.0);
 
     float min_distance = 1e9;
-
     for (int i = 0; i < sphere_texture_count; i++) {
         Sphere sphere = getSphereAtIndex(i);
         TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
@@ -159,7 +157,7 @@ RayPixelData TraceRay(Ray ray) {
 void main() {
     Ray ray;
     ray.origin = camera_position;
-    ray.direction = GetPixelWorldDirection(uv);
+    ray.direction = -GetPixelWorldDirection(uv);
 
     vec4 color = vec4(0, 0, 0, 1);
 

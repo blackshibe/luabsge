@@ -96,6 +96,7 @@ void freetype_render(
 
 		// render glyph texture over quad
 		glBindTexture(GL_TEXTURE_2D, ch.texture_id);
+		glEnable(GL_DEPTH_TEST);
 
 		// update content of VBO memory
 		glBindBuffer(GL_ARRAY_BUFFER, freetype_vbo);

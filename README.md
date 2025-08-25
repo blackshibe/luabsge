@@ -21,6 +21,16 @@ run `./run.sh test` to run the test project
 
 note: LuaBSGE is only tested on Linux right now
 
+## features
+
+-   OpenGL window drawing
+-   GLM bindings
+-   Mesh and texture loading
+-   ASCII Font rendering
+-   Post process shader effects
+-   Ray tracing TBO support
+-   ImGUI support
+
 ## todo
 
 -   Showstoppers
@@ -35,3 +45,4 @@ note: LuaBSGE is only tested on Linux right now
     -   Text rendering has really weird positioning
     -   Text rendering cuts off with high scale (you need to resize the window once to fix it)
     -   Cross-platform support
+        

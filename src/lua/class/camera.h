@@ -2,6 +2,7 @@
 
 #include "../../opengl/freetype.h"
 #include "../lua.h"
+#include "../module/lua_window.h"
 #include <lua.hpp>
 
 // projection is calculated in the render step
@@ -13,4 +14,5 @@ struct BSGECameraMetadata {
 	float far_clip = 100.0f;
 };
 
+glm::mat4 camera_get_projection_matrix(BSGECameraMetadata camera);
 void lua_bsge_init_camera(sol::state &lua);

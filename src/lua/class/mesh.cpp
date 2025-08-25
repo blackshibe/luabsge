@@ -114,6 +114,7 @@ int mesh_load(meshData *bsgemesh, const char *path)
 
 int mesh_render(meshData *bsgemesh)
 {
+	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh->ebo);
 	glBindVertexArray(bsgemesh->vao);

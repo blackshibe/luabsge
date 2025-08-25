@@ -1,18 +1,10 @@
 #include "window.h"
-#include "freetype.h"
-#include "shader.h"
 
 #include "../include/colors.h"
 #include "../lua/class/camera.h"
+#include "../lua/class/gizmo.h"
 #include "../lua/class/input.h"
 #include "../lua/module/lua_rendering.h"
-
-#include "../include/imgui/imgui.h"
-#include "../include/imgui/imgui_impl_glfw.h"
-#include "../include/imgui/imgui_impl_opengl3.h"
-
-#include <chrono>
-#include <stdlib.h>
 
 BSGEWindow::BSGEWindow() {
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
@@ -71,7 +63,7 @@ void BSGEWindow::render_loop() {
 
 	// MODEL SHADER CODE
 	unsigned int default_shader;
-	bool success = bsge_compile_shader(&default_shader, "shader/vertex_default.glsl", "shader/frag_default.glsl");
+	bool success = bsge_compile_shader(&default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
 	if (!success) {
 		printf("[main.cpp] exit: couldn't compile default shaders\n");
 		status = -1;
@@ -160,18 +152,24 @@ void BSGEWindow::render_loop() {
 		}
 		
 		BSGECameraMetadata* camera = camera_opt.value();
-		glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
+		glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
 
 		glUseProgram(default_shader);
 		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
+		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera_projection));
 
+		// imgui
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
+		// gizmo
+		lua_bsge_gizmo_begin_frame(camera_projection, camera->matrix);
+
+		// lua
 		bsge_call_lua_render(lua, delta_time);
 
+		lua_bsge_gizmo_end_frame();
 		ImGui::Render();
 
 		// Check lua stack size for potential leaks

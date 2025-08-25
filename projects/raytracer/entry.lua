@@ -56,29 +56,33 @@ end
 TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
 TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 2.0)
 
--- TODO less ai garbage controls
 local bounces = 8
 World.rendering.step:connect(function(delta_time)
-	local dim = Window.get_window_dimensions()
+	-- raytracer_effect:render()
+	Gizmo.set_line_width(1)
+	Gizmo.set_depth_test(false)
+
+	Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
+	Gizmo.set_line_width(5)
+
+	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	camera.matrix = Mat4.new(1)
-		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
-		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:translate(Vec3.new(0, 0, -10))
+		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
+		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 
 	-- Calculate projection matrix and its inverse
-	local aspect_ratio = dim.x / dim.y
-	local projection_matrix = Mat4.perspective(math.rad(camera.fov), aspect_ratio, camera.near_clip, camera.far_clip)
-	local inv_projection_matrix = projection_matrix:inverse()
+	local inv_projection_matrix = camera:get_projection_matrix():inverse()
 
 	-- Camera to world matrix (inverse of view matrix)
 	-- camera.matrix is already the transform matrix (camera-to-world)
-	local camera_to_world_matrix = camera.matrix
+	local camera_to_world_matrix = camera.matrix:inverse()
 
 	-- Use the actual camera position from our input state
-	local camera_final_position = camera.matrix:to_vec3()
-
-	-- Set uniforms for raytracer
+	local camera_final_position = camera_to_world_matrix:to_vec3()
 
 	TEMP_get_tbo_texture()
 	raytracer_effect:set_uniform_int("spheres_texture", 0)
@@ -107,7 +111,7 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
 		ImGui.Separator()
 
-		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 2048)
+		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 512)
 		if changed then
 			bounces = value
 		end

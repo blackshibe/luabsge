@@ -83,6 +83,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_font(lua);
 	lua_bsge_init_image(lua);
 	lua_bsge_init_camera(lua);
+	lua_bsge_init_vfx(lua);
 
 	printf("[lua.cpp] init modules\n");
 	lua_bsge_init_rendering(lua);

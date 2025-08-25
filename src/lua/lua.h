@@ -25,6 +25,7 @@
 #include "class/template.h"
 #include "class/textlabel.h"
 #include "class/shader.h"
+#include "class/vfx.h"
 
 int64_t now();
 

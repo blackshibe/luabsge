@@ -54,7 +54,7 @@ for i = 1, 16 do
 end
 
 TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
-TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 1)
+TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 2.0)
 
 -- TODO less ai garbage controls
 local bounces = 8
@@ -107,7 +107,7 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
 		ImGui.Separator()
 
-		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 128)
+		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 2048)
 		if changed then
 			bounces = value
 		end

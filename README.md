@@ -3,6 +3,7 @@
 Small rendering engine that integrates Lua with OpenGL.<br/>
 
 ![screenshot](luabsge.png)
+![screenshot](luabsge_2.png)
 
 ## dependencies (archlinux)
 
@@ -21,8 +22,10 @@ note: LuaBSGE is only tested on Linux right now
 
 ## todo
 
--   Meshes don't render with non-RT
+-   RT Test improvements
+-   Audio
+-   Physics
+-   UTF-8 Rendering
 -   Create a universal class constructor
--   Make creating new classes easier
 -   Text rendering has really weird positioning
 -   Text rendering cuts off with high scale (you need to resize the window once to fix it)

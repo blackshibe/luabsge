@@ -18,17 +18,12 @@ uniform vec3 camera_position;
 uniform samplerBuffer spheres_texture;
 uniform int sphere_texture_count;
 
-
 float hash1(inout float seed) {
     return fract(sin(seed += 0.1)*43758.5453123);
 }
 
 vec2 hash2(inout float seed) {
     return fract(sin(vec2(seed+=0.1,seed+=0.1))*vec2(43758.5453123,22578.1459123));
-}
-
-vec3 hash3(inout float seed) {
-    return fract(sin(vec3(seed+=0.1,seed+=0.1,seed+=0.1))*vec3(43758.5453123,22578.1459123,19642.3490423));
 }
 
 // https://www.shadertoy.com/view/fdS3zw
@@ -44,8 +39,6 @@ vec3 cosineSampleHemisphere(vec3 n, inout float seed)
     
     return normalize(r * sin(theta) * B + sqrt(1.0 - u.x) * n + r * cos(theta) * T);
 }
-
-
 
 struct Sphere {
     vec3 center;
@@ -140,8 +133,8 @@ struct RayPixelData {
 RayPixelData TraceRay(Ray ray) {
     RayPixelData data;
     data.hit = false;
+    data.color = vec3(0.0, 0.0, 0.0);
 
-    // vec3 hitColor = vec3(0.0, 0.0, 0.0);
     float min_distance = 1e9;
 
     for (int i = 0; i < sphere_texture_count; i++) {
@@ -176,26 +169,20 @@ void main() {
         return;
     }
 
-    color = vec4(test.color.rgb, 1.0);
-
     vec3 normal = test.normal;
-    ray.origin = test.position + test.normal * 0.001;
-
     float seed = uv.x + uv.y * 3.43121412313 + fract(1.12345314312);
     float emission = test.emission * bounces;
 
+    color = vec4(test.color.rgb * bounces, 1.0);
+    ray.origin = test.position + test.normal * 0.001;
+
     for (int done_bounces = 0; done_bounces < bounces; done_bounces++) {
-        if (test.hit) {
-            if (done_bounces != 0) {
-                color += vec4(test.color.rgb * test.emission, 1.0);
-            }
-            emission += test.emission;
-        }
+        color += vec4(test.color.rgb, 1.0);
+        emission += test.emission;
         ray.direction = cosineSampleHemisphere(normal, seed);
 
         test = TraceRay(ray);
     }
 
-    emission /= bounces;
-    FragColor = vec4(color.rgb * emission, 1.0);
+    FragColor = vec4((color.rgb / bounces) * (emission / bounces), 1.0);
 }

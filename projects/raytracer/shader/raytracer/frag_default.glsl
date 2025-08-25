@@ -5,6 +5,7 @@ out vec4 FragColor;
 
 uniform float time;
 uniform int sample_count;
+uniform int bounce_count;
 
 uniform mat4x4 camera_inv_proj;
 uniform mat4x4 camera_to_world;
@@ -18,17 +19,24 @@ uniform vec3 camera_position;
 uniform samplerBuffer spheres_texture;
 uniform int sphere_texture_count;
 
-float hash1(inout float seed) {
-    return fract(sin(seed += 0.1)*43758.5453123);
+// PCG (permuted congruential generator). Thanks to:
+// www.pcg-random.org and www.shadertoy.com/view/XlGcRh
+uint NextRandom(inout uint state)
+{
+    state = state * uint(747796405) + uint(2891336453);
+    uint result = ((state >> ((state >> (28)) + uint(4))) ^ state) * uint(277803737);
+    result = (result >> 22) ^ result;
+    return result;
 }
 
-vec2 hash2(inout float seed) {
-    return fract(sin(vec2(seed+=0.1,seed+=0.1))*vec2(43758.5453123,22578.1459123));
+float RandomValue(inout uint state)
+{
+    return NextRandom(state) / 4294967295.0; // 2^32 - 1
 }
 
 // https://www.shadertoy.com/view/fdS3zw
-vec3 cosineSampleHemisphere(vec3 n, inout float seed) {
-    vec2 u = hash2(seed);
+vec3 cosineSampleHemisphere(vec3 n, inout uint seed) {
+    vec2 u = vec2(RandomValue(seed), RandomValue(seed));
 
     float r = sqrt(u.x);
     float theta = 2.0 * 3.141529 * u.y;
@@ -43,7 +51,7 @@ struct Sphere {
     vec3 center;
     float radius;
     vec3 color;
-    float emissive;
+    float emission;
 };
 
 // Each sphere takes 4 texels (vec3+vec3+float+bool = 12+12+4+4 = 32 bytes)
@@ -57,7 +65,7 @@ Sphere getSphereAtIndex(int index) {
     sphere.center = data0.xyz;
     sphere.radius = data0.w;
     sphere.color = data1.xyz;
-    sphere.emissive = data1.w;
+    sphere.emission = data1.w * 10;
     
     return sphere;
 }
@@ -110,7 +118,7 @@ TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray 
         if (t < 0.0) t = max(t1, t2);
 
         // avoids self intersect apparently
-        if (t < 0.001) {
+        if (t < 0.00001) {
             rayInfo.hit = true;
             rayInfo.intersectPosition = ray.origin + ray.direction * t;
             rayInfo.intersectDistance = -t;
@@ -143,7 +151,7 @@ RayPixelData TraceRay(Ray ray) {
             min_distance = test.intersectDistance;
             
             data.color = sphere.color.rgb;
-            data.emission = sphere.emissive;
+            data.emission = sphere.emission;
             data.normal = test.intersectNormal;
             data.position = test.intersectPosition;
             
@@ -155,31 +163,53 @@ RayPixelData TraceRay(Ray ray) {
 }
 
 void main() {
+    vec3 pixel_direction = -GetPixelWorldDirection(uv);
+
     Ray ray;
     ray.origin = camera_position;
-    ray.direction = -GetPixelWorldDirection(uv);
+    ray.direction = pixel_direction;
 
-    vec4 output_color = vec4(1, 0, 0, 1);
-
+    vec3 SKY_COLOR = vec3(0, 0, 0);
     RayPixelData test = TraceRay(ray);
+
     if (!test.hit) {
         discard;
     }
 
-    vec3 normal = test.normal;
-    float seed = uv.x + uv.y * 3.43121412313 + fract(1.12345314312);
-    float emission = test.emission * sample_count;
+    vec3 first_test_normal = test.normal;
+    vec3 incoming_light = test.color.rgb * test.emission * test.emission;
+    vec3 output_color = test.color.rgb;
+    uint random_seed = uint(uv.x * 473284784) + uint(uv.y * 173284784); // + uint(time);
 
-    output_color = vec4(test.color.rgb * sample_count, 1.0);
-    ray.origin = test.position + test.normal * 0.0001;
+    ray.origin = test.position + first_test_normal * 0.00001;
 
     for (int i = 0; i < sample_count; i++) {
-        output_color += vec4(test.color.rgb, 1.0);
-        emission += test.emission;
-        ray.direction = cosineSampleHemisphere(normal, seed);
-
+        ray.direction = cosineSampleHemisphere(first_test_normal, random_seed);
         test = TraceRay(ray);
+
+        if (test.hit) {
+            output_color *= vec3(test.color.rgb);
+            vec3 new_incoming_light = output_color * test.emission;
+            
+            Ray bounce_ray;
+            bounce_ray.origin = ray.origin;
+        
+            for (int i = 0; i < bounce_count; i++) {
+                bounce_ray.direction = cosineSampleHemisphere(ray.direction, random_seed);
+                RayPixelData bounce_test = TraceRay(bounce_ray);
+
+                if (bounce_test.hit) {
+                    bounce_ray.origin = bounce_test.position + bounce_test.normal * 0.0001;
+                    output_color *= bounce_test.color.rgb;
+                    new_incoming_light += bounce_test.emission * output_color.rgb;
+                }
+            }
+
+            incoming_light += new_incoming_light;
+        } else {
+            incoming_light += SKY_COLOR;
+        }
     }
 
-    FragColor = vec4((output_color.rgb / sample_count) * (emission / sample_count), 1.0);
+    FragColor = vec4(incoming_light / sample_count, 1.0);
 }

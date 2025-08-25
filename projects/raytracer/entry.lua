@@ -26,7 +26,7 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-for i = 1, 32 do
+for i = 1, 64 do
 	TEMP_make_sphere(
 		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
 		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
@@ -35,29 +35,22 @@ for i = 1, 32 do
 	)
 end
 
-for i = 1, 16 do
+for i = 1, 12 do
 	TEMP_make_sphere(
 		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
-		Vec3.new(1, 1, 1),
-		math.random(1, 2) / 2,
-		math.random(1, 100) / 100
-	)
-end
-
-for i = 1, 16 do
-	TEMP_make_sphere(
-		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
-		Vec3.new(math.random(0, 1), math.random(0, 1), math.random(0, 1)),
-		math.random(1, 2) / 2,
-		math.random(1, 100) / 50
+		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
+		math.random(1, 2),
+		2
 	)
 end
 
 TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
-TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 2.0)
+TEMP_make_sphere(Vec3.new(-3, 0, 0), Vec3.new(1, 1, 1), 1, 1)
 
-local sample_count = 8
+local sample_count = 2
+local bounce_count = 3
 local recompile_time = now()
+local always_recompile = true
 World.rendering.step:connect(function(delta_time)
 	-- raytracer_effect:render()
 	Gizmo.set_line_width(1)
@@ -71,7 +64,7 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	camera.matrix = Mat4.new(1)
-		:translate(Vec3.new(0, 0, -10))
+		:translate(Vec3.new(0, 0, -6))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 
@@ -89,6 +82,7 @@ World.rendering.step:connect(function(delta_time)
 	raytracer_effect:set_uniform_int("spheres_texture", 0)
 	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
 	raytracer_effect:set_uniform_int("sample_count", sample_count)
+	raytracer_effect:set_uniform_int("bounce_count", bounce_count)
 
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
 	raytracer_effect:set_uniform_mat4("camera_to_world", camera_to_world_matrix)
@@ -98,32 +92,64 @@ World.rendering.step:connect(function(delta_time)
 		camera_final_position.y,
 		camera_final_position.z
 	)
-	raytracer_effect:render()
+
+	if raytracer_effect.is_valid then
+		raytracer_effect:render()
+	end
 
 	-- ImGui controls
 	if ImGui.Begin("LuaBSGE Ray Tracer") then
+		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
+		ImGui.Text("Performance")
+		ImGui.PopStyleColor()
+
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()
+		ImGui.Spacing()
+
+		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
+		ImGui.Text("RT Debug")
+		ImGui.PopStyleColor()
 
 		ImGui.Text("TEMP_get_tbo_texture_count(): " .. string.format("%i", TEMP_get_tbo_texture_count()))
-		ImGui.Separator()
+		ImGui.Spacing()
 
-		ImGui.Text("camera rotation")
-		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
-		ImGui.Separator()
-
-		local changed, value = ImGui.SliderInt("Light Bounces", sample_count, 4, 512)
-		if changed then
-			sample_count = value
+		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 512)
+		local b_changed, value2 = ImGui.SliderInt("Light Bounces", bounce_count, 1, 12)
+		if s_changed then
+			sample_count = value1
 		end
 
-		if ImGui.Button("Recompile") or World.input.is_key_down(KEY_F) and math.abs(recompile_time - now()) > 100 then
+		if b_changed then
+			bounce_count = value2
+		end
+
+		ImGui.Separator()
+		ImGui.Spacing()
+
+		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
+		ImGui.Text("Camera Rotation")
+		ImGui.PopStyleColor()
+
+		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
+		ImGui.Spacing()
+		ImGui.Separator()
+
+		local changed, val = ImGui.Checkbox("Hot reload constantly", always_recompile)
+		if changed then
+			always_recompile = val
+		end
+
+		if ((World.input.is_key_down(KEY_F)) or always_recompile) and math.abs(recompile_time - now()) > 200 then
 			recompile_time = now()
 			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
 		end
 
-		ImGui.PushTextColor(Vec4.new(0.5, 0.5, 1, 1))
-		ImGui.Text("recompiled at " .. recompile_time)
+		ImGui.PushTextColor(raytracer_effect.is_valid and Vec4.new(0.5, 0.5, 1, 1) or Vec4.new(1.0, 0, 0, 1))
+		ImGui.Text("Recompiled @ " .. recompile_time)
+		ImGui.Text("Valid = " .. tostring(raytracer_effect.is_valid))
+		ImGui.Text("Press F to recompile")
+
 		ImGui.PopStyleColor()
 	end
 	ImGui.End()

@@ -28,6 +28,8 @@
 #include "class/vfx.h"
 #include "class/input.h"
 
+#include "class/rt/tbo.h"
+
 int64_t now();
 
 // adds a prefix to Lua print

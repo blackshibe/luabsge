@@ -1,5 +1,6 @@
-#include <lua.hpp>
+#pragma once
 
+#include <lua.hpp>
 
 int lua_bsge_new_signal(lua_State *L);
 int lua_bsge_signal_connect(lua_State *L);

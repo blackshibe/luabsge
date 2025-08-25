@@ -121,6 +121,10 @@ int lua_bsge_init_glm_bindings(sol::state &lua) {
 								"lookAt", [](const glm::vec3& eye, const glm::vec3& center, const glm::vec3& up) {
 									return glm::lookAt(eye, center, up);
 								},
+								"to_vec3", [](const glm::mat4& m) { 
+									// Extract translation from the 4th column (indices 3, 7, 11)
+									return glm::vec3(m[3][0], m[3][1], m[3][2]); 
+								},
 								
 								// String representation
 								sol::meta_function::to_string, [](const glm::mat4& m) {

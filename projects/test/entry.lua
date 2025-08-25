@@ -23,7 +23,7 @@ local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
-camera.position = base_matrix
+camera.matrix = base_matrix
 
 World.rendering.step:connect(function(delta_time)
 	local dim = Window.get_window_dimensions()
@@ -35,8 +35,7 @@ World.rendering.step:connect(function(delta_time)
 	display_label:render()
 
 	local camera_z = camera_z_spring:update(delta_time)
-	print(camera_z)
-	camera.position = Mat4.new(1):translate(Vec3.new(0, 0, camera_z)):rotate((now() / 5000) % math.pi * 2, Vec3.new(1))
+	camera.matrix = Mat4.new(1):translate(Vec3.new(0, 0, camera_z)):rotate((now() / 5000) % math.pi * 2, Vec3.new(1))
 	mesh.position = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
 
 	mesh:render()

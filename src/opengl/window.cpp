@@ -113,7 +113,8 @@ void BSGEWindow::render_loop() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	while (!glfwWindowShouldClose(window)) {
+	bool should_break = false;
+	while (!glfwWindowShouldClose(window) && !should_break) {
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 			glfwSetWindowShouldClose(window, true);
 		}
@@ -162,7 +163,7 @@ void BSGEWindow::render_loop() {
 		glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
 
 		glUseProgram(default_shader);
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
+		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
 		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -176,8 +177,10 @@ void BSGEWindow::render_loop() {
 		// Check lua stack size for potential leaks
 		lua_State *L = lua->lua_state();
 		int stack_size = lua_gettop(L);
-		if (stack_warning_threshold < stack_size)
+		if (stack_warning_threshold < stack_size) {
 			printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
+			should_break = true;
+		}
 
 		// frame end
 		float calc_time = glfwGetTime() - current_frame;

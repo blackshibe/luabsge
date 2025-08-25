@@ -1,4 +1,4 @@
-#version 330 core
+#version 330
 
 in vec2 uv;
 out vec4 FragColor;
@@ -8,6 +8,38 @@ uniform float time;
 uniform mat4x4 camera_inv_proj;
 uniform mat4x4 camera_to_world;
 uniform vec3 camera_position;
+
+// later idea for storing vertices:
+// buffer for vertex positions
+// buffer for objects
+// buffer for object tris counts
+
+uniform samplerBuffer spheres_texture;
+uniform int sphere_texture_count;
+
+struct Sphere {
+    vec3 center;
+    vec3 color;
+    float radius;
+    bool emissive;
+};
+
+Sphere getSphereAtIndex(int index) {
+    // Each sphere takes 4 texels (vec3+vec3+float+bool = 12+12+4+4 = 32 bytes)
+    // 32 bytes / 16 bytes per texel = 2 texels per sphere
+    int baseIndex = index * 2;
+    
+    vec4 data0 = texelFetch(spheres_texture, baseIndex);
+    vec4 data1 = texelFetch(spheres_texture, baseIndex + 1);
+    
+    Sphere sphere;
+    sphere.center = data0.xyz;
+    sphere.color = vec3(data0.w, data1.xy);
+    sphere.radius = data1.z;
+    sphere.emissive = (data1.w > 0.5);
+    
+    return sphere;
+}
 
 vec3 GetPixelWorldDirection(vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0; // convert uv to clip space (-1, 1)
@@ -26,13 +58,23 @@ struct TracerRayHitInfo {
     bool Hit;
 };
 
-// quadratic formula expression of x^2 + y^2 + z^2 = r^2 transformed into ||P+Dx||^2 = R^2
-TracerRayHitInfo RaySphereIntersect(vec3 SpherePos, float SphereRadius, vec3 RayOrigin, vec3 RayDir) {
-    TracerRayHitInfo rayInfo;
+struct Ray {
+    vec3 origin;
+    vec3 direction;
+};
 
-    float a = dot(RayDir, RayDir);
-    float b = 2 * dot(RayOrigin, RayDir);
-    float c = dot(RayOrigin, RayOrigin) - SphereRadius * SphereRadius;
+// quadratic formula expression of x^2 + y^2 + z^2 = r^2 transformed into ||P+Dx||^2 = R^2
+TracerRayHitInfo RaySphereIntersect(vec3 spherePosition, float sphereRadius, Ray ray) {
+    TracerRayHitInfo rayInfo;
+    rayInfo.Hit = false;
+    rayInfo.Distance = -1;
+
+    vec3 rayOrigin = ray.origin - spherePosition;
+    vec3 rayDirection = ray.direction;
+
+    float a = dot(rayDirection, rayDirection);
+    float b = 2 * dot(rayOrigin, rayDirection);
+    float c = dot(rayOrigin, rayOrigin) - sphereRadius * sphereRadius;
 
     float delta = b * b - 4 * a * c;
 
@@ -44,7 +86,7 @@ TracerRayHitInfo RaySphereIntersect(vec3 SpherePos, float SphereRadius, vec3 Ray
         if (minIntersect < 0) {
             rayInfo.Hit = true;
             rayInfo.Distance = -minIntersect;
-            rayInfo.Normal = normalize((RayDir * minIntersect) - SpherePos);
+            rayInfo.Normal = normalize((rayDirection * minIntersect) - spherePosition);
         }
     }
 
@@ -52,13 +94,27 @@ TracerRayHitInfo RaySphereIntersect(vec3 SpherePos, float SphereRadius, vec3 Ray
 }
 
 void main() {
-    vec3 worldDir = GetPixelWorldDirection(uv);
+    Ray ray;
+    ray.origin = camera_position;
+    ray.direction = GetPixelWorldDirection(uv);
 
-    TracerRayHitInfo test = RaySphereIntersect(vec3(0.0, 0.0, 0.0), 2.0, camera_position, worldDir); 
-    if (test.Hit) {
-        FragColor = vec4(test.Normal.x, test.Normal.y, test.Normal.z, 1.0);
-        return;
+    bool hasHit = false;
+    float minDistance = 10000;
+    for (int i = 0; i < sphere_texture_count; i++) {
+        Sphere sphere = getSphereAtIndex(i);
+        TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
+
+        if (test.Hit && minDistance > test.Distance) {
+            minDistance = test.Distance;
+            FragColor = vec4(test.Normal.x, test.Normal.y, test.Normal.z, 1.0);
+            hasHit = true;
+        }
     }
 
-    FragColor = vec4(worldDir.r, worldDir.y, worldDir.z, 1.0);
+    if (hasHit) return;
+
+    float a = 0.5 - ray.direction.y / 2;
+    FragColor = vec4(a, a, a, 1.0);
+
+    // FragColor = vec4(ray.direction.r, ray.direction.y, ray.direction.z, 1.0);
 }

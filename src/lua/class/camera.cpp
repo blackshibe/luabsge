@@ -12,7 +12,7 @@ int camera_newindex(lua_State *L) {
 	if (strcmp(index, "position") == 0) {
 		BSGECameraMetadata *camera = (BSGECameraMetadata *)lua_touserdata(L, 1);
 		glm::mat4 *position = (glm::mat4 *)lua_touserdata(L, 3);
-		camera->position = *position;
+		camera->matrix = *position;
 
 		return 0;
 	}
@@ -33,6 +33,6 @@ void lua_bsge_init_camera(sol::state &lua) {
 										 "fov", &BSGECameraMetadata::fov,
 										 "near_clip", &BSGECameraMetadata::near_clip,
 										 "far_clip", &BSGECameraMetadata::far_clip,
-										 "position", &BSGECameraMetadata::position
+										 "matrix", &BSGECameraMetadata::matrix
 	);
 }

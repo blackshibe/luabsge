@@ -1,3 +1,5 @@
+#pragma once
+
 #include "../../opengl/freetype.h"
 #include "../luax.h"
 #include <lua.hpp>

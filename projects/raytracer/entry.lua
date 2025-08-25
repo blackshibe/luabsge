@@ -17,46 +17,41 @@ camera.far_clip = 100
 World.rendering.camera = camera
 
 local MOUSE_SENSITIVITY = 0.002
-local MOVE_SPEED = 5.0
 
 local camera_inputs = {
-	r_x = 0,
-	r_y = 0,
+	r_x = 2,
+	r_y = 0.25,
 	pos_x = 0,
 	pos_y = 0,
-	pos_z = 10,
+	pos_z = -5,
 }
+
+for i = 1, 64 do
+	TEMP_make_sphere(
+		Vec3.new(math.random(-20, 20), 0, math.random(-20, 20)),
+		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
+		math.random(1, 2),
+		false
+	)
+end
+
+for i = 1, 64 do
+	TEMP_make_sphere(
+		Vec3.new(math.random(-20, 20), 0, math.random(-20, 20)),
+		Vec3.new(1, 1, 1),
+		math.random(1, 2) / 2,
+		true
+	)
+end
 
 -- TODO less ai garbage controls
 World.rendering.step:connect(function(delta_time)
 	local dim = Window.get_window_dimensions()
 
-	-- Handle WASD movement
-	local move_delta = MOVE_SPEED * delta_time
-
-	if World.input.is_key_down(KEY_W) then
-		camera_inputs.pos_z = camera_inputs.pos_z - move_delta
-	end
-	if World.input.is_key_down(KEY_S) then
-		camera_inputs.pos_z = camera_inputs.pos_z + move_delta
-	end
-	if World.input.is_key_down(KEY_A) then
-		camera_inputs.pos_x = camera_inputs.pos_x - move_delta
-	end
-	if World.input.is_key_down(KEY_D) then
-		camera_inputs.pos_x = camera_inputs.pos_x + move_delta
-	end
-	if World.input.is_key_down(KEY_Q) then
-		camera_inputs.pos_y = camera_inputs.pos_y + move_delta
-	end
-	if World.input.is_key_down(KEY_E) then
-		camera_inputs.pos_y = camera_inputs.pos_y - move_delta
-	end
-
-	camera.position = Mat4.new(1)
-		:translate(Vec3.new(camera_inputs.pos_x, camera_inputs.pos_y, camera_inputs.pos_z))
+	camera.matrix = Mat4.new(1)
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
+		:translate(Vec3.new(0, 0, -10))
 
 	-- Calculate projection matrix and its inverse
 	local aspect_ratio = dim.x / dim.y
@@ -64,16 +59,26 @@ World.rendering.step:connect(function(delta_time)
 	local inv_projection_matrix = projection_matrix:inverse()
 
 	-- Camera to world matrix (inverse of view matrix)
-	-- camera.position is already the transform matrix (camera-to-world)
-	local camera_to_world_matrix = camera.position
+	-- camera.matrix is already the transform matrix (camera-to-world)
+	local camera_to_world_matrix = camera.matrix
 
 	-- Use the actual camera position from our input state
-	local camera_pos = Vec3.new(camera_inputs.pos_x, camera_inputs.pos_y, camera_inputs.pos_z)
+	local camera_final_position = camera.matrix:to_vec3()
 
 	-- Set uniforms for raytracer
+
+	TEMP_get_tbo_texture()
+	raytracer_effect:set_uniform_int("spheres_texture", 0)
+	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
+
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
 	raytracer_effect:set_uniform_mat4("camera_to_world", camera_to_world_matrix)
-	raytracer_effect:set_uniform_vec3("camera_position", camera_pos.x, camera_pos.y, camera_pos.z)
+	raytracer_effect:set_uniform_vec3(
+		"camera_position",
+		camera_final_position.x,
+		camera_final_position.y,
+		camera_final_position.z
+	)
 	raytracer_effect:render()
 
 	-- ImGui controls
@@ -81,24 +86,12 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()
 
-		-- Camera info
-		ImGui.Text("Camera Position:")
-		ImGui.Text("  X: " .. string.format("%.2f", camera_inputs.pos_x))
-		ImGui.Text("  Y: " .. string.format("%.2f", camera_inputs.pos_y))
-		ImGui.Text("  Z: " .. string.format("%.2f", camera_inputs.pos_z))
-
-		ImGui.Text("Camera Rotation:")
-		ImGui.Text("  Yaw: " .. string.format("%.2f", math.deg(camera_inputs.r_x)))
-		ImGui.Text("  Pitch: " .. string.format("%.2f", math.deg(camera_inputs.r_y)))
-
+		ImGui.Text("TEMP_get_tbo_texture_count(): " .. string.format("%i", TEMP_get_tbo_texture_count()))
 		ImGui.Separator()
 
-		-- Controls help
-		ImGui.Text("Controls:")
-		ImGui.Text("WASD - Move")
-		ImGui.Text("Q/E - Up/Down")
-		ImGui.Text("RMB + Mouse - Look around")
-		ImGui.Text("Shift - Speed boost")
+		ImGui.Text("camera rotation")
+		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
+		ImGui.Separator()
 	end
 	ImGui.End()
 

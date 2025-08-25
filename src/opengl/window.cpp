@@ -36,6 +36,19 @@ void BSGEWindow::init() {
 	}
 
 	glEnable(GL_DEPTH_TEST);
+	
+	// Set up framebuffer size callback and initialize viewport
+	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+		BSGEWindow* win = static_cast<BSGEWindow*>(glfwGetWindowUserPointer(window));
+		win->size_callback(width, height);
+	});
+	
+	// Get the actual framebuffer size and initialize viewport
+	int framebuffer_width, framebuffer_height;
+	glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
+	size_callback(framebuffer_width, framebuffer_height);
+	printf("[window.cpp] initialized viewport with framebuffer callback: %i, %i\n", 
+		   framebuffer_width, framebuffer_height);
 }
 
 // todo: dynamic resizing that works with textlabels
@@ -45,14 +58,6 @@ void BSGEWindow::size_callback(int width, int height) {
 	this->width = width;
 	this->height = height;
 	glViewport(0, 0, width, height);
-
-	if (width > height) {
-		this->height = width;
-		glViewport(0, (height - width) / 2, width, width);
-	} else {
-		this->width = height;
-		glViewport((width - height) / 2, 0, height, height);
-	}
 
 	freetype_resize_window(width, height);
 }
@@ -131,42 +136,38 @@ void BSGEWindow::render_loop() {
 		glClearColor(0.1, 0.1, 0.1, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// get camera projection and coordinates from the Lua context
-		lua_State *L = lua->lua_state();
-
-		luaL_getmetatable(L, "Rendering");
-		lua_getfield(L, -1, "camera");
-		if (lua_isnil(L, -1)) {
+		// get camera projection and coordinates from the Lua context using sol2
+		sol::table world = (*lua)["World"];
+		sol::table rendering = world["rendering"];
+		sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
+		
+		if (!camera_opt) {
 			printf("%s", ANSI_RED);
-
 			printf("[window.cpp] no camera defined!\n");
 			printf("[window.cpp] as there is currently no fallback, the window will shut down.\n");
 			printf("%s", ANSI_NC);
 
 			glfwSetWindowShouldClose(window, true);
-
 			return;
-		} else {
-			BSGECameraMetadata *camera = (BSGECameraMetadata *)lua_touserdata(L, -1);
-			glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
-
-			glUseProgram(default_shader);
-			glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
-			glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
-
-			ImGui_ImplOpenGL3_NewFrame();
-			ImGui_ImplGlfw_NewFrame();
-			ImGui::NewFrame();
-
-			bsge_call_lua_render(lua, delta_time);
-
-			ImGui::Render();
 		}
+		
+		BSGECameraMetadata* camera = camera_opt.value();
+		glm::mat4 proj = glm::perspective(glm::radians(camera->fov), (float)width / (float)height, camera->near_clip, camera->far_clip);
 
-		// clear the stack from the camera check
-		lua_remove(L, -1);
-		lua_remove(L, -1);
+		glUseProgram(default_shader);
+		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->position));
+		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(proj));
 
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
+		bsge_call_lua_render(lua, delta_time);
+
+		ImGui::Render();
+
+		// Check lua stack size for potential leaks
+		lua_State *L = lua->lua_state();
 		int stack_size = lua_gettop(L);
 		if (stack_warning_threshold < stack_size)
 			printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);

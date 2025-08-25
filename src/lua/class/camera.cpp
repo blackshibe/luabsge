@@ -29,10 +29,10 @@ const luaL_Reg bsge_lua_camera_metatable_access[] = {
 
 void lua_bsge_init_camera(sol::state &lua) {
 	lua.new_usertype<BSGECameraMetadata>("Camera",
+										 sol::constructors<BSGECameraMetadata()>(),
 										 "fov", &BSGECameraMetadata::fov,
 										 "near_clip", &BSGECameraMetadata::near_clip,
 										 "far_clip", &BSGECameraMetadata::far_clip,
 										 "position", &BSGECameraMetadata::position
-
 	);
 }

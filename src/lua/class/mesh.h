@@ -19,6 +19,7 @@ struct meshVertexData {
 
 struct meshData {
 	int indices_count;
+	glm::mat4 matrix;
 
 	unsigned int texture;
 	unsigned int vbo;

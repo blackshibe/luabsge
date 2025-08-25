@@ -77,8 +77,28 @@
 		"any": "cpp",
 		"format": "cpp",
 		"stdfloat": "cpp",
-		"text_encoding": "cpp"
+		"text_encoding": "cpp",
+		"hash_map": "cpp",
+		"strstream": "cpp",
+		"complex": "cpp",
+		"coroutine": "cpp",
+		"csignal": "cpp",
+		"source_location": "cpp",
+		"hash_set": "cpp",
+		"queue": "cpp",
+		"ranges": "cpp",
+		"shared_mutex": "cpp",
+		"stack": "cpp"
 	},
-	"Lua.diagnostics.globals": ["now", "World", "Vector3", "Transform", "Color", "Vector2"],
-	"robloxLsp.diagnostics.disable": ["undefined-global"]
+	"Lua.diagnostics.globals": [
+		"now",
+		"World",
+		"Vector3",
+		"Transform",
+		"Color",
+		"Vector2"
+	],
+	"robloxLsp.diagnostics.disable": [
+		"undefined-global"
+	]
 }

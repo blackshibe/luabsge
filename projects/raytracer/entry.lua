@@ -26,7 +26,7 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-for i = 1, 64 do
+for i = 1, 24 do
 	local obj = SphereBufferObject.new()
 
 	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
@@ -36,7 +36,7 @@ for i = 1, 64 do
 	obj:register()
 end
 
-for i = 1, 12 do
+for i = 1, 6 do
 	local obj = SphereBufferObject.new()
 
 	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
@@ -66,6 +66,10 @@ obj2.radius = 2
 obj2.emissive = 0
 obj2:register()
 
+mesh.position = Mat4.new(1):rotate((now() / 5000) % math.pi, Vec3.new(1, 0, 0))
+
+mesh_tbo_register_mesh(mesh)
+
 local sample_count = 16
 local bounce_count = 2
 local recompile_time = now()
@@ -82,7 +86,7 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
-	obj.center = Vec3.new(0, math.sin(now() / 500), 0)
+	obj.center = Vec3.new(2, 0, math.sin(now() / 500))
 	obj:update()
 
 	camera.matrix = Mat4.new(1)
@@ -100,9 +104,15 @@ World.rendering.step:connect(function(delta_time)
 	-- Use the actual camera position from our input state
 	local camera_final_position = camera_to_world_matrix:to_vec3()
 
-	TEMP_get_tbo_texture()
-	raytracer_effect:set_uniform_int("spheres_texture", 0)
+	TEMP_bind_tbo_texture()
+	mesh_tbo_bind_meshTriangles()
+
+	raytracer_effect:set_uniform_int("spheres_texture", 0) -- texture 0
+	raytracer_effect:set_uniform_int("mesh_triangle_data", 1) -- texture 1
+	raytracer_effect:set_uniform_int("mesh_data", 2) -- texture 2
 	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
+	raytracer_effect:set_uniform_int("mesh_count", mesh_tbo_get_count())
+
 	raytracer_effect:set_uniform_int("sample_count", sample_count)
 	raytracer_effect:set_uniform_int("bounce_count", bounce_count)
 
@@ -115,7 +125,6 @@ World.rendering.step:connect(function(delta_time)
 		camera_final_position.z
 	)
 
-	mesh.position = Mat4.new(1):rotate((now() / 5000) % math.pi, Vec3.new(1, 0, 0))
 	mesh:render()
 
 	if raytracer_effect.is_valid then

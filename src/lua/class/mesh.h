@@ -17,9 +17,15 @@ struct meshVertexData {
 	glm::vec2 texCoords;
 };
 
+struct meshGeometry {
+	std::vector<meshVertexData> vertices;
+	std::vector<unsigned int> indices;
+};
+
 struct meshData {
 	int indices_count;
 	glm::mat4 matrix;
+	meshGeometry geometry;
 
 	unsigned int texture;
 	unsigned int vbo;

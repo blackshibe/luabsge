@@ -3,23 +3,23 @@
 
 #include <vector>
 
-int mesh_load(meshData *bsgemesh, const char *path)
+meshGeometry mesh_load_geometry(const char *path)
 {
 	printf("[mesh.cpp] loading mesh from %s\n", path);
-
+	meshGeometry geometry;
 	Assimp::Importer importer;
 	const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs);
 
 	if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
 	{
 		printf("[mesh.cpp] ERROR: Failed to load mesh: %s\n", importer.GetErrorString());
-		return 1;
+		return geometry;
 	}
 
 	if (scene->mNumMeshes == 0)
 	{
 		printf("[mesh.cpp] ERROR: No meshes found in file: %s\n", path);
-		return 1;
+		return geometry;
 	}
 
 	aiNode *root_node = scene->mRootNode;
@@ -30,8 +30,7 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	}
 
 	aiMesh *mesh = scene->mMeshes[0];
-	std::vector<meshVertexData> vertices;
-	std::vector<unsigned int> indices;
+
 
 	for (unsigned int i = 0; i < mesh->mNumVertices; i++)
 	{
@@ -60,21 +59,33 @@ int mesh_load(meshData *bsgemesh, const char *path)
 		}
 		vertex.texCoords = texture_coordinate;
 
-		vertices.push_back(vertex);
+		geometry.vertices.push_back(vertex);
 	}
 
-	printf("faces: %i\n", mesh->mNumFaces);
 
 	for (unsigned int i = 0; i < mesh->mNumFaces; i++)
 	{
 		aiFace face = mesh->mFaces[i];
 		for (unsigned int j = 0; j < face.mNumIndices; j++)
 		{
-			indices.push_back(face.mIndices[j]);
+			geometry.indices.push_back(face.mIndices[j]);
 		}
 	}
 
-	printf("\n");
+	printf("faces: %i\n", mesh->mNumFaces);
+
+	return geometry;
+}
+
+
+int mesh_load(meshData *bsgemesh, const char *path)
+{
+	printf("[mesh.cpp] loading mesh from %s\n", path);
+	meshGeometry geometry = mesh_load_geometry(path);
+	bsgemesh->geometry = geometry;
+	
+	printf("%i\n", geometry.vertices.size());
+	printf("%i\n", geometry.indices.size());
 
 	unsigned int VBO;
 	unsigned int VAO;
@@ -87,10 +98,10 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	glBindVertexArray(VAO);
-	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(meshVertexData), &vertices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, geometry.vertices.size() * sizeof(meshVertexData), &geometry.vertices[0], GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, geometry.indices.size() * sizeof(unsigned int), &geometry.indices[0], GL_STATIC_DRAW);
 
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)0);
@@ -104,7 +115,7 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	bsgemesh->ebo = EBO;
 	bsgemesh->vao = VAO;
 	bsgemesh->vbo = VBO;
-	bsgemesh->indices_count = indices.size();
+	bsgemesh->indices_count = geometry.indices.size();
 	bsgemesh->texture = 0;
 
 	printf("indices: %i\n", bsgemesh->indices_count);

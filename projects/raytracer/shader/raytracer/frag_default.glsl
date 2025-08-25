@@ -16,6 +16,10 @@ uniform vec3 camera_position;
 // buffer for objects
 // buffer for object tris counts
 
+uniform samplerBuffer mesh_triangle_data;
+uniform samplerBuffer mesh_data;
+uniform int mesh_count;
+
 uniform samplerBuffer spheres_texture;
 uniform int sphere_texture_count;
 

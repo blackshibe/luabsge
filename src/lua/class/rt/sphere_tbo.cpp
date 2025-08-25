@@ -19,11 +19,11 @@ void lua_bsge_init_sphere_tbo(sol::state &lua) {
     spheres = setup_tbo(GL_RGBA32F, SPHERE_MAX_COUNT, sizeof(SphereTBO));
 
 	lua.set_function("TEMP_make_sphere", make_sphere);
-	lua.set_function("TEMP_get_tbo_texture", []() {
+	lua.set_function("TEMP_bind_tbo_texture", []() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_BUFFER, spheres.tboTexture);
-        return spheres.tboTexture;
     });
+    
     lua.set_function("TEMP_get_tbo_texture_count", []() {
         return sphere_count;
     });

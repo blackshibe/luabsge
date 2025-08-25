@@ -27,21 +27,23 @@ local camera_inputs = {
 }
 
 for i = 1, 64 do
-	TEMP_make_sphere(
-		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
-		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
-		math.random(1, 2),
-		0
-	)
+	local obj = SphereBufferObject.new()
+
+	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
+	obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
+	obj.radius = math.random(1, 2)
+	obj.emissive = 0
+	obj:register()
 end
 
 for i = 1, 12 do
-	TEMP_make_sphere(
-		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
-		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
-		math.random(1, 2),
-		2
-	)
+	local obj = SphereBufferObject.new()
+
+	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
+	obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
+	obj.radius = math.random(1, 2)
+	obj.emissive = 100
+	obj:register()
 end
 
 local texture = Image.new()
@@ -51,8 +53,18 @@ local mesh = Mesh.new()
 mesh:load("mesh/box.obj")
 mesh.texture = texture
 
-TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
-TEMP_make_sphere(Vec3.new(-3, 0, 0), Vec3.new(1, 1, 1), 1, 1)
+local obj = SphereBufferObject.new():register()
+obj.center = Vec3.new(0, 0, 0)
+obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
+obj.radius = 0.5
+obj.emissive = 100
+
+local obj2 = SphereBufferObject.new()
+obj2.center = Vec3.new(5, 0, 0)
+obj2.color = Vec3.new(1, 0, 0)
+obj2.radius = 2
+obj2.emissive = 0
+obj2:register()
 
 local sample_count = 16
 local bounce_count = 2
@@ -69,6 +81,9 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+
+	obj.center = Vec3.new(0, math.sin(now() / 500), 0)
+	obj:update()
 
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -6))

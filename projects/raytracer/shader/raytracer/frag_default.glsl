@@ -65,7 +65,7 @@ Sphere getSphereAtIndex(int index) {
     sphere.center = data0.xyz;
     sphere.radius = data0.w;
     sphere.color = data1.xyz;
-    sphere.emission = data1.w * 10;
+    sphere.emission = data1.w;
     
     return sphere;
 }

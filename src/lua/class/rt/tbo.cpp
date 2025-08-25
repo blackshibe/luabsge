@@ -1,14 +1,13 @@
 #include "tbo.h"
 
 // GL_RGBA32F
-TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size, const void* data) {
+TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size) {
     TextureBufferObject obj;
     obj.item_size = obj_size;
-    obj.data = data;
 
     glGenBuffers(1, &obj.tboBuffer);
     glBindBuffer(GL_TEXTURE_BUFFER, obj.tboBuffer);
-    glBufferData(GL_TEXTURE_BUFFER, max_size * obj_size, data, GL_DYNAMIC_DRAW);
+    glBufferData(GL_TEXTURE_BUFFER, max_size * obj_size, NULL, GL_DYNAMIC_DRAW);
 
     glGenTextures(1, &obj.tboTexture);
     glBindTexture(GL_TEXTURE_BUFFER, obj.tboTexture);

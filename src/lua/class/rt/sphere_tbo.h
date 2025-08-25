@@ -14,4 +14,13 @@ struct SphereTBO {
     float emissive;
 };
 
+struct SphereBufferObject {
+    glm::vec3 center;
+    float radius;
+    glm::vec3 color;
+    float emissive;
+
+    int index;
+};
+
 void lua_bsge_init_sphere_tbo(sol::state &lua);

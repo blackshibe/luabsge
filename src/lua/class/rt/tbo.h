@@ -10,8 +10,7 @@ struct TextureBufferObject {
     GLuint tboBuffer;
     GLuint tboTexture;
     uint item_size;
-    const void* data;
 };
 
-TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size, const void* data) ;
+TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size) ;
 void upload_tbo_element(TextureBufferObject obj, uint index, const void* item);

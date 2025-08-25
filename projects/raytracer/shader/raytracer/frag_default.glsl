@@ -4,7 +4,7 @@ in vec2 uv;
 out vec4 FragColor;
 
 uniform float time;
-uniform int bounces;
+uniform int sample_count;
 
 uniform mat4x4 camera_inv_proj;
 uniform mat4x4 camera_to_world;
@@ -159,28 +159,27 @@ void main() {
     ray.origin = camera_position;
     ray.direction = -GetPixelWorldDirection(uv);
 
-    vec4 color = vec4(0, 0, 0, 1);
+    vec4 output_color = vec4(1, 0, 0, 1);
 
     RayPixelData test = TraceRay(ray);
     if (!test.hit) {
-        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
-        return;
+        discard;
     }
 
     vec3 normal = test.normal;
     float seed = uv.x + uv.y * 3.43121412313 + fract(1.12345314312);
-    float emission = test.emission * bounces;
+    float emission = test.emission * sample_count;
 
-    color = vec4(test.color.rgb * bounces, 1.0);
-    ray.origin = test.position + test.normal * 0.001;
+    output_color = vec4(test.color.rgb * sample_count, 1.0);
+    ray.origin = test.position + test.normal * 0.0001;
 
-    for (int done_bounces = 0; done_bounces < bounces; done_bounces++) {
-        color += vec4(test.color.rgb, 1.0);
+    for (int i = 0; i < sample_count; i++) {
+        output_color += vec4(test.color.rgb, 1.0);
         emission += test.emission;
         ray.direction = cosineSampleHemisphere(normal, seed);
 
         test = TraceRay(ray);
     }
 
-    FragColor = vec4((color.rgb / bounces) * (emission / bounces), 1.0);
+    FragColor = vec4((output_color.rgb / sample_count) * (emission / sample_count), 1.0);
 }

@@ -36,6 +36,12 @@ void BSGEWindow::init() {
 		win->size_callback(width, height);
 	});
 	
+	// Set up window focus callback
+	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused) {
+		BSGEWindow* win = static_cast<BSGEWindow*>(glfwGetWindowUserPointer(window));
+		win->focus_callback(focused);
+	});
+	
 	// Get the actual framebuffer size and initialize viewport
 	int framebuffer_width, framebuffer_height;
 	glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
@@ -57,6 +63,10 @@ void BSGEWindow::size_callback(int width, int height) {
 	glViewport(0, 0, width, height);
 
 	freetype_resize_window(width, height);
+}
+
+void BSGEWindow::focus_callback(int focused) {
+	this->focused = (focused == GLFW_TRUE);
 }
 
 void BSGEWindow::render_loop() {

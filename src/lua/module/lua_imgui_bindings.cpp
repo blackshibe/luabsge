@@ -13,6 +13,10 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
         [](const char* name, bool* p_open, int flags) { return ImGui::Begin(name, p_open, flags); }
     );
     imgui_namespace["End"] = &ImGui::End;
+
+    // TODO: expose ImGuiCol_Text and shit and write a universal function
+    imgui_namespace["PushTextColor"] =  [](glm::vec4 color) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color.r, color.g, color.b, color.w)); };
+    imgui_namespace["PopStyleColor"] =  []() { ImGui::PopStyleColor(1); };
     
     // Basic widgets
     imgui_namespace["Text"] = [](const char* text) { ImGui::Text("%s", text); };

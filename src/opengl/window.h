@@ -23,6 +23,7 @@ public:
 	int status = 0;
 	int width = 800;
 	int height = 600;
+	bool focused = true;
 	unsigned int default_shader;
 	float program_time = 0;
 
@@ -33,5 +34,6 @@ public:
 	BSGEWindow();
 	void init();
 	void size_callback(int width, int height);
+	void focus_callback(int focused);
 	void render_loop();
 };

@@ -85,6 +85,19 @@ int lua_bsge_init_glm_bindings(sol::state &lua) {
 									return "Vec3(" + std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z) + ")";
 								});
 
+	lua.new_usertype<glm::vec4>("Vec4",
+								sol::constructors<glm::vec4(), glm::vec4(float), glm::vec4(float, float, float, float)>(),
+								"x", &glm::vec4::x,
+								"y", &glm::vec4::y,
+								"z", &glm::vec4::z,
+								"w", &glm::vec4::w,
+								
+			
+								// String representation
+								sol::meta_function::to_string, [](const glm::vec4& v) {
+									return "Vec4(" + std::to_string(v.x) + ", " + std::to_string(v.y) + ", " + std::to_string(v.z) + ", " + std::to_string(v.w) + ")";
+								});
+
 	lua.new_usertype<glm::mat4>("Mat4",
 								sol::constructors<glm::mat4(), glm::mat4(float)>(),
 								

@@ -56,7 +56,8 @@ end
 TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
 TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 2.0)
 
-local bounces = 8
+local sample_count = 8
+local recompile_time = now()
 World.rendering.step:connect(function(delta_time)
 	-- raytracer_effect:render()
 	Gizmo.set_line_width(1)
@@ -87,7 +88,7 @@ World.rendering.step:connect(function(delta_time)
 	TEMP_get_tbo_texture()
 	raytracer_effect:set_uniform_int("spheres_texture", 0)
 	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
-	raytracer_effect:set_uniform_int("bounces", bounces)
+	raytracer_effect:set_uniform_int("sample_count", sample_count)
 
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
 	raytracer_effect:set_uniform_mat4("camera_to_world", camera_to_world_matrix)
@@ -111,10 +112,19 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
 		ImGui.Separator()
 
-		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 512)
+		local changed, value = ImGui.SliderInt("Light Bounces", sample_count, 4, 512)
 		if changed then
-			bounces = value
+			sample_count = value
 		end
+
+		if ImGui.Button("Recompile") or World.input.is_key_down(KEY_F) and math.abs(recompile_time - now()) > 100 then
+			recompile_time = now()
+			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
+		end
+
+		ImGui.PushTextColor(Vec4.new(0.5, 0.5, 1, 1))
+		ImGui.Text("recompiled at " .. recompile_time)
+		ImGui.PopStyleColor()
 	end
 	ImGui.End()
 

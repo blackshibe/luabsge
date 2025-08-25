@@ -82,7 +82,7 @@ void lua_bsge_init_opengl_constants(sol::state &lua) {
     lua["KEY_9"] = GLFW_KEY_9;
     
     // Special keys
-    lua["KEY_SPACE"] = GLFW_KEY_SPACE;
+    lua["KEY_SPACE"] = GLFW_KEY_SPACE; // @ANNOTATE
     lua["KEY_ENTER"] = GLFW_KEY_ENTER;
     lua["KEY_TAB"] = GLFW_KEY_TAB;
     lua["KEY_BACKSPACE"] = GLFW_KEY_BACKSPACE;

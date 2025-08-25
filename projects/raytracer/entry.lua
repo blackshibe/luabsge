@@ -1,5 +1,7 @@
 ---@diagnostic disable: undefined-global
 
+local scene = require("scene")
+
 -- Create VFX effect for raytracing
 local raytracer_effect = VFXEffect.new()
 raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
@@ -26,67 +28,6 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-for i = 1, 24 do
-	local obj = SphereBufferObject.new()
-
-	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
-	obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
-	obj.radius = math.random(1, 2)
-	obj.emissive = 0
-	obj:register()
-end
-
-for i = 1, 6 do
-	local obj = SphereBufferObject.new()
-
-	obj.center = Vec3.new(math.random(-20, 20), -10, math.random(-20, 20))
-	obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
-	obj.radius = math.random(1, 2)
-	obj.emissive = 100
-	obj:register()
-end
-
-local texture = Image.new()
-texture:load("image/fox.jpg")
-
-local function create_mesh(src)
-	local mesh = Mesh.new()
-	mesh:load(src)
-	mesh.texture = texture
-
-	return mesh
-end
-
-local obj = SphereBufferObject.new():register()
-obj.center = Vec3.new(0, 0, 0)
-obj.color = Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100)
-obj.radius = 0.5
-obj.emissive = 100
-
-local obj2 = SphereBufferObject.new()
-obj2.center = Vec3.new(5, 0, 0)
-obj2.color = Vec3.new(1, 0, 0)
-obj2.radius = 2
-obj2.emissive = 0
-obj2:register()
-
-local mesh_objects = {
-	MeshBufferObject.new(),
-	MeshBufferObject.new(),
-}
-
--- Set up first mesh (green, moving)
-mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2, 0, 0))
-mesh_objects[1].color = Vec3.new(0, 1, 0)
-mesh_objects[1].emissive = 0
-mesh_objects[1]:register(create_mesh("mesh/sphere.obj"))
-
--- Set up second mesh (blue, static)
-mesh_objects[2].matrix = Mat4.new(1):translate(Vec3.new(-2, 0, 0))
-mesh_objects[2].color = Vec3.new(0, 0, 1)
-mesh_objects[2].emissive = 0
-mesh_objects[2]:register(create_mesh("mesh/box.obj"))
-
 local sample_count = 1
 local bounce_count = 1
 local recompile_time = now()
@@ -102,15 +43,15 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
-	obj.center = Vec3.new(2, 0, math.sin(now() / 500))
-	obj:update()
+	-- obj.center = Vec3.new(2, 0, math.sin(now() / 500))
+	-- obj:update()
 
 	-- Animate first mesh
-	mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2 + math.sin(now() / 1000), 0, 0))
-	mesh_objects[1]:update()
+	-- mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2 + math.sin(now() / 1000), 0, 0))
+	-- mesh_objects[1]:update()
 
 	camera.matrix = Mat4.new(1)
-		:translate(Vec3.new(0, 0, -6))
+		:translate(Vec3.new(0, 0, -8))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 

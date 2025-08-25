@@ -248,16 +248,24 @@ RayPixelData TraceRay(Ray ray) {
         }
     }
 
+    int global_mesh_triangle_index = 0;
     for (int i = 0; mesh_count > i; i++) {
         MeshMetadata mesh = get_mesh_metadata(i);
 
         for (int t = 0; mesh.triangles > t; t++) {
-            MeshTriangle triangle = get_mesh_triangle(t);
+            MeshTriangle triangle = get_mesh_triangle(global_mesh_triangle_index);
+            global_mesh_triangle_index += 1;
             
-            // transform triangles to matrix space
+            // transform triangles to world space
             triangle.p1 = (mesh.matrix * vec4(triangle.p1, 1.0)).xyz;
             triangle.p2 = (mesh.matrix * vec4(triangle.p2, 1.0)).xyz;
             triangle.p3 = (mesh.matrix * vec4(triangle.p3, 1.0)).xyz;
+
+            if (RaySphereIntersect(triangle.p1, 0.5, ray).hit || RaySphereIntersect(triangle.p2, 0.5, ray).hit || RaySphereIntersect(triangle.p3, 0.5, ray).hit) {
+                data.hit = true;
+                data.color = vec3(1.0, 1.0, 1.0);
+                continue;
+            }
 
             TracerRayHitInfo ray_test = ray_intersects_triangle(ray.origin, ray.direction, triangle.p1, triangle.p2, triangle.p3);
             if (ray_test.hit && min_distance > ray_test.intersect_distance) {
@@ -284,7 +292,7 @@ void main() {
     ray.origin = camera_position;
     ray.direction = pixel_direction;
 
-    vec3 SKY_COLOR = vec3(0, 0, 0);
+    vec3 SKY_COLOR = vec3(0.0, 0.0, 0.0);
     RayPixelData test = TraceRay(ray);
 
     if (!test.hit) {
@@ -296,7 +304,7 @@ void main() {
     vec3 output_color = test.color.rgb;
     uint random_seed = uint(uv.x * 473284784) + uint(uv.y * 173284784); // + uint(time);
 
-    ray.origin = test.position + first_test_normal * 0.00001;
+    ray.origin = test.position + first_test_normal * 0.001;
 
     for (int i = 0; i < sample_count; i++) {
         ray.direction = cosineSampleHemisphere(first_test_normal, random_seed);

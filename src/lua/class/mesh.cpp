@@ -72,8 +72,6 @@ meshGeometry mesh_load_geometry(const char *path)
 		}
 	}
 
-	printf("faces: %i\n", mesh->mNumFaces);
-
 	return geometry;
 }
 
@@ -84,9 +82,6 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	meshGeometry geometry = mesh_load_geometry(path);
 	bsgemesh->geometry = geometry;
 	
-	printf("%i\n", geometry.vertices.size());
-	printf("%i\n", geometry.indices.size());
-
 	unsigned int VBO;
 	unsigned int VAO;
 	unsigned int EBO;
@@ -117,8 +112,6 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	bsgemesh->vbo = VBO;
 	bsgemesh->indices_count = geometry.indices.size();
 	bsgemesh->texture = 0;
-
-	printf("indices: %i\n", bsgemesh->indices_count);
 
 	return 0;
 }

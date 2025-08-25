@@ -49,9 +49,13 @@ end
 local texture = Image.new()
 texture:load("image/fox.jpg")
 
-local mesh = Mesh.new()
-mesh:load("mesh/box.obj")
-mesh.texture = texture
+local function create_mesh(src)
+	local mesh = Mesh.new()
+	mesh:load(src)
+	mesh.texture = texture
+
+	return mesh
+end
 
 local obj = SphereBufferObject.new():register()
 obj.center = Vec3.new(0, 0, 0)
@@ -66,16 +70,22 @@ obj2.radius = 2
 obj2.emissive = 0
 obj2:register()
 
-mesh.position = Mat4.new(1):rotate((now() / 5000) % math.pi, Vec3.new(1, 0, 0))
+local meshes = {
+	create_mesh("mesh/box.obj"),
+	create_mesh("mesh/box.obj"),
+}
 
-mesh_tbo_register_mesh(mesh)
+meshes[1].position = Mat4.new(1):translate(Vec3.new(2, 0, 0))
+meshes[2].position = Mat4.new(1):translate(Vec3.new(-2, 0, 0))
+
+mesh_tbo_register_mesh(meshes[1])
+mesh_tbo_register_mesh(meshes[2])
 
 local sample_count = 16
 local bounce_count = 2
 local recompile_time = now()
 local always_recompile = true
 World.rendering.step:connect(function(delta_time)
-	-- raytracer_effect:render()
 	Gizmo.set_line_width(1)
 	Gizmo.set_depth_test(false)
 
@@ -104,6 +114,8 @@ World.rendering.step:connect(function(delta_time)
 	-- Use the actual camera position from our input state
 	local camera_final_position = camera_to_world_matrix:to_vec3()
 
+	meshes[1]:render()
+	meshes[2]:render()
 	TEMP_bind_tbo_texture()
 	mesh_tbo_bind_meshTriangles()
 
@@ -124,8 +136,6 @@ World.rendering.step:connect(function(delta_time)
 		camera_final_position.y,
 		camera_final_position.z
 	)
-
-	-- mesh:render()
 
 	if raytracer_effect.is_valid then
 		raytracer_effect:render()

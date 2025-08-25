@@ -7,6 +7,6 @@
 #include "../mesh.h"
 #include "tbo.h"
 
-#define MESH_MAX_TRIANGLE_BUFFER_COUNT 100 // Temporary
+#define MESH_MAX_TRIANGLE_BUFFER_COUNT 200 // Temporary
 
 void lua_bsge_init_mesh_tbo(sol::state &lua);

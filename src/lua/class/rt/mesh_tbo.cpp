@@ -15,14 +15,16 @@ struct meshTBOMetadata {
 };
 
 int meshCount = 0;
+int triangle_count = 0;
 
 void lua_bsge_init_mesh_tbo(sol::state &lua) {
     meshTriangles = setup_tbo(GL_RGB32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOTriangle));
     meshes = setup_tbo(GL_RGBA32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOMetadata));
 
-    lua.set_function("mesh_tbo_register_mesh", [](const meshData &mesh) {
-        std::vector<meshTBOTriangle> triangleData;
+    lua.set_function("mesh_tbo_register_mesh", [](meshData mesh) {
         int tri_count = 0;
+        std::vector<meshTBOTriangle> triangleData;
+
         for (size_t i = 0; i < mesh.geometry.indices.size(); i += 3) {
             uint32_t idx0 = mesh.geometry.indices[i];
             uint32_t idx1 = mesh.geometry.indices[i + 1];
@@ -38,21 +40,24 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
             t.p2 = v1.position;
             t.p3 = v2.position;
 
-            upload_tbo_element(meshTriangles, tri_count, &t);
+            upload_tbo_element(meshTriangles, triangle_count, &t);
+
             tri_count++;
+            triangle_count++;
         }
 
         meshTBOMetadata metadata;
         metadata.matrix = mesh.matrix;
         metadata.triangles = tri_count;
 
-        printf("value set to %i\n", tri_count);
-        upload_tbo_element(meshes, 0, &metadata);
+        printf("value set to %i\n", triangle_count);
+        printf("value set to %i\n", meshCount);
+
+        upload_tbo_element(meshes, meshCount, &metadata);
+        meshCount += 1;
 
         printf("meshTBOTriangle %i\n", sizeof(meshTBOTriangle));
         printf("meshTBOMetadata %i\n", sizeof(meshTBOMetadata));
-
-        meshCount += 1;
     });
 
     lua.set_function("mesh_tbo_get_count", []() {

@@ -6,8 +6,10 @@ if [ -z "$1" ]
 else
 	echo "[run.sh] compiling"
 
+    cmake -B build -G "Ninja Multi-Config"
+
 	# run make and don't run program if it errors
-	if make; then
+	if cmake --build build; then
 		echo "[run.sh] compiled"
 	else
 		echo "[run.sh] failed to compile"
@@ -18,7 +20,6 @@ else
 
 	# todo: fix
 	cd projects/$1
-	../../bin/program
+	../../build/Debug/luabsge
 	cd ../../
 fi
-

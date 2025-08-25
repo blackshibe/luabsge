@@ -1,4 +1,5 @@
-luabsge
-bin
-obj
-.vscode/*
+# vscode garbage
+.vscode/**
+
+# build folder
+build

@@ -125,7 +125,7 @@ World.rendering.step:connect(function(delta_time)
 		camera_final_position.z
 	)
 
-	mesh:render()
+	-- mesh:render()
 
 	if raytracer_effect.is_valid then
 		raytracer_effect:render()
@@ -146,6 +146,7 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.PopStyleColor()
 
 		ImGui.Text("TEMP_get_tbo_texture_count(): " .. string.format("%i", TEMP_get_tbo_texture_count()))
+		ImGui.Text("mesh_tbo_get_count(): " .. string.format("%i", mesh_tbo_get_count()))
 		ImGui.Spacing()
 
 		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 512)

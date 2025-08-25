@@ -1,7 +1,7 @@
 #pragma once
 
+
 #include "glad/glad.h"
-#include <GLFW/glfw3.h>
 #include <cstdio>
 #include <iostream>
 #include <lua.hpp>
@@ -13,3 +13,9 @@
 #include "lua/luax.h"
 #include "opengl/freetype.h"
 #include "opengl/window.h"
+
+#if USE_EMSCRIPTEN
+#include <GLFW/emscripten_glfw3.h>
+#else
+#include <GLFW/glfw3.h>
+#endif

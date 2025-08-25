@@ -217,7 +217,7 @@ bool freetype_load_font(struct Font *font, const char *font_directory) {
 			// now store character for later use
 			struct Character character = {
 				texture,
-				face->glyph->advance.x,
+				(unsigned int)face->glyph->advance.x,
 				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
 				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top)};
 

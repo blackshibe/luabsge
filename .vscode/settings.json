@@ -89,6 +89,6 @@
 		"ranges": "cpp",
 		"shared_mutex": "cpp",
 		"stack": "cpp",
-		"*.inc": "cpp"
+		"*.inc": "cpp",
 	},
 }

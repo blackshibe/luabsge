@@ -1,6 +1,8 @@
 #include <lua.hpp>
 
 #include "../include/colors.h"
+#include <cstdio>
+#include <lauxlib.h>
 
 // The error message is on top of the stack.
 // Fetch it, print it and then pop it off the stack.

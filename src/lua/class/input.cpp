@@ -1,5 +1,4 @@
 #include "input.h"
-#include <GLFW/glfw3.h>
 
 // Global mouse state
 static glm::vec2 mouse_position{0.0f};

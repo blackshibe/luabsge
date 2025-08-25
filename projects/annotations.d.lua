@@ -452,6 +452,7 @@ _G.World = World
 _G.Window = Window
 _G.Gizmo = Gizmo
 ---@class VFXEffect
+---@field is_valid boolean
 VFXEffect = {}
 
 ---@return VFXEffect
@@ -504,9 +505,6 @@ function VFXEffect:set_uniform_mat4(name, matrix) end
 
 function VFXEffect:bind() end
 function VFXEffect:unbind() end
-
----@return boolean Effect is valid
-function VFXEffect:is_valid() end
 
 ---@class MeshBufferObject
 ---@field matrix Mat4 Transformation matrix

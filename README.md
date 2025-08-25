@@ -34,6 +34,8 @@ note: LuaBSGE is only tested on Linux right now
 ## todo
 
 -   Showstoppers
+    -   Web build support
+        -   File loading
     -   Physics
         -   Self explanatory
     -   Editor
@@ -45,4 +47,7 @@ note: LuaBSGE is only tested on Linux right now
     -   Text rendering has really weird positioning
     -   Text rendering cuts off with high scale (you need to resize the window once to fix it)
     -   Cross-platform support
-        
+
+## goals
+
+-   To have fun

@@ -15,6 +15,9 @@ bool is_mouse_locked();
 glm::vec2 get_mouse_delta();
 glm::vec2 get_mouse_position();
 
+bool is_key_down(int key);
+bool is_key_up(int key);
+
 void set_input_window(GLFWwindow* window);
 
 void lua_bsge_init_input(sol::state &lua);

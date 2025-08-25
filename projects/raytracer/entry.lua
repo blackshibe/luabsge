@@ -17,17 +17,44 @@ camera.far_clip = 100
 World.rendering.camera = camera
 
 local MOUSE_SENSITIVITY = 0.002
+local MOVE_SPEED = 5.0
 
 local camera_inputs = {
 	r_x = 0,
 	r_y = 0,
+	pos_x = 0,
+	pos_y = 0,
+	pos_z = 10,
 }
 
+-- TODO less ai garbage controls
 World.rendering.step:connect(function(delta_time)
 	local dim = Window.get_window_dimensions()
 
+	-- Handle WASD movement
+	local move_delta = MOVE_SPEED * delta_time
+
+	if World.input.is_key_down(KEY_W) then
+		camera_inputs.pos_z = camera_inputs.pos_z - move_delta
+	end
+	if World.input.is_key_down(KEY_S) then
+		camera_inputs.pos_z = camera_inputs.pos_z + move_delta
+	end
+	if World.input.is_key_down(KEY_A) then
+		camera_inputs.pos_x = camera_inputs.pos_x - move_delta
+	end
+	if World.input.is_key_down(KEY_D) then
+		camera_inputs.pos_x = camera_inputs.pos_x + move_delta
+	end
+	if World.input.is_key_down(KEY_Q) then
+		camera_inputs.pos_y = camera_inputs.pos_y + move_delta
+	end
+	if World.input.is_key_down(KEY_E) then
+		camera_inputs.pos_y = camera_inputs.pos_y - move_delta
+	end
+
 	camera.position = Mat4.new(1)
-		:translate(Vec3.new(0, 0, 10))
+		:translate(Vec3.new(camera_inputs.pos_x, camera_inputs.pos_y, camera_inputs.pos_z))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 
@@ -40,12 +67,8 @@ World.rendering.step:connect(function(delta_time)
 	-- camera.position is already the transform matrix (camera-to-world)
 	local camera_to_world_matrix = camera.position
 
-	-- Extract camera position from the camera-to-world matrix
-	-- For a simple translation matrix, we can extract the position from the matrix
-	-- The translation is typically in the 4th column of the matrix
-	-- Since camera.position is our transform matrix, we can use it directly for camera_to_world
-	-- For camera position, if it's a simple translation, we can extract from the matrix
-	local camera_pos = Vec3.new(0, 0, -10) -- Use the same position we set for the camera
+	-- Use the actual camera position from our input state
+	local camera_pos = Vec3.new(camera_inputs.pos_x, camera_inputs.pos_y, camera_inputs.pos_z)
 
 	-- Set uniforms for raytracer
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
@@ -57,6 +80,25 @@ World.rendering.step:connect(function(delta_time)
 	if ImGui.Begin("LuaBSGE Ray Tracer") then
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()
+
+		-- Camera info
+		ImGui.Text("Camera Position:")
+		ImGui.Text("  X: " .. string.format("%.2f", camera_inputs.pos_x))
+		ImGui.Text("  Y: " .. string.format("%.2f", camera_inputs.pos_y))
+		ImGui.Text("  Z: " .. string.format("%.2f", camera_inputs.pos_z))
+
+		ImGui.Text("Camera Rotation:")
+		ImGui.Text("  Yaw: " .. string.format("%.2f", math.deg(camera_inputs.r_x)))
+		ImGui.Text("  Pitch: " .. string.format("%.2f", math.deg(camera_inputs.r_y)))
+
+		ImGui.Separator()
+
+		-- Controls help
+		ImGui.Text("Controls:")
+		ImGui.Text("WASD - Move")
+		ImGui.Text("Q/E - Up/Down")
+		ImGui.Text("RMB + Mouse - Look around")
+		ImGui.Text("Shift - Speed boost")
 	end
 	ImGui.End()
 

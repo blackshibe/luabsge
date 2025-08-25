@@ -80,6 +80,16 @@ bool is_mouse_locked() {
 	return cursor_locked;
 }
 
+bool is_key_down(int key) {
+	if (!input_window) return false;
+	return glfwGetKey(input_window, key) == GLFW_PRESS;
+}
+
+bool is_key_up(int key) {
+	if (!input_window) return false;
+	return glfwGetKey(input_window, key) == GLFW_RELEASE;
+}
+
 void set_input_window(GLFWwindow* window) {
 	input_window = window;
 }
@@ -96,6 +106,8 @@ void lua_bsge_init_input(sol::state &lua) {
     input["lock_mouse"] = &lock_mouse;
     input["unlock_mouse"] = &unlock_mouse;
     input["is_mouse_locked"] = &is_mouse_locked;
+    input["is_key_down"] = &is_key_down;
+    input["is_key_up"] = &is_key_up;
 
 	world.set("input", input);
 }

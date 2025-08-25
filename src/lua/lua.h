@@ -30,6 +30,8 @@
 #include "class/gizmo.h"
 
 #include "class/rt/tbo.h"
+#include "class/rt/sphere_tbo.h"
+#include "class/rt/mesh_tbo.h"
 
 int64_t now();
 

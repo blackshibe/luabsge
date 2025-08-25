@@ -44,11 +44,18 @@ for i = 1, 12 do
 	)
 end
 
+local texture = Image.new()
+texture:load("image/fox.jpg")
+
+local mesh = Mesh.new()
+mesh:load("mesh/box.obj")
+mesh.texture = texture
+
 TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
 TEMP_make_sphere(Vec3.new(-3, 0, 0), Vec3.new(1, 1, 1), 1, 1)
 
-local sample_count = 2
-local bounce_count = 3
+local sample_count = 16
+local bounce_count = 2
 local recompile_time = now()
 local always_recompile = true
 World.rendering.step:connect(function(delta_time)
@@ -92,6 +99,9 @@ World.rendering.step:connect(function(delta_time)
 		camera_final_position.y,
 		camera_final_position.z
 	)
+
+	mesh.position = Mat4.new(1):rotate((now() / 5000) % math.pi, Vec3.new(1, 0, 0))
+	mesh:render()
 
 	if raytracer_effect.is_valid then
 		raytracer_effect:render()

@@ -4,18 +4,14 @@
 #include <lua.hpp>
 #include <GLFW/glfw3.h>
 
-#define SPHERE_MAX_COUNT 128
-
-struct SphereTBO {
-    glm::vec3 center;
-    float radius;
-    glm::vec3 color;
-    float emissive;
+// TBOs are supported since 3.3 unlike SSBOs, but probably unpreferrable for quickly updating objects
+// not that this matters in a ray tracer scenario
+struct TextureBufferObject {
+    GLuint tboBuffer;
+    GLuint tboTexture;
+    uint item_size;
+    const void* data;
 };
 
-struct ShaderSSBOData { 
-    int amount;
-    SphereTBO TBO[SPHERE_MAX_COUNT];
-};
-
-void lua_bsge_init_sphere_tbo(sol::state &lua);
+TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size, const void* data) ;
+void upload_tbo_element(TextureBufferObject obj, uint index, const void* item);

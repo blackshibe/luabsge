@@ -83,6 +83,8 @@ struct MeshTriangle {
 
 struct MeshMetadata {
     mat4 matrix;
+    vec3 color;
+    float emissive;
     float triangles;
 };
 
@@ -98,7 +100,7 @@ MeshTriangle get_mesh_triangle(int index) {
 }
 
 MeshMetadata get_mesh_metadata(int mesh_index) {
-    int base_index = mesh_index * 5;
+    int base_index = mesh_index * 6;
     MeshMetadata meta;
     
     vec4 col0 = texelFetch(mesh_data, base_index);
@@ -107,7 +109,9 @@ MeshMetadata get_mesh_metadata(int mesh_index) {
     vec4 col3 = texelFetch(mesh_data, base_index + 3);
 
     meta.matrix = mat4(col0, col1, col2, col3);
-    meta.triangles = texelFetch(mesh_data, base_index + 4).r;
+    meta.color = texelFetch(mesh_data, base_index + 4).xyz;
+    meta.triangles = texelFetch(mesh_data, base_index + 4).w;
+    meta.emissive = texelFetch(mesh_data, base_index + 5).r;
     
     return meta;
 }
@@ -266,8 +270,8 @@ RayPixelData TraceRay(Ray ray) {
                 min_distance = ray_test.intersect_distance;
                 
                 data.hit = true;
-                data.color = vec3(1.0, 0.0, 0.0);
-                data.emission = 0;
+                data.color = mesh.color;
+                data.emission = mesh.emissive;
                 data.normal = cross(triangle.p2 - triangle.p1, triangle.p3 - triangle.p1);
                 data.position = ray.origin + ray.direction * ray_test.intersect_distance;
             }

@@ -56,8 +56,8 @@ void lua_bsge_init_sphere_tbo(sol::state &lua) {
                                     return sphere_count;
                                 },
 
-                                "get_texture", []() {
-                                    glActiveTexture(GL_TEXTURE0);
+                                "bind_textures", [](int texture_slot) {
+                                    glActiveTexture(texture_slot);
                                     glBindTexture(GL_TEXTURE_BUFFER, spheres.tboTexture);
                                     return spheres.tboTexture;
                                 }

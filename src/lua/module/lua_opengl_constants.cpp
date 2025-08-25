@@ -69,6 +69,13 @@ void lua_bsge_init_opengl_constants(sol::state &lua) {
     lua["KEY_N"] = GLFW_KEY_N;
     lua["KEY_M"] = GLFW_KEY_M;
     
+    lua["GL_TEXTURE0"] = GL_TEXTURE0;
+    lua["GL_TEXTURE1"] = GL_TEXTURE1;
+    lua["GL_TEXTURE2"] = GL_TEXTURE2;
+    lua["GL_TEXTURE3"] = GL_TEXTURE3;
+    lua["GL_TEXTURE4"] = GL_TEXTURE4;
+    lua["GL_TEXTURE5"] = GL_TEXTURE5;
+
     // Numbers
     lua["KEY_0"] = GLFW_KEY_0;
     lua["KEY_1"] = GLFW_KEY_1;

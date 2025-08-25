@@ -70,19 +70,25 @@ obj2.radius = 2
 obj2.emissive = 0
 obj2:register()
 
-local meshes = {
-	create_mesh("mesh/box.obj"),
-	create_mesh("mesh/box.obj"),
+local mesh_objects = {
+	MeshBufferObject.new(),
+	MeshBufferObject.new(),
 }
 
-meshes[1].position = Mat4.new(1):translate(Vec3.new(2, 0, 0))
-meshes[2].position = Mat4.new(1):translate(Vec3.new(-2, 0, 0))
+-- Set up first mesh (green, moving)
+mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2, 0, 0))
+mesh_objects[1].color = Vec3.new(0, 1, 0)
+mesh_objects[1].emissive = 0
+mesh_objects[1]:register(create_mesh("mesh/sphere.obj"))
 
-mesh_tbo_register_mesh(meshes[1])
-mesh_tbo_register_mesh(meshes[2])
+-- Set up second mesh (blue, static)
+mesh_objects[2].matrix = Mat4.new(1):translate(Vec3.new(-2, 0, 0))
+mesh_objects[2].color = Vec3.new(0, 0, 1)
+mesh_objects[2].emissive = 0
+mesh_objects[2]:register(create_mesh("mesh/box.obj"))
 
-local sample_count = 16
-local bounce_count = 2
+local sample_count = 1
+local bounce_count = 1
 local recompile_time = now()
 local always_recompile = true
 World.rendering.step:connect(function(delta_time)
@@ -99,6 +105,10 @@ World.rendering.step:connect(function(delta_time)
 	obj.center = Vec3.new(2, 0, math.sin(now() / 500))
 	obj:update()
 
+	-- Animate first mesh
+	mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2 + math.sin(now() / 1000), 0, 0))
+	mesh_objects[1]:update()
+
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -6))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
@@ -114,16 +124,14 @@ World.rendering.step:connect(function(delta_time)
 	-- Use the actual camera position from our input state
 	local camera_final_position = camera_to_world_matrix:to_vec3()
 
-	meshes[1]:render()
-	meshes[2]:render()
-	TEMP_bind_tbo_texture()
-	mesh_tbo_bind_meshTriangles()
+	SphereBufferObject.bind_textures(GL_TEXTURE0)
+	MeshBufferObject.bind_textures(GL_TEXTURE1, GL_TEXTURE2)
 
 	raytracer_effect:set_uniform_int("spheres_texture", 0) -- texture 0
 	raytracer_effect:set_uniform_int("mesh_triangle_data", 1) -- texture 1
 	raytracer_effect:set_uniform_int("mesh_data", 2) -- texture 2
-	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
-	raytracer_effect:set_uniform_int("mesh_count", mesh_tbo_get_count())
+	raytracer_effect:set_uniform_int("sphere_texture_count", SphereBufferObject.get_count())
+	raytracer_effect:set_uniform_int("mesh_count", MeshBufferObject.get_count())
 
 	raytracer_effect:set_uniform_int("sample_count", sample_count)
 	raytracer_effect:set_uniform_int("bounce_count", bounce_count)
@@ -149,14 +157,6 @@ World.rendering.step:connect(function(delta_time)
 
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()
-		ImGui.Spacing()
-
-		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
-		ImGui.Text("RT Debug")
-		ImGui.PopStyleColor()
-
-		ImGui.Text("TEMP_get_tbo_texture_count(): " .. string.format("%i", TEMP_get_tbo_texture_count()))
-		ImGui.Text("mesh_tbo_get_count(): " .. string.format("%i", mesh_tbo_get_count()))
 		ImGui.Spacing()
 
 		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 512)

@@ -2,7 +2,7 @@ local scene = require("scene")
 
 -- Create VFX effect for raytracing
 local raytracer_effect = VFXEffect.new()
-raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
+raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.ai.glsl")
 
 if not raytracer_effect.is_valid then
 	error("rt shader is invalid")
@@ -26,20 +26,21 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-local sample_count = 1
-local bounce_count = 1
+local sample_count = 16
+local bounce_count = 2
+local hot_reloading = false
 local recompile_time = now()
-local always_recompile = true
+
 World.rendering.step:connect(function(delta_time)
 	Gizmo.set_line_width(1)
 	Gizmo.set_depth_test(false)
 
-	Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
-	Gizmo.set_line_width(5)
+	-- Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
+	-- Gizmo.set_line_width(5)
 
-	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
-	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
-	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+	-- Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
+	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
+	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -8))
@@ -91,8 +92,8 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Separator()
 		ImGui.Spacing()
 
-		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 512)
-		local b_changed, value2 = ImGui.SliderInt("Light Bounces", bounce_count, 1, 12)
+		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 128)
+		local b_changed, value2 = ImGui.SliderInt("Light Bounces", bounce_count, 1, 16)
 		if s_changed then
 			sample_count = value1
 		end
@@ -112,14 +113,14 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Spacing()
 		ImGui.Separator()
 
-		local changed, val = ImGui.Checkbox("Hot reload constantly", always_recompile)
+		local changed, val = ImGui.Checkbox("Hot reload constantly", hot_reloading)
 		if changed then
-			always_recompile = val
+			hot_reloading = val
 		end
 
-		if ((World.input.is_key_down(KEY_F)) or always_recompile) and math.abs(recompile_time - now()) > 200 then
+		if ((World.input.is_key_down(KEY_F)) or hot_reloading) and math.abs(recompile_time - now()) > 200 then
 			recompile_time = now()
-			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
+			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.ai.glsl")
 		end
 
 		ImGui.PushTextColor(raytracer_effect.is_valid and Vec4.new(0.5, 0.5, 1, 1) or Vec4.new(1.0, 0, 0, 1))

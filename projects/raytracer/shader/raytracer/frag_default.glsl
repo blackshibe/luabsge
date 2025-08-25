@@ -4,6 +4,7 @@ in vec2 uv;
 out vec4 FragColor;
 
 uniform float time;
+uniform int bounces;
 
 uniform mat4x4 camera_inv_proj;
 uniform mat4x4 camera_to_world;
@@ -17,11 +18,40 @@ uniform vec3 camera_position;
 uniform samplerBuffer spheres_texture;
 uniform int sphere_texture_count;
 
+
+float hash1(inout float seed) {
+    return fract(sin(seed += 0.1)*43758.5453123);
+}
+
+vec2 hash2(inout float seed) {
+    return fract(sin(vec2(seed+=0.1,seed+=0.1))*vec2(43758.5453123,22578.1459123));
+}
+
+vec3 hash3(inout float seed) {
+    return fract(sin(vec3(seed+=0.1,seed+=0.1,seed+=0.1))*vec3(43758.5453123,22578.1459123,19642.3490423));
+}
+
+// https://www.shadertoy.com/view/fdS3zw
+vec3 cosineSampleHemisphere(vec3 n, inout float seed)
+{
+    vec2 u = hash2(seed);
+
+    float r = sqrt(u.x);
+    float theta = 2.0 * 3.141529 * u.y;
+ 
+    vec3  B = normalize( cross( n, vec3(0.0,1.0,1.0) ) );
+	vec3  T = cross( B, n );
+    
+    return normalize(r * sin(theta) * B + sqrt(1.0 - u.x) * n + r * cos(theta) * T);
+}
+
+
+
 struct Sphere {
     vec3 center;
-    vec3 color;
     float radius;
-    bool emissive;
+    vec3 color;
+    float emissive;
 };
 
 Sphere getSphereAtIndex(int index) {
@@ -34,16 +64,16 @@ Sphere getSphereAtIndex(int index) {
     
     Sphere sphere;
     sphere.center = data0.xyz;
-    sphere.color = vec3(data0.w, data1.xy);
-    sphere.radius = data1.z;
-    sphere.emissive = (data1.w > 0.5);
+    sphere.radius = data0.w;
+    sphere.color = data1.xyz;
+    sphere.emissive = data1.w;
     
     return sphere;
 }
 
 vec3 GetPixelWorldDirection(vec2 uv) {
     vec2 ndc = uv * 2.0 - 1.0; // convert uv to clip space (-1, 1)
-    vec4 clipPos = vec4(-ndc.x, -ndc.y, 0, 1); // clip position is camera clip position
+    vec4 clipPos = vec4(-ndc.xy, 0.0, 1.0); // clip position is camera clip position
     vec4 viewPos = camera_inv_proj * clipPos; // transform it from clip space to camera space or something
 
     vec3 viewDir = normalize(viewPos.xyz / viewPos.w); // viewDir is the direction from the camera to the pixel in view space
@@ -53,9 +83,10 @@ vec3 GetPixelWorldDirection(vec2 uv) {
 }
 
 struct TracerRayHitInfo { 
-    float Distance;
-    vec3 Normal;
-    bool Hit;
+    float intersectDistance;
+    vec3 intersectNormal;
+    vec3 intersectPosition;
+    bool hit;
 };
 
 struct Ray {
@@ -64,12 +95,13 @@ struct Ray {
 };
 
 // quadratic formula expression of x^2 + y^2 + z^2 = r^2 transformed into ||P+Dx||^2 = R^2
-TracerRayHitInfo RaySphereIntersect(vec3 spherePosition, float sphereRadius, Ray ray) {
+TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray ray) {
     TracerRayHitInfo rayInfo;
-    rayInfo.Hit = false;
-    rayInfo.Distance = -1;
+    rayInfo.hit = false;
+    rayInfo.intersectDistance = -1;
 
-    vec3 rayOrigin = ray.origin - spherePosition;
+    vec3 origin = ray.origin - sphere_center;
+    vec3 rayOrigin = origin;
     vec3 rayDirection = ray.direction;
 
     float a = dot(rayDirection, rayDirection);
@@ -79,18 +111,56 @@ TracerRayHitInfo RaySphereIntersect(vec3 spherePosition, float sphereRadius, Ray
     float delta = b * b - 4 * a * c;
 
     if (delta >= 0) {
-        float intersect1 = (-b + sqrt(delta)) / 2 * a;
-        float intersect2 = (-b - sqrt(delta)) / 2 * a;
-        float minIntersect = min(intersect1, intersect2);
+        float t1 = (-b + sqrt(delta)) / 2 * a;
+        float t2 = (-b - sqrt(delta)) / 2 * a;
 
-        if (minIntersect < 0) {
-            rayInfo.Hit = true;
-            rayInfo.Distance = -minIntersect;
-            rayInfo.Normal = normalize((rayDirection * minIntersect) - spherePosition);
+        float t = min(t1, t2);
+        if (t < 0.0) t = max(t1, t2);
+
+        // avoids self intersect apparently
+        if (t < 0.001) {
+            rayInfo.hit = true;
+            rayInfo.intersectPosition = ray.origin + ray.direction * t;
+            rayInfo.intersectDistance = -t;
+            rayInfo.intersectNormal = -normalize(rayInfo.intersectPosition - sphere_center);
         }
     }
 
     return rayInfo;
+}
+
+struct RayPixelData {
+    bool hit;
+    vec3 color;
+    vec3 normal;
+    vec3 position;
+    float emission;
+};
+
+RayPixelData TraceRay(Ray ray) {
+    RayPixelData data;
+    data.hit = false;
+
+    // vec3 hitColor = vec3(0.0, 0.0, 0.0);
+    float min_distance = 1e9;
+
+    for (int i = 0; i < sphere_texture_count; i++) {
+        Sphere sphere = getSphereAtIndex(i);
+        TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
+
+        if (test.hit && min_distance > test.intersectDistance) {
+            min_distance = test.intersectDistance;
+            
+            data.color = sphere.color.rgb;
+            data.emission = sphere.emissive;
+            data.normal = test.intersectNormal;
+            data.position = test.intersectPosition;
+            
+            data.hit = true;
+        }
+    }
+    
+    return data;
 }
 
 void main() {
@@ -98,23 +168,34 @@ void main() {
     ray.origin = camera_position;
     ray.direction = GetPixelWorldDirection(uv);
 
-    bool hasHit = false;
-    float minDistance = 10000;
-    for (int i = 0; i < sphere_texture_count; i++) {
-        Sphere sphere = getSphereAtIndex(i);
-        TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
+    vec4 color = vec4(0, 0, 0, 1);
 
-        if (test.Hit && minDistance > test.Distance) {
-            minDistance = test.Distance;
-            FragColor = vec4(test.Normal.x, test.Normal.y, test.Normal.z, 1.0);
-            hasHit = true;
-        }
+    RayPixelData test = TraceRay(ray);
+    if (!test.hit) {
+        FragColor = vec4(0.0, 0.0, 0.0, 1.0);
+        return;
     }
 
-    if (hasHit) return;
+    color = vec4(test.color.rgb, 1.0);
 
-    float a = 0.5 - ray.direction.y / 2;
-    FragColor = vec4(a, a, a, 1.0);
+    vec3 normal = test.normal;
+    ray.origin = test.position + test.normal * 0.001;
 
-    // FragColor = vec4(ray.direction.r, ray.direction.y, ray.direction.z, 1.0);
+    float seed = uv.x + uv.y * 3.43121412313 + fract(1.12345314312);
+    float emission = test.emission * bounces;
+
+    for (int done_bounces = 0; done_bounces < bounces; done_bounces++) {
+        if (test.hit) {
+            if (done_bounces != 0) {
+                color += vec4(test.color.rgb * test.emission, 1.0);
+            }
+            emission += test.emission;
+        }
+        ray.direction = cosineSampleHemisphere(normal, seed);
+
+        test = TraceRay(ray);
+    }
+
+    emission /= bounces;
+    FragColor = vec4(color.rgb * emission, 1.0);
 }

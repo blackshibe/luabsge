@@ -26,25 +26,38 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-for i = 1, 64 do
+for i = 1, 32 do
 	TEMP_make_sphere(
-		Vec3.new(math.random(-20, 20), 0, math.random(-20, 20)),
+		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
 		Vec3.new(math.random(0, 100) / 100, math.random(0, 100) / 100, math.random(0, 100) / 100),
 		math.random(1, 2),
-		false
+		0
 	)
 end
 
-for i = 1, 64 do
+for i = 1, 16 do
 	TEMP_make_sphere(
-		Vec3.new(math.random(-20, 20), 0, math.random(-20, 20)),
+		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
 		Vec3.new(1, 1, 1),
 		math.random(1, 2) / 2,
-		true
+		math.random(1, 100) / 100
 	)
 end
 
+for i = 1, 16 do
+	TEMP_make_sphere(
+		Vec3.new(math.random(-20, 20), -10, math.random(-20, 20)),
+		Vec3.new(math.random(0, 1), math.random(0, 1), math.random(0, 1)),
+		math.random(1, 2) / 2,
+		math.random(1, 100) / 50
+	)
+end
+
+TEMP_make_sphere(Vec3.new(0, 0, 0), Vec3.new(1, 0, 0), 1, 0)
+TEMP_make_sphere(Vec3.new(0, 2, 0), Vec3.new(1, 1, 1), 0.5, 1)
+
 -- TODO less ai garbage controls
+local bounces = 8
 World.rendering.step:connect(function(delta_time)
 	local dim = Window.get_window_dimensions()
 
@@ -70,6 +83,7 @@ World.rendering.step:connect(function(delta_time)
 	TEMP_get_tbo_texture()
 	raytracer_effect:set_uniform_int("spheres_texture", 0)
 	raytracer_effect:set_uniform_int("sphere_texture_count", TEMP_get_tbo_texture_count())
+	raytracer_effect:set_uniform_int("bounces", bounces)
 
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
 	raytracer_effect:set_uniform_mat4("camera_to_world", camera_to_world_matrix)
@@ -92,6 +106,11 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text("camera rotation")
 		ImGui.Text("x, y = " .. string.format("%.2f, %.2f", math.deg(camera_inputs.r_x), math.deg(camera_inputs.r_y)))
 		ImGui.Separator()
+
+		local changed, value = ImGui.SliderInt("Light Bounces", bounces, 4, 128)
+		if changed then
+			bounces = value
+		end
 	end
 	ImGui.End()
 

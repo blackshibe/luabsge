@@ -8,9 +8,9 @@
 
 struct SphereTBO {
     glm::vec3 center;
-    glm::vec3 color;
     float radius;
-    bool emissive;
+    glm::vec3 color;
+    float emissive;
 };
 
 struct ShaderSSBOData { 

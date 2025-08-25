@@ -6,11 +6,15 @@
 using namespace std::chrono;
 
 // duplicate of now() that i cba to #include
+int64_t start = duration_cast<milliseconds>(
+					 system_clock::now().time_since_epoch())
+					 .count();
+
 int64_t get_time() {
 	int64_t ms = duration_cast<milliseconds>(
 					 system_clock::now().time_since_epoch())
 					 .count();
-	return ms;
+	return ms - start;
 }
 
 const char* VFXEffectStruct::default_vertex_shader = R"(

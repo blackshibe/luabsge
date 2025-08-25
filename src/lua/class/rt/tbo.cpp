@@ -17,7 +17,7 @@ void updateSingleSphere(size_t index, const SphereTBO& sphere) {
     glBindBuffer(GL_TEXTURE_BUFFER, 0);
 }
 
-void make_sphere(glm::vec3 position, glm::vec3 color, float radius, bool emissive) {
+void make_sphere(glm::vec3 position, glm::vec3 color, float radius, float emissive) {
     SphereTBO tbo = SphereTBO();
     tbo.color = color;
     tbo.center = position;

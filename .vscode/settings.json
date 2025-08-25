@@ -91,15 +91,4 @@
 		"stack": "cpp",
 		"*.inc": "cpp"
 	},
-	"Lua.diagnostics.globals": [
-		"now",
-		"World",
-		"Vector3",
-		"Transform",
-		"Color",
-		"Vector2"
-	],
-	"robloxLsp.diagnostics.disable": [
-		"undefined-global"
-	]
 }

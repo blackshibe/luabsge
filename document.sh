@@ -1,0 +1,1 @@
+./util/document.py projects/annotations.d.lua src/ --extensions .cpp .h .hpp .cc

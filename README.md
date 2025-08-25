@@ -4,7 +4,7 @@ Small rendering engine that integrates Lua with OpenGL.<br/>
 
 | test                                                  | raytracer                                                |
 | ----------------------------------------------------- | -------------------------------------------------------- |
-| ![Test project](luabsge.png)                          | ![Ray tracer](luabsge_2.png)                             |
+| ![Test project](repo/luabsge.png)                          | ![Ray tracer](repo/luabsge_2.png)                             |
 
 ## dependencies (archlinux)
 

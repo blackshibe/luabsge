@@ -1,5 +1,3 @@
----@diagnostic disable: undefined-global
-
 local scene = require("scene")
 
 -- Create VFX effect for raytracing
@@ -42,13 +40,6 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
-
-	-- obj.center = Vec3.new(2, 0, math.sin(now() / 500))
-	-- obj:update()
-
-	-- Animate first mesh
-	-- mesh_objects[1].matrix = Mat4.new(1):translate(Vec3.new(2 + math.sin(now() / 1000), 0, 0))
-	-- mesh_objects[1]:update()
 
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -8))

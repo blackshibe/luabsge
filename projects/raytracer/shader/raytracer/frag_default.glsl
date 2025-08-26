@@ -35,17 +35,22 @@ float RandomValue(inout uint state) {
     return NextRandom(state) / 4294967295.0; // 2^32 - 1
 }
 
-// https://www.shadertoy.com/view/fdS3zw
-vec3 cosineSampleHemisphere(vec3 n, inout uint seed) {
-    vec2 u = vec2(RandomValue(seed), RandomValue(seed));
+vec2 RandomVec2(inout uint state) {
+    return vec2(RandomValue(state), RandomValue(state));
+}
 
-    float r = sqrt(u.x);
-    float theta = 2.0 * 3.141529 * u.y;
- 
-    vec3  B = normalize( cross( n, vec3(0.0,1.0,1.0) ) );
-	vec3  T = cross( B, n );
+vec3 cosineSampleHemisphere(vec3 n, inout uint seed) {
+    vec2 u = RandomVec2(seed);
     
-    return normalize(r * sin(theta) * B + sqrt(1.0 - u.x) * n + r * cos(theta) * T);
+    float cos_theta = sqrt(u.x);
+    float sin_theta = sqrt(1.0 - u.x);
+    float phi = 2.0 * 3.14159265359 * u.y;
+    
+    vec3 w = n;
+    vec3 u_vec = normalize(cross((abs(w.x) > 0.1 ? vec3(0,1,0) : vec3(1,0,0)), w));
+    vec3 v = cross(w, u_vec);
+    
+    return normalize(u_vec * cos(phi) * sin_theta + v * sin(phi) * sin_theta + w * cos_theta);
 }
 
 // Sphere Data --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -230,7 +235,7 @@ struct RayPixelData {
     float emission;
 };
 
-RayPixelData TraceRay(Ray ray) {
+RayPixelData TraceRay(Ray ray, inout int tests) {
     RayPixelData data;
     data.hit = false;
     data.color = vec3(0.0, 0.0, 0.0);
@@ -239,7 +244,8 @@ RayPixelData TraceRay(Ray ray) {
     for (int i = 0; i < sphere_texture_count; i++) {
         Sphere sphere = getSphereAtIndex(i);
         TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
-
+        tests += 1;
+        
         if (test.hit && min_distance > test.intersect_distance) {
             min_distance = test.intersect_distance;
             
@@ -259,6 +265,7 @@ RayPixelData TraceRay(Ray ray) {
         for (int t = 0; mesh.triangles > t; t++) {
             MeshTriangle triangle = get_mesh_triangle(global_mesh_triangle_index);
             global_mesh_triangle_index += 1;
+            tests += 1;
             
             // transform triangles to world space
             triangle.p1 = (mesh.matrix * vec4(triangle.p1, 1.0)).xyz;
@@ -281,7 +288,11 @@ RayPixelData TraceRay(Ray ray) {
     return data;
 }
 
-// Main
+float hash13(vec3 p3) {
+    p3 = fract(p3 * .1031);
+    p3 += dot(p3, p3.zyx + 31.32);
+    return fract((p3.x + p3.y) * p3.z);
+}
 
 void main() {
     vec3 pixel_direction = get_pixel_world_direction(uv);
@@ -292,27 +303,54 @@ void main() {
 
     vec3 SKY_COLOR = vec3(0.0, 0.0, 0.0);
     vec3 incoming_light = vec3(0, 0, 0);
-    vec3 output_color = vec3(1, 1, 1);
-    uint random_seed = uint(uv.x * 473284784) + uint(uv.y * 173284784);
 
+    float tests = 0;
+
+    bool hit_sky = false;
     for (int i = 0; i < sample_count; i++) {
         ray.origin = camera_position;
         ray.direction = pixel_direction;
+        vec3 output_color = vec3(1, 1, 1);
 
-        for (int i = 0; i < bounce_count; i++) {
-            RayPixelData test = TraceRay(ray);
+        float blue_noise = hash13(vec3(uv * 1000.0, float(i) + bounce_count + time));
+        uint random_seed = uint(blue_noise * 4294967295.0) + uint(i * 12345); 
+
+        for (int j = 0; j < bounce_count; j++) {
+            RayPixelData test = TraceRay(ray, tests);
 
             if (test.hit) {
-                ray.origin = test.position;            
-                ray.direction = cosineSampleHemisphere(ray.direction, random_seed);            
+                ray.origin = test.position + normalize(test.normal) * 0.0001;            
+                ray.direction = cosineSampleHemisphere(normalize(test.normal), random_seed);            
         
-                output_color *= test.color.rgb;
                 incoming_light += test.emission * output_color.rgb;
+                output_color *= test.color.rgb;
             } else {
                 incoming_light += SKY_COLOR;
+
+                if (j == 0) hit_sky = true;
+                break;
             }
+
+            if (dot(output_color, vec3(1, 1, 1)) < 1.0) break;
+        }
+
+        if (hit_sky == true) {
+            break;
         }
     }
 
-    FragColor = vec4(incoming_light / sample_count, 1.0);
+    vec3 final_color = incoming_light / sample_count;
+
+    // aces
+    final_color = (final_color * (2.51 * final_color + 0.03)) / 
+                  (final_color * (2.43 * final_color + 0.59) + 0.14);
+
+    tests /= 300.0;
+    final_color = vec3(tests, tests, tests);
+
+    if (tests > 1.0) {
+        final_color = vec3(1, 0, 0);
+    }
+
+    FragColor = vec4(final_color, 1.0);
 }

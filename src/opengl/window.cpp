@@ -198,7 +198,7 @@ void BSGEWindow::render_loop_init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// probably disables vsync
-	// glfwSwapInterval(0);
+	glfwSwapInterval(0);
 
 	// camera projection
 	this->last_frame = glfwGetTime();

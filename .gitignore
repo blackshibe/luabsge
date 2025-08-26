@@ -7,6 +7,7 @@ build-web
 public/luabsge.wasm.js
 public/luabsge.wasm.wasm
 projects/webtest/luabsge.wasm.js
+projects/webtest/luabsge.wasm.wasm
 
 # Cmake
 CMakeLists.txt.user

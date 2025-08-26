@@ -96,7 +96,6 @@ bool VFXEffectStruct::load_fragment_shader(const char* fragment_path) {
     }
     
     GLuint vertex_shader, fragment_shader;
-    
     if (!compile_shader(&vertex_shader, GL_VERTEX_SHADER, default_vertex_shader)) {
         printf("[VFXEffect] Failed to compile default vertex shader\n");
         free((void*)fragment_source);

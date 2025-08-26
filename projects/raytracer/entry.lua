@@ -2,7 +2,7 @@ local scene = require("scene")
 
 -- Create VFX effect for raytracing
 local raytracer_effect = VFXEffect.new()
-raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.ai.glsl")
+raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
 
 if not raytracer_effect.is_valid then
 	error("rt shader is invalid")
@@ -26,7 +26,7 @@ local camera_inputs = {
 	pos_z = -5,
 }
 
-local sample_count = 16
+local sample_count = 2
 local bounce_count = 2
 local hot_reloading = false
 local recompile_time = now()
@@ -120,7 +120,7 @@ World.rendering.step:connect(function(delta_time)
 
 		if ((World.input.is_key_down(KEY_F)) or hot_reloading) and math.abs(recompile_time - now()) > 200 then
 			recompile_time = now()
-			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.ai.glsl")
+			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
 		end
 
 		ImGui.PushTextColor(raytracer_effect.is_valid and Vec4.new(0.5, 0.5, 1, 1) or Vec4.new(1.0, 0, 0, 1))

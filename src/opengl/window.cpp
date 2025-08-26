@@ -16,7 +16,7 @@ BSGEWindow::BSGEWindow() {
 }
 
 // Forward declaration for Emscripten main loop callback
-void emscripten_main_loop();
+void main_render_loop();
 static BSGEWindow* g_window = nullptr;
 
 void BSGEWindow::init() {
@@ -223,16 +223,19 @@ void BSGEWindow::render_loop_init() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	#if USE_EMSCRIPTEN
 	g_window = this;
-	emscripten_set_main_loop(emscripten_main_loop, 0, 1);
-	#endif
+
+	#if USE_EMSCRIPTEN
+	emscripten_set_main_loop(main_render_loop, 0, 1);
+	#else
+		while (!should_break && !glfwWindowShouldClose(g_window->window)) {
+			main_render_loop();
+		}
+	#endif	
 }
 
-#if USE_EMSCRIPTEN
-void emscripten_main_loop() {
+void main_render_loop() {
 	if (g_window) {
 		g_window->render_loop();
 	}
 }
-#endif

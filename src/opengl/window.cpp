@@ -6,9 +6,18 @@
 #include "../lua/class/input.h"
 #include "../lua/module/lua_rendering.h"
 
+#if USE_EMSCRIPTEN
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
 BSGEWindow::BSGEWindow() {
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
 }
+
+// Forward declaration for Emscripten main loop callback
+void emscripten_main_loop();
+static BSGEWindow* g_window = nullptr;
 
 void BSGEWindow::init() {
 	if (this->window == NULL) {
@@ -69,7 +78,110 @@ void BSGEWindow::focus_callback(int focused) {
 	this->focused = (focused == GLFW_TRUE);
 }
 
-void BSGEWindow::render_loop() {
+bool BSGEWindow::render_loop() {
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
+		if (!waiting_for_press_false) {
+			wireframe = !wireframe;
+			if (!wireframe) {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			} else {
+				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			}
+		}
+		waiting_for_press_false = true;
+	} else {
+		waiting_for_press_false = false;
+	}
+
+	// frame start
+	float current_frame = glfwGetTime();
+	float delta_time = current_frame - last_frame;
+	
+	// update input system
+	update_mouse_input();
+
+	// clear the screen
+	glClearColor(0.1, 0.1, 0.1, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// get camera projection and coordinates from the Lua context using sol2
+	sol::table world = (*lua)["World"];
+	sol::table rendering = world["rendering"];
+	sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
+	
+	if (!camera_opt) {
+		printf("%s", ANSI_RED);
+		printf("[window.cpp] no camera defined!\n");
+		printf("[window.cpp] as there is currently no fallback, the window will shut down.\n");
+		printf("%s", ANSI_NC);
+
+		glfwSetWindowShouldClose(window, true);
+		#if USE_EMSCRIPTEN
+		return true;
+		#else
+		return false;
+		#endif
+	}
+	
+	BSGECameraMetadata* camera = camera_opt.value();
+	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
+
+	glUseProgram(default_shader);
+	glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
+	glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera_projection));
+
+	// imgui
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// gizmo
+	lua_bsge_gizmo_begin_frame(camera_projection, camera->matrix);
+
+	// lua
+	bsge_call_lua_render(lua, delta_time);
+
+	lua_bsge_gizmo_end_frame();
+	ImGui::Render();
+
+	// Check lua stack size for potential leaks
+	lua_State *L = lua->lua_state();
+	int stack_size = lua_gettop(L);
+	if (stack_warning_threshold < stack_size) {
+		printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
+		should_break = true;
+	}
+
+	// frame end
+	float calc_time = glfwGetTime() - current_frame;
+	last_frame = current_frame;
+
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+
+
+
+	const GLenum err = glGetError();
+	if (err != GL_NO_ERROR) {
+		printf("[main.cpp] exit: OpenGL error: %i\n", err);
+	}
+
+	#if USE_EMSCRIPTEN
+	if (glfwWindowShouldClose(window) || should_break) {
+		emscripten_cancel_main_loop();
+	}
+	return true;
+	#else
+	return !glfwWindowShouldClose(window) && !should_break;
+	#endif
+}
+
+void BSGEWindow::render_loop_init() {
 
 	// MODEL SHADER CODE
 	unsigned int default_shader;
@@ -89,12 +201,8 @@ void BSGEWindow::render_loop() {
 	// glfwSwapInterval(0);
 
 	// camera projection
-	float last_frame = glfwGetTime();
+	this->last_frame = glfwGetTime();
 	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	bool waiting_for_press_false = false;
-	bool wireframe = false;
-	int stack_warning_threshold = 100;
 
 	bool show_demo_window = true;
 	bool show_another_window = false;
@@ -115,92 +223,16 @@ void BSGEWindow::render_loop() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	bool should_break = false;
-	while (!glfwWindowShouldClose(window) && !should_break) {
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
-			glfwSetWindowShouldClose(window, true);
-		}
+	#if USE_EMSCRIPTEN
+	g_window = this;
+	emscripten_set_main_loop(emscripten_main_loop, 0, 1);
+	#endif
+}
 
-		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-			if (!waiting_for_press_false) {
-				wireframe = !wireframe;
-				if (!wireframe) {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-				} else {
-					glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-				}
-			}
-			waiting_for_press_false = true;
-		} else {
-			waiting_for_press_false = false;
-		}
-
-		// frame start
-		float current_frame = glfwGetTime();
-		float delta_time = current_frame - last_frame;
-		
-		// update input system
-		update_mouse_input();
-
-		// clear the screen
-		glClearColor(0.1, 0.1, 0.1, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		// get camera projection and coordinates from the Lua context using sol2
-		sol::table world = (*lua)["World"];
-		sol::table rendering = world["rendering"];
-		sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
-		
-		if (!camera_opt) {
-			printf("%s", ANSI_RED);
-			printf("[window.cpp] no camera defined!\n");
-			printf("[window.cpp] as there is currently no fallback, the window will shut down.\n");
-			printf("%s", ANSI_NC);
-
-			glfwSetWindowShouldClose(window, true);
-			return;
-		}
-		
-		BSGECameraMetadata* camera = camera_opt.value();
-		glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
-
-		glUseProgram(default_shader);
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
-		glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera_projection));
-
-		// imgui
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		// gizmo
-		lua_bsge_gizmo_begin_frame(camera_projection, camera->matrix);
-
-		// lua
-		bsge_call_lua_render(lua, delta_time);
-
-		lua_bsge_gizmo_end_frame();
-		ImGui::Render();
-
-		// Check lua stack size for potential leaks
-		lua_State *L = lua->lua_state();
-		int stack_size = lua_gettop(L);
-		if (stack_warning_threshold < stack_size) {
-			printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
-			should_break = true;
-		}
-
-		// frame end
-		float calc_time = glfwGetTime() - current_frame;
-		last_frame = current_frame;
-
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-
-		const GLenum err = glGetError();
-		if (err != GL_NO_ERROR) {
-			printf("[main.cpp] exit: OpenGL error: %i\n", err);
-		}
+#if USE_EMSCRIPTEN
+void emscripten_main_loop() {
+	if (g_window) {
+		g_window->render_loop();
 	}
 }
+#endif

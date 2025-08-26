@@ -16,6 +16,7 @@
 
 #if USE_EMSCRIPTEN
 #include <GLFW/emscripten_glfw3.h>
+#include <emscripten.h>
 #else
 #include <GLFW/glfw3.h>
 #endif

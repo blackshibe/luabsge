@@ -34,11 +34,12 @@ if(USE_EMSCRIPTEN)
         if(JS_ONLY)
                 message(STATUS "Setting compilation target to native JavaScript")
                 set(CMAKE_EXECUTABLE_SUFFIX ".js")
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s WASM=0 -s EXPORTED_FUNCTIONS='[_main]'")
+                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s WASM=0 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/webtest@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
         else(JS_ONLY)
                 message(STATUS "Setting compilation target to WASM")
                 set(CMAKE_EXECUTABLE_SUFFIX ".wasm.js")
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s WASM=1 -s EXPORTED_FUNCTIONS='[_main]'")
+
+                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/webtest@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
         endif(JS_ONLY)
 
         FetchContent_Declare(
@@ -50,6 +51,7 @@ if(USE_EMSCRIPTEN)
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw3_SOURCE_DIR}/include)
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw3_SOURCE_DIR}/src)
         target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE USE_EMSCRIPTEN=1)
 else()
 
         # Engine executable

@@ -200,11 +200,19 @@ bool freetype_load_font(struct Font *font, const char *font_directory) {
 			glTexImage2D(
 				GL_TEXTURE_2D,
 				0,
+#if USE_EMSCRIPTEN
+				GL_LUMINANCE,
+#else
 				GL_RED,
+#endif
 				face->glyph->bitmap.width,
 				face->glyph->bitmap.rows,
 				0,
+#if USE_EMSCRIPTEN
+				GL_LUMINANCE,
+#else
 				GL_RED,
+#endif
 				GL_UNSIGNED_BYTE,
 				face->glyph->bitmap.buffer);
 

@@ -18,9 +18,17 @@ int main(int argc, char *argv[]) {
 
 	glfwInit();
 	glfwSetErrorCallback(err);
+#if USE_EMSCRIPTEN
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#else
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif
+
+#if !USE_EMSCRIPTEN
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+#endif
 
 	sol::state lua;
 	BSGEWindow window = BSGEWindow();
@@ -44,7 +52,7 @@ int main(int argc, char *argv[]) {
 		}
 
 		window_resize(window.window, window.width, window.height);
-		window.render_loop();
+		window.render_loop_init();
 	} else {
 		printf("[main.cpp] entry.lua failed to run. game closed.\n");
 	}

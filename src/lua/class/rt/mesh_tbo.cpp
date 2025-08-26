@@ -125,10 +125,18 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
 
                                 "bind_textures", [](int triangle_texture_slot, int mesh_texture_slot) {
                                     glActiveTexture(triangle_texture_slot);
+#if USE_EMSCRIPTEN
+                                    // glBindTexture(GL_TEXTURE_2D, meshTriangles.tboTexture);
+#else
                                     glBindTexture(GL_TEXTURE_BUFFER, meshTriangles.tboTexture);
+#endif
 
                                     glActiveTexture(mesh_texture_slot);
+#if USE_EMSCRIPTEN
+                                    // glBindTexture(GL_TEXTURE_2D, meshes.tboTexture);
+#else
                                     glBindTexture(GL_TEXTURE_BUFFER, meshes.tboTexture);
+#endif
                                 }
                             );
 

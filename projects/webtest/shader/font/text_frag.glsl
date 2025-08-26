@@ -1,13 +1,11 @@
-// LuaBSGE - Default fragment shader for text.
-
-#version 330 core
-in vec2 TexCoords;
-out vec4 color;
+#version 100
+precision mediump float;
+varying vec2 TexCoords;
 
 uniform sampler2D text;
 uniform vec3 textColor;
 
 void main() {   
-	if (texture(text, TexCoords).r == 0) discard;
-    color = vec4(textColor.rgb, texture(text, TexCoords).r);
+	if (texture2D(text, TexCoords).r == 0.0) discard;
+    gl_FragColor = vec4(textColor.rgb, texture2D(text, TexCoords).r);
 }

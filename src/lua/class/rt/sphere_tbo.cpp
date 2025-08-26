@@ -21,7 +21,11 @@ void lua_bsge_init_sphere_tbo(sol::state &lua) {
 	lua.set_function("TEMP_make_sphere", make_sphere);
 	lua.set_function("TEMP_bind_tbo_texture", []() {
         glActiveTexture(GL_TEXTURE0);
+#if USE_EMSCRIPTEN
+        // glBindTexture(GL_TEXTURE_2D, spheres.tboTexture);
+#else
         glBindTexture(GL_TEXTURE_BUFFER, spheres.tboTexture);
+#endif
     });
     
     lua.set_function("TEMP_get_tbo_texture_count", []() {
@@ -58,7 +62,11 @@ void lua_bsge_init_sphere_tbo(sol::state &lua) {
 
                                 "bind_textures", [](int texture_slot) {
                                     glActiveTexture(texture_slot);
+#if USE_EMSCRIPTEN
+                                    // glBindTexture(GL_TEXTURE_2D, spheres.tboTexture);
+#else
                                     glBindTexture(GL_TEXTURE_BUFFER, spheres.tboTexture);
+#endif
                                     return spheres.tboTexture;
                                 }
                             );

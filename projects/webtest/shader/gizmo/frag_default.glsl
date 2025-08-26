@@ -1,7 +1,7 @@
-#version 330 core
-in vec3 vertex_color;
-out vec4 frag_color;
+#version 100
+precision mediump float;
+varying vec3 vertex_color;
 
 void main() {
-    frag_color = vec4(vertex_color, 1.0);
+    gl_FragColor = vec4(vertex_color, 1.0);
 }

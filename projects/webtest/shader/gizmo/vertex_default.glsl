@@ -1,8 +1,9 @@
-#version 330 core
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
+#version 100
+precision mediump float;
+attribute vec3 position;
+attribute vec3 color;
 
-out vec3 vertex_color;
+varying vec3 vertex_color;
 
 uniform mat4 projection;
 uniform mat4 transform;

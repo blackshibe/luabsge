@@ -26,6 +26,11 @@ public:
 	bool focused = true;
 	unsigned int default_shader;
 	float program_time = 0;
+	float last_frame = 0.0f;
+	bool waiting_for_press_false = false;
+	bool wireframe = false;
+	bool should_break = false;
+	int stack_warning_threshold = 100;
 
 	GLFWwindow *window;
 	sol::state *lua;
@@ -35,5 +40,6 @@ public:
 	void init();
 	void size_callback(int width, int height);
 	void focus_callback(int focused);
-	void render_loop();
+	bool render_loop();
+	void render_loop_init();
 };

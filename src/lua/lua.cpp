@@ -85,8 +85,10 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_gizmo(lua);
 
 	// temporary (?)
+#if !USE_EMSCRIPTEN
 	lua_bsge_init_sphere_tbo(lua);
 	lua_bsge_init_mesh_tbo(lua);
+#endif
 
 	printf("[lua.cpp] init modules\n");
 	lua_bsge_init_rendering(lua);

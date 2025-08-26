@@ -1,8 +1,7 @@
-// LuaBSGE - Default vertex shader for text.
-
-#version 330 core
-layout (location = 0) in vec4 vertex; // <vec2 pos, vec2 tex>
-out vec2 TexCoords;
+#version 100
+precision mediump float;
+attribute vec4 vertex; // <vec2 pos, vec2 tex>
+varying vec2 TexCoords;
 
 uniform mat4 projection;
 

@@ -1,12 +1,11 @@
-// LuaBSGE - Default vertex shader for 3D meshes.
-
-#version 330 core
-layout (location = 0) in vec3 vert_pos;
-layout (location = 1) in vec3 vert_normal;
-layout (location = 2) in vec2 vert_tex_coord;
+#version 100
+precision mediump float;
+attribute vec3 vert_pos;
+attribute vec3 vert_normal;
+attribute vec2 vert_tex_coord;
 
 // output a color to the fragment shader
-out vec2 tex_coord;
+varying vec2 tex_coord;
 
 uniform mat4 camera_transform;
 uniform mat4 projection;

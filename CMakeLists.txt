@@ -101,7 +101,6 @@ FetchContent_Declare(
     URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
 )
 
-
 FetchContent_MakeAvailable(assimp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${assimp_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp)

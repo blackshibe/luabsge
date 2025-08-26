@@ -7,7 +7,7 @@
 	source $HOME/emsdk/emsdk_env.sh
 
 	echo "-- Running cmake"
-	cmake -B build-web -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ASSIMP_TOOLS=OFF -DUSE_EMSCRIPTEN=ON -DPLATFORM=Web -DEMSDK=$EMSDK -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+	cmake -B build-web -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ZLIB=ON -DUSE_EMSCRIPTEN=ON -DPLATFORM=Web -DEMSDK=$EMSDK -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
 	echo "-- Running build"
 	if cmake --build build-web; then

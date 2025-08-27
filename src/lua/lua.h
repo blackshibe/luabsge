@@ -27,6 +27,7 @@
 #include "class/vfx.h"
 #include "class/input.h"
 #include "class/gizmo.h"
+#include "class/framebuffer.h"
 
 #include "class/rt/tbo.h"
 #include "class/rt/sphere_tbo.h"

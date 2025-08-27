@@ -25,6 +25,13 @@ glm::mat4 camera_get_projection_matrix(BSGECameraMetadata camera) {
 	return camera_projection;
 }
 
+glm::mat4 camera_get_projection_matrix_for_resolution(BSGECameraMetadata camera, float x, float y) {
+	glm::vec2 dimensions = get_window_dimensions();
+	glm::mat4 camera_projection = glm::perspective(glm::radians(camera.fov), x / y, camera.near_clip, camera.far_clip);
+
+	return camera_projection;
+}
+
 const luaL_Reg bsge_lua_camera_metatable_access[] = {
 	{"__index", camera_index},
 	{"__newindex", camera_newindex},
@@ -48,5 +55,7 @@ void lua_bsge_init_camera(sol::state &lua) {
 		// @field matrix table 4x4 transformation matrix (glm::mat4)
 		"matrix", &BSGECameraMetadata::matrix,
 		// @field get_projection_matrix returns perspective matrix 
-		"get_projection_matrix", camera_get_projection_matrix);
+		"get_projection_matrix", camera_get_projection_matrix,
+		"get_projection_matrix_for_resolution", camera_get_projection_matrix_for_resolution
+	);
 }

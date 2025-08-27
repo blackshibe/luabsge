@@ -13,6 +13,11 @@ uniform vec3 camera_position;
 
 uniform int use_debug;
 
+// Frame accumulation ------------------------------------------------------------------------------------------------------------------------------------------------
+
+uniform sampler2D previous_frame;
+uniform int accum_frames;
+
 // Object Data --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 uniform samplerBuffer mesh_triangle_data;
@@ -391,5 +396,18 @@ void main() {
     }
 
 
-    FragColor = vec4(final_color, 1.0);
+    // Frame accumulation - blend current frame with accumulated previous frames
+    vec3 previous_color = texture(previous_frame, uv).rgb;
+    vec3 accumulated_color;
+    
+    if (accum_frames == 0) {
+        // First frame - no previous data to accumulate
+        accumulated_color = final_color;
+    } else {
+        // Blend with previous frames using proper accumulation
+        float blend_factor = 1.0 / float(accum_frames + 1);
+        accumulated_color = mix(previous_color, final_color, blend_factor);
+    }
+    
+    FragColor = vec4(accumulated_color, 1.0);
 }

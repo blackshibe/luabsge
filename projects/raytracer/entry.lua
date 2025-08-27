@@ -4,6 +4,10 @@ local scene = require("scene")
 local raytracer_effect = VFXEffect.new()
 raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
 
+local framebuffer_resolution = Vec2.new(600, 600)
+local raytracer_framebuffer = Framebuffer.new(framebuffer_resolution.x, framebuffer_resolution.y)
+local accum_frames = 0
+
 if not raytracer_effect.is_valid then
 	error("rt shader is invalid")
 end
@@ -59,6 +63,15 @@ end
 
 local next_update = now() + 1000
 World.rendering.step:connect(function(delta_time)
+	if World.input.is_right_mouse_down() then
+		local delta = World.input.get_mouse_delta()
+		camera_inputs.r_x = camera_inputs.r_x + delta.x * MOUSE_SENSITIVITY
+		camera_inputs.r_y = camera_inputs.r_y + delta.y * MOUSE_SENSITIVITY
+
+		raytracer_framebuffer:clear()
+		accum_frames = 0
+	end
+
 	Gizmo.set_line_width(0.01)
 	Gizmo.set_depth_test(false)
 
@@ -89,7 +102,8 @@ World.rendering.step:connect(function(delta_time)
 	draw_bounding_box(bb.world_min, bb.world_max)
 
 	-- Calculate projection matrix and its inverse
-	local inv_projection_matrix = camera:get_projection_matrix():inverse()
+	local inv_projection_matrix =
+		camera:get_projection_matrix_for_resolution(framebuffer_resolution.x, framebuffer_resolution.y):inverse()
 
 	-- Camera to world matrix (inverse of view matrix)
 	-- camera.matrix is already the transform matrix (camera-to-world)
@@ -100,12 +114,15 @@ World.rendering.step:connect(function(delta_time)
 
 	SphereBufferObject.bind_textures(GL_TEXTURE0)
 	MeshBufferObject.bind_textures(GL_TEXTURE1, GL_TEXTURE2)
+	raytracer_framebuffer:bind_texture(GL_TEXTURE3)
 
 	raytracer_effect:set_uniform_int("spheres_texture", 0) -- texture 0
 	raytracer_effect:set_uniform_int("mesh_triangle_data", 1) -- texture 1
 	raytracer_effect:set_uniform_int("mesh_data", 2) -- texture 2
+	raytracer_effect:set_uniform_int("previous_frame", 3)
 	raytracer_effect:set_uniform_int("sphere_texture_count", SphereBufferObject.get_count())
 	raytracer_effect:set_uniform_int("mesh_count", MeshBufferObject.get_count())
+	raytracer_effect:set_uniform_int("accum_frames", accum_frames)
 
 	raytracer_effect:set_uniform_int("sample_count", sample_count)
 	raytracer_effect:set_uniform_int("bounce_count", bounce_count)
@@ -121,18 +138,33 @@ World.rendering.step:connect(function(delta_time)
 	)
 
 	if raytracer_effect.is_valid then
+		raytracer_framebuffer:bind()
 		raytracer_effect:render()
+		raytracer_framebuffer:unbind()
+		accum_frames = accum_frames + 1
 	end
 
 	-- ImGui controls
 	if ImGui.Begin("LuaBSGE Ray Tracer") then
+		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(400, 400))
+		ImGui.Separator()
+		ImGui.Spacing()
+
 		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
-		ImGui.Text("Performance")
+		ImGui.Text("Stats")
 		ImGui.PopStyleColor()
 
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()
 		ImGui.Spacing()
+
+		ImGui.Text("Frames accumulated: " .. string.format("%.1f", accum_frames))
+		ImGui.Separator()
+		ImGui.Spacing()
+
+		ImGui.PushTextColor(Vec4.new(0.8, 0.9, 1.0, 1.0))
+		ImGui.Text("Settings")
+		ImGui.PopStyleColor()
 
 		local s_changed, value1 = ImGui.SliderInt("Light Samples", sample_count, 1, 128)
 		local b_changed, value2 = ImGui.SliderInt("Light Bounces", bounce_count, 1, 16)
@@ -178,10 +210,4 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.PopStyleColor()
 	end
 	ImGui.End()
-
-	if World.input.is_right_mouse_down() then
-		local delta = World.input.get_mouse_delta()
-		camera_inputs.r_x = camera_inputs.r_x + delta.x * MOUSE_SENSITIVITY
-		camera_inputs.r_y = camera_inputs.r_y + delta.y * MOUSE_SENSITIVITY
-	end
 end)

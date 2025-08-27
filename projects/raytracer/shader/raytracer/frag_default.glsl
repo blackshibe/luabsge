@@ -11,6 +11,8 @@ uniform mat4x4 camera_inv_proj;
 uniform mat4x4 camera_to_world;
 uniform vec3 camera_position;
 
+uniform int use_debug;
+
 // Object Data --------------------------------------------------------------------------------------------------------------------------------------------------------
 
 uniform samplerBuffer mesh_triangle_data;
@@ -88,7 +90,10 @@ struct MeshTriangle {
 
 struct MeshMetadata {
     mat4 matrix;
+    mat4 inv_matrix;
     vec3 color;
+    vec3 box_min;
+    vec3 box_max;
     float emissive;
     float triangles;
 };
@@ -105,18 +110,27 @@ MeshTriangle get_mesh_triangle(int index) {
 }
 
 MeshMetadata get_mesh_metadata(int mesh_index) {
-    int base_index = mesh_index * 6;
+    int base_index = mesh_index * 12;
     MeshMetadata meta;
     
     vec4 col0 = texelFetch(mesh_data, base_index);
     vec4 col1 = texelFetch(mesh_data, base_index + 1);
     vec4 col2 = texelFetch(mesh_data, base_index + 2);
     vec4 col3 = texelFetch(mesh_data, base_index + 3);
-
     meta.matrix = mat4(col0, col1, col2, col3);
-    meta.color = texelFetch(mesh_data, base_index + 4).xyz;
-    meta.triangles = texelFetch(mesh_data, base_index + 4).w;
-    meta.emissive = texelFetch(mesh_data, base_index + 5).r;
+
+    col0 = texelFetch(mesh_data, base_index + 4);
+    col1 = texelFetch(mesh_data, base_index + 5);
+    col2 = texelFetch(mesh_data, base_index + 6);
+    col3 = texelFetch(mesh_data, base_index + 7);
+    meta.inv_matrix = mat4(col0, col1, col2, col3);
+
+    meta.color = texelFetch(mesh_data, base_index + 8).xyz;
+    meta.box_min = texelFetch(mesh_data, base_index + 9).xyz;
+    meta.box_max = texelFetch(mesh_data, base_index + 10).xyz;
+
+    meta.triangles = texelFetch(mesh_data, base_index + 11).r;
+    meta.emissive = texelFetch(mesh_data, base_index + 11).g;
     
     return meta;
 }
@@ -188,6 +202,21 @@ TracerRayHitInfo ray_intersects_triangle(vec3 ray_origin, vec3 ray_direction, ve
     return ray_info;
 }
 
+bool ray_intersects_aabb_box(vec3 ray_origin, vec3 ray_direction, vec3 pos_min, vec3 pos_max) {
+    vec3 inv_dir = 1.0 / ray_direction;
+
+    vec3 t0 = (pos_min - ray_origin) * inv_dir; 
+    vec3 t1 = (pos_max - ray_origin) * inv_dir;
+
+    vec3 tmin = min(t0, t1);
+    vec3 tmax = max(t0, t1);
+
+    float fmin = max(tmin.x, max(tmin.y, tmin.z));
+    float fmax = min(tmax.x, min(tmax.y, tmax.z));
+
+    return fmax > fmin && fmin > 0;
+}
+
 
 // quadratic formula expression of x^2 + y^2 + z^2 = r^2 transformed into ||P+Dx||^2 = R^2
 TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray ray) {
@@ -235,6 +264,10 @@ struct RayPixelData {
     float emission;
 };
 
+vec3 mul_mat4_vec3(mat4 m, vec3 v, float s) {
+    return (m * vec4(v, s)).xyz;
+}
+
 RayPixelData TraceRay(Ray ray, inout int tests) {
     RayPixelData data;
     data.hit = false;
@@ -262,25 +295,33 @@ RayPixelData TraceRay(Ray ray, inout int tests) {
     for (int i = 0; mesh_count > i; i++) {
         MeshMetadata mesh = get_mesh_metadata(i);
 
+        if (!ray_intersects_aabb_box(ray.origin, ray.direction, mesh.box_min, mesh.box_max)) {
+            global_mesh_triangle_index += int(mesh.triangles);
+            continue;
+        }
+
+        mat4 inv_matrix = mesh.inv_matrix;
+        vec3 origin = mul_mat4_vec3(inv_matrix, ray.origin, 1.0);
+        vec3 direction = normalize(mul_mat4_vec3(inv_matrix, ray.direction, 0.0));
+
         for (int t = 0; mesh.triangles > t; t++) {
             MeshTriangle triangle = get_mesh_triangle(global_mesh_triangle_index);
             global_mesh_triangle_index += 1;
             tests += 1;
             
             // transform triangles to world space
-            triangle.p1 = (mesh.matrix * vec4(triangle.p1, 1.0)).xyz;
-            triangle.p2 = (mesh.matrix * vec4(triangle.p2, 1.0)).xyz;
-            triangle.p3 = (mesh.matrix * vec4(triangle.p3, 1.0)).xyz;
+            TracerRayHitInfo ray_test = ray_intersects_triangle(origin, direction, triangle.p1, triangle.p2, triangle.p3);
+            vec3 world_space_position = mul_mat4_vec3(mesh.matrix, origin + direction * ray_test.intersect_distance, 1.0);
+            float world_space_distance = length(world_space_position - ray.origin);
 
-            TracerRayHitInfo ray_test = ray_intersects_triangle(ray.origin, ray.direction, triangle.p1, triangle.p2, triangle.p3);
-            if (ray_test.hit && min_distance > ray_test.intersect_distance) {
-                min_distance = ray_test.intersect_distance;
+            if (ray_test.hit && min_distance > world_space_distance) {
+                min_distance = world_space_distance;
                 
                 data.hit = true;
                 data.color = mesh.color;
                 data.emission = mesh.emissive;
-                data.normal = cross(triangle.p2 - triangle.p1, triangle.p3 - triangle.p1);
-                data.position = ray.origin + ray.direction * ray_test.intersect_distance;
+                data.normal = -mul_mat4_vec3(mesh.matrix, cross(triangle.p2 - triangle.p1, triangle.p3 - triangle.p1), 1.0);
+                data.position = world_space_position;
             }
         }
     }
@@ -345,12 +386,16 @@ void main() {
     final_color = (final_color * (2.51 * final_color + 0.03)) / 
                   (final_color * (2.43 * final_color + 0.59) + 0.14);
 
-    tests /= 300.0;
-    final_color = vec3(tests, tests, tests);
+    tests /= 5000.0;
 
-    if (tests > 1.0) {
-        final_color = vec3(1, 0, 0);
+    if (use_debug == 1) {
+        final_color = vec3(tests, tests, tests);
+
+        if (tests > 1.0) {
+            final_color = vec3(1, 0, 0);
+        }
     }
+
 
     FragColor = vec4(final_color, 1.0);
 }

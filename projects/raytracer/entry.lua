@@ -28,19 +28,45 @@ local camera_inputs = {
 
 local sample_count = 2
 local bounce_count = 2
+local use_debug = false
 local hot_reloading = false
 local recompile_time = now()
 
+function draw_bounding_box(min, max)
+	local color = Vec3.new(1, 0, 0) -- Red color
+
+	-- Bottom face (z = min.z)
+	Gizmo.draw_line(Vec3.new(min.x, min.y, min.z), Vec3.new(max.x, min.y, min.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, min.y, min.z), Vec3.new(max.x, max.y, min.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, max.y, min.z), Vec3.new(min.x, max.y, min.z), color)
+	Gizmo.draw_line(Vec3.new(min.x, max.y, min.z), Vec3.new(min.x, min.y, min.z), color)
+
+	-- Top face (z = max.z)
+	Gizmo.draw_line(Vec3.new(min.x, min.y, max.z), Vec3.new(max.x, min.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, min.y, max.z), Vec3.new(max.x, max.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, max.y, max.z), Vec3.new(min.x, max.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(min.x, max.y, max.z), Vec3.new(min.x, min.y, max.z), color)
+
+	-- Vertical edges connecting bottom and top faces
+	Gizmo.draw_line(Vec3.new(min.x, min.y, min.z), Vec3.new(min.x, min.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, min.y, min.z), Vec3.new(max.x, min.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(max.x, max.y, min.z), Vec3.new(max.x, max.y, max.z), color)
+	Gizmo.draw_line(Vec3.new(min.x, max.y, min.z), Vec3.new(min.x, max.y, max.z), color)
+end
+
 World.rendering.step:connect(function(delta_time)
-	Gizmo.set_line_width(1)
+	Gizmo.set_line_width(0.01)
 	Gizmo.set_depth_test(false)
 
-	-- Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
-	-- Gizmo.set_line_width(5)
+	Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
 
 	-- Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
 	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
 	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+
+	for i, v in pairs(scene.meshes) do
+		draw_bounding_box(v.matrix:translate(v.box_min):to_vec3(), v.matrix:translate(v.box_max):to_vec3())
+	end
 
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -8))
@@ -68,6 +94,7 @@ World.rendering.step:connect(function(delta_time)
 
 	raytracer_effect:set_uniform_int("sample_count", sample_count)
 	raytracer_effect:set_uniform_int("bounce_count", bounce_count)
+	raytracer_effect:set_uniform_int("use_debug", use_debug and 1 or 0)
 
 	raytracer_effect:set_uniform_mat4("camera_inv_proj", inv_projection_matrix)
 	raytracer_effect:set_uniform_mat4("camera_to_world", camera_to_world_matrix)
@@ -114,6 +141,7 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Separator()
 
 		local changed, val = ImGui.Checkbox("Hot reload constantly", hot_reloading)
+		local debug_changed, val2 = ImGui.Checkbox("Debug", use_debug)
 		if changed then
 			hot_reloading = val
 		end
@@ -121,6 +149,10 @@ World.rendering.step:connect(function(delta_time)
 		if ((World.input.is_key_down(KEY_F)) or hot_reloading) and math.abs(recompile_time - now()) > 200 then
 			recompile_time = now()
 			raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
+		end
+
+		if debug_changed then
+			use_debug = val2
 		end
 
 		ImGui.PushTextColor(raytracer_effect.is_valid and Vec4.new(0.5, 0.5, 1, 1) or Vec4.new(1.0, 0, 0, 1))

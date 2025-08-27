@@ -21,6 +21,14 @@ glm::mat4 make_mat4() {
 	return glm::mat4();
 }
 
+glm::vec3 mat4_to_vec3(glm::mat4 m) {
+	return glm::vec3(m[3][0], m[3][1], m[3][2]);
+}
+
+glm::vec4 mat4_to_vec4(glm::mat4 m) {
+	return glm::vec4(m[3][0], m[3][1], m[3][2], m[3][3]);
+}
+
 int lua_bsge_init_glm_bindings(sol::state &lua) {
 
 	lua.new_usertype<glm::vec2>("Vec2",
@@ -135,7 +143,7 @@ int lua_bsge_init_glm_bindings(sol::state &lua) {
 									return glm::lookAt(eye, center, up);
 								},
 								"to_vec3", [](const glm::mat4& m) { 
-									return glm::vec3(m[3][0], m[3][1], m[3][2]); 
+									return mat4_to_vec3(m);
 								},
 								
 								// String representation

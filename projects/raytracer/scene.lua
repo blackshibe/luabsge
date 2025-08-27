@@ -1,5 +1,6 @@
 ---@diagnostic disable: undefined-global
 
+local meshes = {}
 local texture = Image.new()
 texture:load("image/fox.jpg")
 
@@ -27,8 +28,9 @@ obj2:register()
 
 local floor = MeshBufferObject.new()
 local ceiling = MeshBufferObject.new()
+table.insert(meshes, floor)
+table.insert(meshes, ceiling)
 
--- Set up first mesh (green, moving)
 floor.matrix = Mat4.new(1):translate(Vec3.new(0, -4, 0)):scale(Vec3.new(4, 0.1, 4))
 floor.color = Vec3.new(0.5, 0.5, 0.5)
 floor.emissive = 0
@@ -54,8 +56,18 @@ for i = 3, 5 do
 	end
 
 	wall.emissive = 0
-
 	wall:register(create_mesh("mesh/box.obj"))
+
+	table.insert(meshes, wall)
 end
 
-return {}
+local mesh = MeshBufferObject.new()
+mesh.matrix = Mat4.new(1)
+mesh.color = Vec3.new(1, 0, 0)
+mesh.emissive = 0
+mesh:register(create_mesh("mesh/sphere.obj"))
+table.insert(meshes, mesh)
+
+return {
+	meshes = meshes,
+}

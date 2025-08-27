@@ -29,7 +29,7 @@ local camera_inputs = {
 local sample_count = 2
 local bounce_count = 2
 local use_debug = false
-local hot_reloading = false
+local hot_reloading = true
 local recompile_time = now()
 
 function draw_bounding_box(min, max)
@@ -54,6 +54,7 @@ function draw_bounding_box(min, max)
 	Gizmo.draw_line(Vec3.new(min.x, max.y, min.z), Vec3.new(min.x, max.y, max.z), color)
 end
 
+local next_update = now() + 1000
 World.rendering.step:connect(function(delta_time)
 	Gizmo.set_line_width(0.01)
 	Gizmo.set_depth_test(false)

@@ -163,43 +163,38 @@ struct Ray {
 
 // TODO: reimplement yourself
 const float EPSILON = 1e-6;
-TracerRayHitInfo ray_intersects_triangle(vec3 ray_origin, vec3 ray_direction, vec3 p1, vec3 p2, vec3 p3) {
-    TracerRayHitInfo ray_info;
-    ray_info.hit = false;
-    ray_info.intersect_distance = 0;
-
-    vec3 edge1 = p2 - p1;
-    vec3 edge2 = p3 - p1;
-    vec3 ray_cross_e2 = cross(ray_direction, edge2);
-    float det = dot(edge1, ray_cross_e2);
-
-    if (det > -EPSILON && det < EPSILON)
-        return ray_info;   // This ray is parallel to this triangle.
-
-    float inv_det = 1.0 / det;
-    vec3 s = ray_origin - p1;
-    float u = inv_det * dot(s, ray_cross_e2);
-
-    if ((u < 0 && abs(u) > EPSILON) || (u > 1 && abs(u-1) > EPSILON))
-        return ray_info;
-
-    vec3 s_cross_e1 = cross(s, edge1);
-    float v = inv_det * dot(ray_direction, s_cross_e1);
-
-    if ((v < 0 && abs(v) > EPSILON) || (u + v > 1 && abs(u + v - 1) > EPSILON))
-        return ray_info;
-
-    // At this stage we can compute t to find out where the intersection point is on the line.
-    float t = inv_det * dot(edge2, s_cross_e1);
-
-    if (t > EPSILON) // ray intersection
-    {    
-        ray_info.hit = true;
-        ray_info.intersect_distance = t;
-        return ray_info;
-    } else // This means that there is a line intersection but not a ray intersection.
-
-    return ray_info;
+TracerRayHitInfo ray_intersects_triangle(
+    vec3 origin, vec3 direction, 
+    vec3 v0, vec3 v1, vec3 v2) {
+    
+    TracerRayHitInfo info;
+    info.hit = false;
+    
+    vec3 edge1 = v1 - v0;
+    vec3 edge2 = v2 - v0;
+    vec3 h = cross(direction, edge2);
+    float a = dot(edge1, h);
+    
+    if (abs(a) < 0.000001) return info; // Ray parallel to triangle
+    
+    float f = 1.0 / a;
+    vec3 s = origin - v0;
+    float u = f * dot(s, h);
+    
+    if (u < 0.0 || u > 1.0) return info;
+    
+    vec3 q = cross(s, edge1);
+    float v = f * dot(direction, q);
+    
+    if (v < 0.0 || u + v > 1.0) return info;
+    
+    float t = f * dot(edge2, q);
+    if (t > 0.000001) {
+        info.hit = true;
+        info.intersect_distance = t;
+    }
+    
+    return info;
 }
 
 bool ray_intersects_aabb_box(vec3 ray_origin, vec3 ray_direction, vec3 pos_min, vec3 pos_max) {
@@ -216,7 +211,6 @@ bool ray_intersects_aabb_box(vec3 ray_origin, vec3 ray_direction, vec3 pos_min, 
 
     return fmax > fmin && fmin > 0;
 }
-
 
 // quadratic formula expression of x^2 + y^2 + z^2 = r^2 transformed into ||P+Dx||^2 = R^2
 TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray ray) {
@@ -308,7 +302,7 @@ RayPixelData TraceRay(Ray ray, inout int tests) {
             MeshTriangle triangle = get_mesh_triangle(global_mesh_triangle_index);
             global_mesh_triangle_index += 1;
             tests += 1;
-            
+
             // transform triangles to world space
             TracerRayHitInfo ray_test = ray_intersects_triangle(origin, direction, triangle.p1, triangle.p2, triangle.p3);
             vec3 world_space_position = mul_mat4_vec3(mesh.matrix, origin + direction * ray_test.intersect_distance, 1.0);
@@ -320,7 +314,7 @@ RayPixelData TraceRay(Ray ray, inout int tests) {
                 data.hit = true;
                 data.color = mesh.color;
                 data.emission = mesh.emissive;
-                data.normal = -mul_mat4_vec3(mesh.matrix, cross(triangle.p2 - triangle.p1, triangle.p3 - triangle.p1), 1.0);
+                data.normal = mul_mat4_vec3(mesh.matrix, cross(triangle.p2 - triangle.p1, triangle.p3 - triangle.p1), 0.0);
                 data.position = world_space_position;
             }
         }
@@ -346,8 +340,8 @@ void main() {
     vec3 incoming_light = vec3(0, 0, 0);
 
     float tests = 0;
-
     bool hit_sky = false;
+
     for (int i = 0; i < sample_count; i++) {
         ray.origin = camera_position;
         ray.direction = pixel_direction;
@@ -386,7 +380,7 @@ void main() {
     final_color = (final_color * (2.51 * final_color + 0.03)) / 
                   (final_color * (2.43 * final_color + 0.59) + 0.14);
 
-    tests /= 5000.0;
+    tests /= 100.0;
 
     if (use_debug == 1) {
         final_color = vec3(tests, tests, tests);

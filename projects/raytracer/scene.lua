@@ -15,7 +15,7 @@ end
 local obj2 = SphereBufferObject.new()
 obj2.center = Vec3.new(1, 0, -2)
 obj2.color = Vec3.new(1, 1, 1)
-obj2.radius = 2
+obj2.radius = 1.5
 obj2.emissive = 2
 obj2:register()
 
@@ -61,12 +61,12 @@ for i = 3, 5 do
 	table.insert(meshes, wall)
 end
 
-local mesh = MeshBufferObject.new()
-mesh.matrix = Mat4.new(1)
-mesh.color = Vec3.new(1, 0, 0)
-mesh.emissive = 0
-mesh:register(create_mesh("mesh/sphere.obj"))
-table.insert(meshes, mesh)
+-- local mesh = MeshBufferObject.new()
+-- mesh.matrix = Mat4.new(1)
+-- mesh.color = Vec3.new(1, 0, 0)
+-- mesh.emissive = 0
+-- mesh:register(create_mesh("mesh/sphere.obj"))
+-- table.insert(meshes, mesh)
 
 return {
 	meshes = meshes,

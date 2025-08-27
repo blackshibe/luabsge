@@ -36,11 +36,13 @@ note: LuaBSGE is only tested on Linux right now
 -   Import physics engine, export map to a test project, bvh for raytracer
 
 -   Showstoppers
+    -   Abstracting objects properly
+        -   Design a better abstraction layer
     -   Web build support
         -   Texture loading
     -   Physics
         -   Self explanatory
-    -   Editor
+    -   Editor (Needs physics for raytests)
         -   Scene creation format for a datamodel
     -   Audio
 -   Other

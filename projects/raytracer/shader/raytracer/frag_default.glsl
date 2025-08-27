@@ -225,7 +225,7 @@ TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray 
 
     vec3 origin = ray.origin - sphere_center;
     vec3 rayOrigin = origin;
-    vec3 rayDirection = -ray.direction;
+    vec3 rayDirection = ray.direction;
 
     float a = dot(rayDirection, rayDirection);
     float b = 2 * dot(rayOrigin, rayDirection);
@@ -241,11 +241,11 @@ TracerRayHitInfo RaySphereIntersect(vec3 sphere_center, float sphereRadius, Ray 
         if (t < 0.0) t = max(t1, t2);
 
         // avoids self intersect apparently
-        if (t < 0.00001) {
+        if (t > 0.00001) {
             ray_info.hit = true;
             ray_info.intersect_position = ray.origin + ray.direction * t;
-            ray_info.intersect_distance = -t;
-            ray_info.intersect_normal = -normalize(ray_info.intersect_position - sphere_center);
+            ray_info.intersect_distance = t;
+            ray_info.intersect_normal = normalize(ray_info.intersect_position - sphere_center);
         }
     }
 
@@ -270,7 +270,7 @@ vec3 mul_mat4_vec3(mat4 m, vec3 v, float s) {
 RayPixelData TraceRay(Ray ray, inout int tests) {
     RayPixelData data;
     data.hit = false;
-    data.color = vec3(0.0, 0.0, 0.0);
+    data.color = vec3(0.1, 0.1, 0.1);
 
     float min_distance = 1e9;
     for (int i = 0; i < sphere_texture_count; i++) {

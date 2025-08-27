@@ -200,6 +200,9 @@ void BSGEWindow::render_loop_init() {
 	// probably disables vsync
 	glfwSwapInterval(0);
 
+	// fullscreen window
+	glfwMaximizeWindow(window);
+
 	// camera projection
 	this->last_frame = glfwGetTime();
 	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);

@@ -121,7 +121,6 @@ int mesh_render(meshData *bsgemesh)
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh->ebo);
 	glBindVertexArray(bsgemesh->vao);
-	glBindTexture(GL_TEXTURE_2D, bsgemesh->texture);
 
 	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(bsgemesh->matrix));
 	glDrawElements(GL_TRIANGLES, bsgemesh->indices_count, GL_UNSIGNED_INT, 0);

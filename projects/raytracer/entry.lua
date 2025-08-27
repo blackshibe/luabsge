@@ -1,10 +1,10 @@
-local scene = require("scene")
+local scene = require("scene-spheres")
 
 -- Create VFX effect for raytracing
 local raytracer_effect = VFXEffect.new()
 raytracer_effect:load_fragment_shader("shader/raytracer/frag_default.glsl")
 
-local framebuffer_resolution = Vec2.new(600, 600)
+local framebuffer_resolution = Vec2.new(1000, 1000)
 local raytracer_framebuffer = Framebuffer.new(framebuffer_resolution.x, framebuffer_resolution.y)
 local accum_frames = 0
 
@@ -146,7 +146,7 @@ World.rendering.step:connect(function(delta_time)
 
 	-- ImGui controls
 	if ImGui.Begin("LuaBSGE Ray Tracer") then
-		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(400, 400))
+		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(800, 600))
 		ImGui.Separator()
 		ImGui.Spacing()
 

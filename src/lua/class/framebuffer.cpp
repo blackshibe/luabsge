@@ -1,5 +1,6 @@
 #include "vfx.h"
 #include "image.h"
+#include "../module/lua_window.h"
 #include <glm/gtc/type_ptr.hpp>
 
 struct framebuffer {
@@ -46,17 +47,23 @@ void lua_bsge_init_framebuffer(sol::state &lua) {
 
         "bind", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
+            glViewport(0, 0, effect.width, effect.height);
         },
 
         "unbind", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glm::vec2 window_dims = get_window_dimensions();
+            glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
         },
 
         "clear", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
+            glViewport(0, 0, effect.width, effect.height);
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glm::vec2 window_dims = get_window_dimensions();
+            glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
         },
 
         "texture_id", &framebuffer::textureId

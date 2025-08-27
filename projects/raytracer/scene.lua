@@ -20,10 +20,10 @@ obj2.emissive = 2
 obj2:register()
 
 local obj2 = SphereBufferObject.new()
-obj2.center = Vec3.new(0, 0.5, 2)
+obj2.center = Vec3.new(0, -1, 2)
 obj2.color = Vec3.new(1, 0, 0)
 obj2.radius = 0.5
-obj2.emissive = 2
+obj2.emissive = 5
 obj2:register()
 
 local floor = MeshBufferObject.new()
@@ -34,13 +34,15 @@ table.insert(meshes, ceiling)
 floor.matrix = Mat4.new(1):translate(Vec3.new(0, -4, 0)):scale(Vec3.new(4, 0.1, 4))
 floor.color = Vec3.new(0.5, 0.5, 0.5)
 floor.emissive = 0
-floor:register(create_mesh("mesh/box.obj"))
+floor.mesh = create_mesh("mesh/box.obj")
+floor:register()
 
 -- Set up second mesh (blue, static)
 ceiling.matrix = Mat4.new(1):translate(Vec3.new(0, 4, 0)):scale(Vec3.new(4, 0.1, 4))
 ceiling.color = Vec3.new(0.5, 0.5, 0.5)
 ceiling.emissive = 0
-ceiling:register(create_mesh("mesh/box.obj"))
+ceiling.mesh = create_mesh("mesh/box.obj")
+ceiling:register()
 
 for i = 3, 5 do
 	local wall = MeshBufferObject.new()
@@ -56,18 +58,25 @@ for i = 3, 5 do
 	end
 
 	wall.emissive = 0
-	wall:register(create_mesh("mesh/box.obj"))
+	wall.mesh = create_mesh("mesh/box.obj")
+	wall:register()
 
 	table.insert(meshes, wall)
 end
 
--- local mesh = MeshBufferObject.new()
--- mesh.matrix = Mat4.new(1)
--- mesh.color = Vec3.new(1, 0, 0)
--- mesh.emissive = 0
--- mesh:register(create_mesh("mesh/sphere.obj"))
--- table.insert(meshes, mesh)
+local mesh = MeshBufferObject.new()
+mesh.matrix = Mat4.new(1)
+	:rotate(math.pi + 1, Vec3.new(0, 1, 0))
+	:translate(Vec3.new(0, 0, -0.5))
+	:scale(2)
+	:rotate(0.1, Vec3.new(1, 0, 0))
+
+mesh.color = Vec3.new(1, 0, 0)
+mesh.emissive = 0
+mesh.mesh = create_mesh("mesh/suzanne.obj")
+mesh:register()
 
 return {
 	meshes = meshes,
+	monkey = mesh,
 }

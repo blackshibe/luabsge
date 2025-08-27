@@ -10,27 +10,6 @@
 #include <glm/glm.hpp>
 #include "../module/lua_ui.h"
 #include <GLFW/glfw3.h>
-
-struct meshVertexData {
-	glm::vec3 position;
-	glm::vec3 normal;
-	glm::vec2 texCoords;
-};
-
-struct meshGeometry {
-	std::vector<meshVertexData> vertices;
-	std::vector<unsigned int> indices;
-};
-
-struct meshData {
-	int indices_count;
-	glm::mat4 matrix;
-	meshGeometry geometry;
-
-	unsigned int texture;
-	unsigned int vbo;
-	unsigned int vao;
-	unsigned int ebo;
-};
+#include "rt/mesh_tbo.h"
 
 void lua_bsge_init_mesh(sol::state &lua);

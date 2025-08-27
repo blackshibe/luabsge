@@ -357,7 +357,7 @@ void main() {
                 ray.origin = test.position + normalize(test.normal) * 0.0001;            
                 ray.direction = cosineSampleHemisphere(normalize(test.normal), random_seed);            
         
-                incoming_light += test.emission * output_color.rgb;
+                incoming_light += test.emission * test.color * output_color.rgb;
                 output_color *= test.color.rgb;
             } else {
                 incoming_light += SKY_COLOR;
@@ -380,7 +380,7 @@ void main() {
     final_color = (final_color * (2.51 * final_color + 0.03)) / 
                   (final_color * (2.43 * final_color + 0.59) + 0.14);
 
-    tests /= 100.0;
+    tests /= 2000.0;
 
     if (use_debug == 1) {
         final_color = vec3(tests, tests, tests);

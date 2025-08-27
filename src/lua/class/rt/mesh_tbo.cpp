@@ -10,7 +10,7 @@ struct  meshTBOTriangle {
 };
 
 // vec3s as vec4s because tbos are a pain in the ass
-alignas(16) struct meshTBOMetadata {
+alignas(16) struct meshTBOBufferData {
     glm::mat4 matrix; //64b
     glm::mat4 inv_matrix; //64b
     glm::vec4 color; // 16
@@ -25,32 +25,75 @@ alignas(16) struct meshTBOMetadata {
 int meshCount = 0;
 int triangle_count = 0;
 
-void update_tbo(MeshBufferObject &self) {
-    printf("meshTBOMetadata %i", sizeof(meshTBOMetadata));
+struct boundingBox {
+    glm::vec3 world_min;
+    glm::vec3 world_max;
+};
+
+// AABB box positions become completely invalid once the mesh is rotated
+// TODO: make a box model where a select amount of points is checked, rather than all of them
+// TODO: pass mesh by pointer somehow
+boundingBox get_bounding_box(MeshBufferObject &self) {
+    boundingBox box;
+    meshData mesh = self.mesh;
     
-    meshTBOMetadata metadata;
+    glm::vec3 min_position = glm::vec3(10000.0f, 10000.0f, 10000.0f);
+    glm::vec3 max_position = glm::vec3(-10000.0f, -10000.0f, -10000.0f);
+    for (size_t i = 0; i < mesh.geometry.indices.size(); i += 3) {
+        glm::vec3 p1 = mat4_to_vec3(glm::translate(self.matrix, mesh.geometry.vertices[mesh.geometry.indices[i]].position));
+        glm::vec3 p2 = mat4_to_vec3(glm::translate(self.matrix, mesh.geometry.vertices[mesh.geometry.indices[i + 1]].position));
+        glm::vec3 p3 = mat4_to_vec3(glm::translate(self.matrix, mesh.geometry.vertices[mesh.geometry.indices[i + 2]].position));
+
+        min_position = glm::vec3(
+            std::min(std::min(std::min(min_position.x, p1.x), p2.x), p3.x),
+            std::min(std::min(std::min(min_position.y, p1.y), p2.y), p3.y),
+            std::min(std::min(std::min(min_position.z, p1.z), p2.z), p3.z)
+        );
+
+        max_position = glm::vec3(
+            std::max(std::max(std::max(max_position.x, p1.x), p2.x), p3.x),
+            std::max(std::max(std::max(max_position.y, p1.y), p2.y), p3.y),
+            std::max(std::max(std::max(max_position.z, p1.z), p2.z), p3.z)
+        );
+    }
+
+    box.world_min = min_position;
+    box.world_max = max_position;
+
+    return box;
+}
+
+// AABB 
+void update_tbo(MeshBufferObject &self) {
+    meshTBOBufferData metadata;
     metadata.matrix = self.matrix;
     metadata.inv_matrix = glm::inverse(self.matrix);
     metadata.color = glm::vec4(self.color, 1.0);
     metadata.emissive = self.emissive;
     metadata.triangles = self.triangles;
-    metadata.box_min = mat4_to_vec4(glm::translate(self.matrix, self.box_min));
-    metadata.box_max = mat4_to_vec4(glm::translate(self.matrix, self.box_max));
+
+    boundingBox bb = get_bounding_box(self);
+    metadata.box_max = glm::vec4(bb.world_max, 1.0);
+    metadata.box_min = glm::vec4(bb.world_min, 1.0);
 
     upload_tbo_element(meshes, self.index, &metadata);
 }
 
 void lua_bsge_init_mesh_tbo(sol::state &lua) {
     meshTriangles = setup_tbo(GL_RGB32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOTriangle));
-    meshes = setup_tbo(GL_RGBA32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOMetadata));
+    meshes = setup_tbo(GL_RGBA32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOBufferData));
+
+    lua.new_usertype<boundingBox>("boundingBox",
+                                "world_min", &boundingBox::world_min,
+                                "world_max", &boundingBox::world_max
+                            );
 
     lua.new_usertype<MeshBufferObject>("MeshBufferObject",
-                                "register", [](MeshBufferObject &self, meshData mesh) {
+                                "register", [](MeshBufferObject &self) {
                                     self.index = meshCount++;
                                     self.triangles = 0;
 
-                                    glm::vec3 min_position = glm::vec3(10000.0f, 10000.0f, 10000.0f);
-                                    glm::vec3 max_position = glm::vec3(-10000.0f, -10000.0f, -10000.0f);
+                                    meshData mesh = self.mesh;
                                     for (size_t i = 0; i < mesh.geometry.indices.size(); i += 3) {
                                         uint32_t idx0 = mesh.geometry.indices[i];
                                         uint32_t idx1 = mesh.geometry.indices[i + 1];
@@ -61,27 +104,12 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
                                         t.p2 = mesh.geometry.vertices[idx1].position;
                                         t.p3 = mesh.geometry.vertices[idx2].position;
 
-                                        min_position = glm::vec3(
-                                            std::min(std::min(std::min(min_position.x, t.p1.x), t.p2.x), t.p3.x),
-                                            std::min(std::min(std::min(min_position.y, t.p1.y), t.p2.y), t.p3.y),
-                                            std::min(std::min(std::min(min_position.z, t.p1.z), t.p2.z), t.p3.z)
-                                        );
-
-                                        max_position = glm::vec3(
-                                            std::max(std::max(std::max(max_position.x, t.p1.x), t.p2.x), t.p3.x),
-                                            std::max(std::max(std::max(max_position.y, t.p1.y), t.p2.y), t.p3.y),
-                                            std::max(std::max(std::max(max_position.z, t.p1.z), t.p2.z), t.p3.z)
-                                        );
-
                                         upload_tbo_element(meshTriangles, triangle_count, &t);
 
                                         self.triangles++;
                                         triangle_count++;
                                     }
-
-                                    self.box_min = min_position;
-                                    self.box_max = max_position;
-
+                                    
                                     update_tbo(self);
 
                                     return self;
@@ -95,8 +123,11 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
                                 "color", &MeshBufferObject::color,
                                 "emissive", &MeshBufferObject::emissive,
                                 "triangles", &MeshBufferObject::triangles,
-                                "box_min", &MeshBufferObject::box_min,
-                                "box_max", &MeshBufferObject::box_max,
+                                "mesh", &MeshBufferObject::mesh,
+                    
+                                "get_bounding_box", [](MeshBufferObject &self) {
+                                    return get_bounding_box(self);
+                                },
 
                                 "get_count", []() {
                                     return meshCount;

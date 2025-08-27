@@ -1,6 +1,5 @@
 #include "mesh.h"
 #include "string"
-
 #include <vector>
 
 meshGeometry mesh_load_geometry(const char *path)
@@ -131,8 +130,7 @@ int mesh_render(meshData *bsgemesh)
 	return 0;
 }
 
-void lua_bsge_init_mesh(sol::state &lua)
-{
+void lua_bsge_init_mesh(sol::state &lua) {
 	lua_State *L = lua.lua_state();
 	auto load = [&L](meshData *mesh, const char *path)
 	{

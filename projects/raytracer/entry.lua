@@ -19,8 +19,8 @@ World.rendering.camera = camera
 local MOUSE_SENSITIVITY = 0.002
 
 local camera_inputs = {
-	r_x = 2,
-	r_y = 0.25,
+	r_x = 1.9,
+	r_y = 0.1,
 	pos_x = 0,
 	pos_y = 0,
 	pos_z = -5,
@@ -52,6 +52,9 @@ function draw_bounding_box(min, max)
 	Gizmo.draw_line(Vec3.new(max.x, min.y, min.z), Vec3.new(max.x, min.y, max.z), color)
 	Gizmo.draw_line(Vec3.new(max.x, max.y, min.z), Vec3.new(max.x, max.y, max.z), color)
 	Gizmo.draw_line(Vec3.new(min.x, max.y, min.z), Vec3.new(min.x, max.y, max.z), color)
+
+	Gizmo.draw_line(Vec3.new(min.x, min.y, min.z), Vec3.new(min.x, min.y - 1, min.z), Vec3.new(1, 1, 1))
+	Gizmo.draw_line(Vec3.new(max.x, max.y, max.z), Vec3.new(max.x, max.y + 1, max.z), Vec3.new(1, 1, 1))
 end
 
 local next_update = now() + 1000
@@ -61,18 +64,29 @@ World.rendering.step:connect(function(delta_time)
 
 	Gizmo.draw_grid(10, 10, Vec3.new(0.25, 0.25, 0.25))
 
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
+	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	for i, v in pairs(scene.meshes) do
-		draw_bounding_box(v.matrix:translate(v.box_min):to_vec3(), v.matrix:translate(v.box_max):to_vec3())
+		local bb = v:get_bounding_box(v.mesh)
+		draw_bounding_box(bb.world_min, bb.world_max)
 	end
 
 	camera.matrix = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -8))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
+
+	scene.monkey.matrix = Mat4.new(1)
+		:rotate(math.pi + 1, Vec3.new(0, 1, 0))
+		:translate(Vec3.new(0, 0, -0.5))
+		:scale(1)
+		:rotate((now() / 3000) % math.pi * 2, Vec3.new(1, 0, 0))
+	scene.monkey:update()
+
+	local bb = scene.monkey:get_bounding_box(scene.monkey.mesh)
+	draw_bounding_box(bb.world_min, bb.world_max)
 
 	-- Calculate projection matrix and its inverse
 	local inv_projection_matrix = camera:get_projection_matrix():inverse()

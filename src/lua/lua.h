@@ -17,7 +17,6 @@
 #include "module/lua_window.h"
 
 #include "class/camera.h"
-#include "class/color.h"
 #include "class/font.h"
 #include "class/image.h"
 #include "class/mesh.h"

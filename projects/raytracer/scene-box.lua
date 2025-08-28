@@ -2,7 +2,7 @@
 
 local meshes = {}
 local texture = Image.new()
-texture:load("image/fox.jpg")
+texture:load("image/fox.jpg") -- TODO why isn't this optional
 
 local function create_mesh(src)
 	local mesh = Mesh.new()

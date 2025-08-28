@@ -154,7 +154,7 @@ public:
 	// See: ContactListener
 	virtual ValidateResult	OnContactValidate(const Body &inBody1, const Body &inBody2, RVec3Arg inBaseOffset, const CollideShapeResult &inCollisionResult) override
 	{
-		cout << "Contact validate callback" << endl;
+		// cout << "Contact validate callback" << endl;
 
 		// Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
 		return ValidateResult::AcceptAllContactsForThisBodyPair;
@@ -162,17 +162,17 @@ public:
 
 	virtual void			OnContactAdded(const Body &inBody1, const Body &inBody2, const ContactManifold &inManifold, ContactSettings &ioSettings) override
 	{
-		cout << "A contact was added" << endl;
+		// cout << "A contact was added" << endl;
 	}
 
 	virtual void			OnContactPersisted(const Body &inBody1, const Body &inBody2, const ContactManifold &inManifold, ContactSettings &ioSettings) override
 	{
-		cout << "A contact was persisted" << endl;
+		// cout << "A contact was persisted" << endl;
 	}
 
 	virtual void			OnContactRemoved(const SubShapeIDPair &inSubShapePair) override
 	{
-		cout << "A contact was removed" << endl;
+		// cout << "A contact was removed" << endl;
 	}
 };
 
@@ -182,12 +182,12 @@ class BlankBodyACtivationListener : public BodyActivationListener
 public:
 	virtual void		OnBodyActivated(const BodyID &inBodyID, uint64 inBodyUserData) override
 	{
-		cout << "A body got activated" << endl;
+		// cout << "A body got activated" << endl;
 	}
 
 	virtual void		OnBodyDeactivated(const BodyID &inBodyID, uint64 inBodyUserData) override
 	{
-		cout << "A body went to sleep" << endl;
+		// cout << "A body went to sleep" << endl;
 	}
 };
 

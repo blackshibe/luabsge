@@ -13,6 +13,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../include/colors.h"
+#include "../lua/luax.h"
+#include "../opengl/shader.h"
+#include "../lua/config.h"
+
 #include "../interop.h"
 
 #define FREETYPE_BASE_FONT_HEIGHT 96
@@ -65,7 +70,7 @@ void freetype_render(
 	struct Textlabel font,
 	GLuint shader);
 
-void freetype_init(lua_State *L);
+void freetype_init(sol::state &lua);
 void freetype_resize_window(float width, float height);
 bool freetype_load_font(struct Font *font, const char *font_directory);
 void freetype_quit();

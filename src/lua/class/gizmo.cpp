@@ -14,8 +14,8 @@ glm::mat4 transform_matrix;
 float line_width = 1.0f;
 bool depth_test_enabled = true;
 
-void init_gizmo() {
-    if (!bsge_compile_shader(&shader_program, "shader/gizmo/vertex_default.glsl", "shader/gizmo/frag_default.glsl")) {
+void init_gizmo(sol::state &lua) {
+    if (!bsge_compile_shader(lua, &shader_program, "shader/gizmo/vertex_default.glsl", "shader/gizmo/frag_default.glsl")) {
         printf("[Gizmo] Failed to compile fragment shader\n");
         glDeleteShader(shader_program);
         return;
@@ -79,11 +79,6 @@ void draw_line(const glm::vec3& start, const glm::vec3& end, const glm::vec3& co
 }
 
 void draw_grid(float size, int divisions, const glm::vec3& color) {
-    if (!initialized) {
-        init_gizmo();
-        initialized = true;
-    }
-    
     float step = size / divisions;
     float half_size = size * 0.5f;
     
@@ -124,5 +119,5 @@ void lua_bsge_init_gizmo(sol::state &lua) {
     gizmo["set_line_width"] = set_line_width;
     gizmo["set_depth_test"] = set_depth_test;
 
-    init_gizmo();
+    init_gizmo(lua);
 }

@@ -32,6 +32,10 @@ int main(int argc, char *argv[]) {
 #endif
 
 	sol::state lua;
+
+	// load configuration file for the engine
+	luax_run_script(lua, "config.lua");
+
 	BSGEWindow window = BSGEWindow();
 	window.init();
 	window.lua = &lua;

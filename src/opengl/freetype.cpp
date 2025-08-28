@@ -1,9 +1,5 @@
 #include "freetype.h"
 
-#include "../include/colors.h"
-#include "../lua/lua.h"
-#include "../lua/luax.h"
-#include "../opengl/shader.h"
 
 GLuint freetype_text_shader;
 GLuint freetype_text_shader_nosampling;
@@ -110,14 +106,13 @@ void freetype_render(
 	glUseProgram(0);
 }
 
-void freetype_init(lua_State *L) {
+void freetype_init(sol::state &lua) {
 	printf("[freetype.h] init\n");
 
-	lua_pushnumber(L, FREETYPE_BASE_FONT_HEIGHT);
-	lua_setglobal(L, "BASE_FONT_HEIGHT");
+	lua["BASE_FONT_HEIGHT"] = FREETYPE_BASE_FONT_HEIGHT;
 
-	bool compiled = bsge_compile_shader(&freetype_text_shader, "shader/font/text_vert.glsl", "shader/font/text_frag.glsl");
-	bool compiled_nosampling = bsge_compile_shader(&freetype_text_shader_nosampling, "shader/font/text_vert.glsl", "shader/font/text_nosampling_frag.glsl");
+	bool compiled = bsge_compile_shader(lua, &freetype_text_shader, "shader/font/text_vert.glsl", "shader/font/text_frag.glsl");
+	bool compiled_nosampling = bsge_compile_shader(lua, &freetype_text_shader_nosampling, "shader/font/text_vert.glsl", "shader/font/text_nosampling_frag.glsl");
 
 	if (!compiled) {
 		printf("%s[freetype.h] couldn't compile text shader%s\n", ANSI_RED, ANSI_NC);

@@ -83,7 +83,7 @@ void BSGEWindow::render_loop_init() {
 
 	// MODEL SHADER CODE
 	unsigned int default_shader;
-	bool success = bsge_compile_shader(&default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
+	bool success = bsge_compile_shader(*lua, &default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
 	if (!success) {
 		printf("[main.cpp] exit: couldn't compile default shaders\n");
 		status = -1;

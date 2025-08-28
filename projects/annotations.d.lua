@@ -35,9 +35,22 @@ Image = {}
 ---@return number 0 on success, 1 on error
 function Image:load(path) end
 
+---@class PhysicsObject
+PhysicsObject = {}
+
+---Create a new physics body from mesh data
+---@param mesh Mesh The mesh object containing geometry and transformation data
+---@param is_dynamic boolean true for dynamic (moveable) bodies, false for static bodies
+---@return PhysicsObject
+function PhysicsObject.new(mesh, is_dynamic) end
+
+---Get the current transformation matrix from physics simulation
+---@return Mat4 4x4 transformation matrix representing position, rotation, and scale
+function PhysicsObject:get_transform() end
+
 ---@class Mesh
 ---@field texture Image|number Texture applied to mesh
----@field position Mat4 Transformation matrix for mesh position
+---@field matrix Mat4 Transformation matrix for mesh position
 Mesh = {}
 
 ---@return Mesh
@@ -661,6 +674,7 @@ _G.Camera = Camera
 _G.Font = Font
 _G.Image = Image
 _G.Mesh = Mesh
+_G.PhysicsObject = PhysicsObject
 _G.Textlabel = Textlabel
 _G.Signal = Signal
 _G.Vec2 = Vec2

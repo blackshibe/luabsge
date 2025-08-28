@@ -3,8 +3,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 void lua_bsge_init_vfx(sol::state &lua) {
-    auto load_shader = [](VFXEffectStruct* effect, const char* vertex_path, const char* fragment_path) {
-        return effect->load_shader(vertex_path, fragment_path);
+    auto load_shader = [](sol::state &lua, VFXEffectStruct* effect, const char* vertex_path, const char* fragment_path) {
+        return effect->load_shader(lua, vertex_path, fragment_path);
     };
     
     auto load_fragment_shader = [](VFXEffectStruct* effect, const char* fragment_path) {

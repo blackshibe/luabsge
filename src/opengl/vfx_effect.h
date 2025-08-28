@@ -5,6 +5,7 @@
 #include <string>
 #include <unordered_map>
 #include <chrono>
+#include "../lua/config.h"
 
 struct VFXEffectStruct {
     GLuint shader_program;
@@ -22,7 +23,7 @@ struct VFXEffectStruct {
     ~VFXEffectStruct();
     
     // Load shader from files using existing shader.cpp functions
-    bool load_shader(const char* vertex_path, const char* fragment_path);
+    bool load_shader(sol::state &lua, const char* vertex_path, const char* fragment_path);
     bool load_fragment_shader(const char* fragment_path);
     
     // Render fullscreen quad

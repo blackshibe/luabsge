@@ -11,7 +11,6 @@ struct PhysicsObject {
 
     PhysicsObject(meshData mesh, bool is_dynamic) {
         id = BSGE::Physics::create_body(mesh, is_dynamic);
-        printf("PhysicsObject created with id: %i\n", id);
     }
 
 };

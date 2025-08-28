@@ -70,10 +70,10 @@ void VFXEffectStruct::create_fullscreen_quad() {
     glBindVertexArray(0);
 }
 
-bool VFXEffectStruct::load_shader(const char* vertex_path, const char* fragment_path) {
+bool VFXEffectStruct::load_shader(sol::state &lua, const char* vertex_path, const char* fragment_path) {
     cleanup();
     
-    bool success = bsge_compile_shader(&shader_program, vertex_path, fragment_path);
+    bool success = bsge_compile_shader(lua, &shader_program, vertex_path, fragment_path);
     if (!success) {
         printf("[VFXEffect] Failed to compile shader from %s and %s\n", vertex_path, fragment_path);
         is_valid = false;

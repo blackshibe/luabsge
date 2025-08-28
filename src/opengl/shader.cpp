@@ -1,8 +1,4 @@
-#include <iostream>
-#include "../glad/glad.h"
-#include <GLFW/glfw3.h>
-
-#include "../include/colors.h"
+#include "shader.h"
 
 const char* load_file(const char* filename) {
     char* buffer = NULL;
@@ -61,16 +57,20 @@ bool compile_shader(GLuint* shader, int type, const char* src) {
 	return true;
 }
 
-bool bsge_compile_shader(GLuint* _shader, const char* vert_path, const char* frag_path) {
 
+
+bool bsge_compile_shader(sol::state &lua, GLuint* _shader, const char* vert_path, const char* frag_path) {
+	BSGEConfig config = lua_bsge_get_config(lua);
 	GLuint vert_shader;
 	GLuint frag_shader;
 
-	if (!compile_shader(&vert_shader, GL_VERTEX_SHADER, load_file(vert_path))) {
+	const char* actual_vert_path = concat_c_strings(config.default_asset_directory.c_str(), vert_path);
+	const char* actual_frag_path = concat_c_strings(config.default_asset_directory.c_str(), frag_path);
+	if (!compile_shader(&vert_shader, GL_VERTEX_SHADER, load_file(actual_vert_path))) {
 		return false;
 	}
 
-	if (!compile_shader(&frag_shader, GL_FRAGMENT_SHADER, load_file(frag_path))) {
+	if (!compile_shader(&frag_shader, GL_FRAGMENT_SHADER, load_file(actual_frag_path))) {
 		return false;
 	}
 

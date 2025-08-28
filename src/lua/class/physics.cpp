@@ -6,7 +6,7 @@ glm::mat4x4 lua_get_body_transform(PhysicsObject& object) {
 
 void lua_bsge_init_physics(sol::state &lua) {
 	lua.new_usertype<PhysicsObject>("PhysicsObject",
-                        sol::constructors<PhysicsObject(meshData)>(),
+                        sol::constructors<PhysicsObject(meshData, bool)>(),
                         "get_transform", lua_get_body_transform
 								);
 }

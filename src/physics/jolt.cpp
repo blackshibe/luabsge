@@ -329,7 +329,7 @@ glm::mat4x4 get_body_transform(JPH::BodyID id) {
     );
 }
 
-JPH::BodyID create_body(meshData mesh) {
+JPH::BodyID create_body(meshData mesh, bool is_dynamic) {
    if (!physics_system) {
         printf("ERROR: Physics system not initialized!\n");
         return JPH::BodyID(); // Return invalid body ID
@@ -348,11 +348,10 @@ JPH::BodyID create_body(meshData mesh) {
 	BoxShapeSettings floor_shape_settings(Vec3(scale.x, scale.y, scale.z)); // size is temporary
 	floor_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
 
-
 	ShapeSettings::ShapeResult shape_result = floor_shape_settings.Create();
 
 	// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-	BodyCreationSettings floor_settings(shape_result.Get(), RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
+	BodyCreationSettings floor_settings(shape_result.Get(), RVec3(position.x, position.y, position.z), Quat::sIdentity(), is_dynamic ? EMotionType::Dynamic : EMotionType::Static, is_dynamic ? Layers::MOVING : Layers::NON_MOVING);
 
 	// Create the actual rigid body
 	Body *rigid_body = body_interface.CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr

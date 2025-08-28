@@ -6,20 +6,35 @@ font:load("font/FiraCode-Regular.ttf")
 local display_label = Textlabel.new()
 display_label.font = font
 
+-- TODO: can't use separate cameras for separate buffers(?)
 local camera = Camera.new()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
+-- TODO: mesh textures are not optional
 local texture = Image.new()
 texture:load("image/fox.jpg")
 
+-- TODO: mesh and physicsobject should not be separate in this way
+-- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
 local mesh = Mesh.new()
 mesh:load("mesh/box.obj")
 mesh.texture = texture
-mesh.matrix = Mat4.new(1)
+mesh.matrix = Mat4.new(1):translate(Vec3.new(0, 1.5, 0))
+local phys_object = PhysicsObject.new(mesh, true)
 
-local phys_object = PhysicsObject.new(mesh)
+local mesh_top = Mesh.new()
+mesh_top:load("mesh/box.obj")
+mesh_top.texture = texture
+mesh_top.matrix = Mat4.new(1):translate(Vec3.new(1, 4, 0.25))
+local phys_object_top = PhysicsObject.new(mesh_top, true)
+
+local floor = Mesh.new()
+floor:load("mesh/box.obj")
+floor.texture = texture
+floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
+local floor_phys = PhysicsObject.new(floor, false)
 
 local camera_z_spring = require("spring").new(0)
 local base_matrix = Mat4.new(1)
@@ -39,12 +54,18 @@ World.rendering.step:connect(function(delta_time)
 
 	local camera_z = camera_z_spring:update(delta_time)
 	camera.matrix = Mat4.new(1)
-		:translate(Vec3.new(0, 0, -5))
+		:translate(Vec3.new(0, 0, -10))
 		:rotate(0.25, Vec3.new(1, 0, 0))
-		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
+		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 0.5, 0))
 
 	mesh.matrix = phys_object:get_transform()
 	mesh:render()
+
+	mesh_top.matrix = phys_object_top:get_transform()
+	mesh_top:render()
+
+	floor.matrix = floor_phys:get_transform():scale(Vec3.new(10, 0.1, 10))
+	floor:render()
 
 	Gizmo.set_line_width(0.05)
 	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))

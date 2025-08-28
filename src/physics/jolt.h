@@ -49,7 +49,7 @@ namespace BSGE {
 namespace Physics {
 
 glm::mat4x4 get_body_transform(JPH::BodyID id);
-JPH::BodyID create_body(meshData mesh);
+JPH::BodyID create_body(meshData mesh, bool is_dynamic);
 
 void init();
 void update(float delta_time);

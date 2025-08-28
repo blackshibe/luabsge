@@ -9,8 +9,8 @@ void lua_bsge_init_physics(sol::state &lua);
 struct PhysicsObject {
     JPH::BodyID id;
 
-    PhysicsObject(meshData mesh) {
-        id = BSGE::Physics::create_body(mesh);
+    PhysicsObject(meshData mesh, bool is_dynamic) {
+        id = BSGE::Physics::create_body(mesh, is_dynamic);
         printf("PhysicsObject created with id: %i\n", id);
     }
 

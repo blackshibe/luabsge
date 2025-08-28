@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "glad/glad.h"
 #include <cstdio>
 #include <iostream>
@@ -12,6 +11,7 @@
 #include "lua/luax.h"
 #include "opengl/freetype.h"
 #include "opengl/window.h"
+#include "physics/jolt.h"
 
 #if USE_EMSCRIPTEN
 #include <GLFW/emscripten_glfw3.h>

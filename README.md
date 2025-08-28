@@ -17,9 +17,7 @@ Small rendering engine that integrates Lua with OpenGL.<br/>
 
 ## compilation
 
-run `./run.sh test` to run the test project
-
-note: LuaBSGE is only tested on Linux right now
+run `./run.sh test` to run the test project. Tested on Windows and Linux.
 
 ## features
 
@@ -33,24 +31,33 @@ note: LuaBSGE is only tested on Linux right now
 
 ## todo
 
--   Import physics engine, export map to a test project, bvh for raytracer
-
 -   Showstoppers
-    -   Abstracting objects properly
-        -   Design a better abstraction layer
-    -   Web build support
-        -   Texture loading
     -   Physics
-        -   Self explanatory
-    -   Editor (Needs physics for raytests)
+        -   Jolt physics init
+        -   Test physics objects
+    -   Abstracting objects properly
+        -   Transform component
+```lua
+local entity = Transform.new("Hi")
+entity.parent = scene
+entity:add_component(MeshRenderer, {mesh = "models/player.obj"})
+entity:add_component(RigidBody, {mass = 75})
+```
+
+        -   Design a better abstraction layer
+    -   Datamodel format
+        - Scene hierarchy
+        - Scene explorer
+    -   Editor
         -   Scene creation format for a datamodel
+    -   Clean the engine up
+        -   Inconsistent function calling convention
+        -   Inconsistent structure
+        -   Don't use source built libs in native build
     -   Audio
 -   Other
-    -   RT Test improvements
-    -   UTF-8 Rendering
-    -   Text rendering has really weird positioning
-    -   Text rendering cuts off with high scale (you need to resize the window once to fix it)
-    -   Cross-platform support
+    -   Raytracer BVH
+    -   UTF-8 Text Rendering
 
 ## goals
 

@@ -1,5 +1,4 @@
 #include "lua_glm_bindings.h"
-#include <string>
 
 glm::vec2 make_vec2(float x, float y) {
 	return glm::vec2(x, y);
@@ -27,6 +26,20 @@ glm::vec3 mat4_to_vec3(glm::mat4 m) {
 
 glm::vec4 mat4_to_vec4(glm::mat4 m) {
 	return glm::vec4(m[3][0], m[3][1], m[3][2], m[3][3]);
+}
+
+glm::vec3 mat4_to_vec3_scale(glm::mat4 m) {
+    glm::vec3 xAxis = glm::vec3(m[0]); 
+    glm::vec3 yAxis = glm::vec3(m[1]);
+    glm::vec3 zAxis = glm::vec3(m[2]); 
+
+    // The scale is the length (magnitude) of each basis vector
+    glm::vec3 scale;
+    scale.x = glm::length(xAxis);
+    scale.y = glm::length(yAxis);
+    scale.z = glm::length(zAxis);
+
+	return scale;
 }
 
 int lua_bsge_init_glm_bindings(sol::state &lua) {

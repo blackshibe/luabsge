@@ -135,3 +135,15 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${glm_SOURCE_DIR})
 
 # imgui
 target_compile_definitions(${PROJECT_NAME} PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1)
+
+# Jolt physics
+FetchContent_Declare(
+        JoltPhysics
+        GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
+        GIT_TAG "v5.3.0"
+        SOURCE_SUBDIR "Build"
+)
+FetchContent_MakeAvailable(JoltPhysics)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${JoltPhysics_SOURCE_DIR}/..)
+target_link_libraries(${PROJECT_NAME} PRIVATE Jolt)

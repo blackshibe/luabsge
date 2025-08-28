@@ -78,6 +78,66 @@ void BSGEWindow::focus_callback(int focused) {
 	this->focused = (focused == GLFW_TRUE);
 }
 
+
+void BSGEWindow::render_loop_init() {
+
+	// MODEL SHADER CODE
+	unsigned int default_shader;
+	bool success = bsge_compile_shader(&default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
+	if (!success) {
+		printf("[main.cpp] exit: couldn't compile default shaders\n");
+		status = -1;
+		return;
+	};
+
+	this->default_shader = default_shader;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// probably disables vsync
+	glfwSwapInterval(0);
+
+	// fullscreen window
+	glfwMaximizeWindow(window);
+
+	// camera projection
+	this->last_frame = glfwGetTime();
+	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+	bool show_demo_window = true;
+	bool show_another_window = false;
+
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO &io = ImGui::GetIO();
+	(void)io;
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	// ImGui::StyleColorsLight();
+
+	// physics
+	BSGE::Physics::init();
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init();
+
+	g_window = this;
+
+	#if USE_EMSCRIPTEN
+	emscripten_set_main_loop(main_render_loop, 0, 1);
+	#else
+		while (!should_break && !glfwWindowShouldClose(g_window->window)) {
+			main_render_loop();
+		}
+	#endif	
+}
+
 bool BSGEWindow::render_loop() {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
@@ -145,6 +205,9 @@ bool BSGEWindow::render_loop() {
 	// lua
 	bsge_call_lua_render(lua, delta_time);
 
+	// physics system update
+	BSGE::Physics::update(delta_time);
+
 	lua_bsge_gizmo_end_frame();
 	ImGui::Render();
 
@@ -179,62 +242,6 @@ bool BSGEWindow::render_loop() {
 	#else
 	return !glfwWindowShouldClose(window) && !should_break;
 	#endif
-}
-
-void BSGEWindow::render_loop_init() {
-
-	// MODEL SHADER CODE
-	unsigned int default_shader;
-	bool success = bsge_compile_shader(&default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
-	if (!success) {
-		printf("[main.cpp] exit: couldn't compile default shaders\n");
-		status = -1;
-		return;
-	};
-
-	this->default_shader = default_shader;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	// probably disables vsync
-	glfwSwapInterval(0);
-
-	// fullscreen window
-	glfwMaximizeWindow(window);
-
-	// camera projection
-	this->last_frame = glfwGetTime();
-	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-	bool show_demo_window = true;
-	bool show_another_window = false;
-
-	// Setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-	(void)io;
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	// Setup Dear ImGui style
-	ImGui::StyleColorsDark();
-	// ImGui::StyleColorsLight();
-
-	// Setup Platform/Renderer backends
-	ImGui_ImplGlfw_InitForOpenGL(window, true);
-	ImGui_ImplOpenGL3_Init();
-
-	g_window = this;
-
-	#if USE_EMSCRIPTEN
-	emscripten_set_main_loop(main_render_loop, 0, 1);
-	#else
-		while (!should_break && !glfwWindowShouldClose(g_window->window)) {
-			main_render_loop();
-		}
-	#endif	
 }
 
 void main_render_loop() {

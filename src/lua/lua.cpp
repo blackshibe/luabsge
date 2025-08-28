@@ -84,6 +84,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_vfx(lua);
 	lua_bsge_init_gizmo(lua);
 	lua_bsge_init_framebuffer(lua);
+	lua_bsge_init_physics(lua);
 
 	// temporary (?)
 #if !USE_EMSCRIPTEN

@@ -9,7 +9,6 @@
 #include "../include/colors.h"
 #include "../opengl/window.h"
 
-#include "module/lua_glm_bindings.h"
 #include "module/lua_imgui_bindings.h"
 #include "module/lua_opengl_constants.h"
 #include "module/lua_rendering.h"
@@ -29,6 +28,7 @@
 #include "class/gizmo.h"
 #include "class/framebuffer.h"
 
+#include "class/physics.h"
 #include "class/rt/tbo.h"
 #include "class/rt/sphere_tbo.h"
 #include "class/rt/mesh_tbo.h"

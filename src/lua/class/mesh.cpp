@@ -168,6 +168,6 @@ void lua_bsge_init_mesh(sol::state &lua) {
 							   "render", render,
 							   "texture", sol::property([](meshData *mesh)
 														{ return mesh->texture; }, set_texture),
-							   "position", sol::property([](meshData *mesh)
+							   "matrix", sol::property([](meshData *mesh)
 														 { return mesh->matrix; }, set_position));
 }

@@ -17,6 +17,9 @@ texture:load("image/fox.jpg")
 local mesh = Mesh.new()
 mesh:load("mesh/box.obj")
 mesh.texture = texture
+mesh.matrix = Mat4.new(1)
+
+local phys_object = PhysicsObject.new(mesh)
 
 local camera_z_spring = require("spring").new(0)
 local base_matrix = Mat4.new(1)
@@ -39,7 +42,8 @@ World.rendering.step:connect(function(delta_time)
 		:translate(Vec3.new(0, 0, -5))
 		:rotate(0.25, Vec3.new(1, 0, 0))
 		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
-	mesh.position = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
+
+	mesh.matrix = phys_object:get_body_transform()
 	mesh:render()
 
 	Gizmo.set_line_width(0.05)

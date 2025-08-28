@@ -2,7 +2,7 @@
 
 local meshes = {}
 local texture = Image.new()
-texture:load("image/fox.jpg")
+texture:load(COMMON_PATH .. "image/fox.jpg")
 
 local function create_mesh(src)
 	local mesh = Mesh.new()
@@ -39,7 +39,7 @@ mesh.matrix = Mat4.new(1)
 
 mesh.color = Vec3.new(1, 0, 0)
 mesh.emissive = 0
-mesh.mesh = create_mesh("mesh/suzanne.obj")
+mesh.mesh = create_mesh(COMMON_PATH .. "mesh/suzanne.obj")
 mesh:register()
 
 return {

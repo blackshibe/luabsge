@@ -32,19 +32,10 @@ run `./run.sh test` to run the test project. Tested on Windows and Linux.
 ## todo
 
 -   Showstoppers
-    -   Physics
-        -   Jolt physics init
-        -   Test physics objects
     -   Abstracting objects properly
         -   Transform component
-```lua
-local entity = Transform.new("Hi")
-entity.parent = scene
-entity:add_component(MeshRenderer, {mesh = "models/player.obj"})
-entity:add_component(RigidBody, {mass = 75})
-```
-
         -   Design a better abstraction layer
+    -   The various TODOs
     -   Datamodel format
         - Scene hierarchy
         - Scene explorer

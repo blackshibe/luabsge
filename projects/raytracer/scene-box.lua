@@ -2,7 +2,7 @@
 
 local meshes = {}
 local texture = Image.new()
-texture:load("image/fox.jpg") -- TODO why isn't this optional
+texture:load(COMMON_PATH .. "image/fox.jpg") -- TODO why isn't this optional
 
 local function create_mesh(src)
 	local mesh = Mesh.new()
@@ -34,14 +34,14 @@ table.insert(meshes, ceiling)
 floor.matrix = Mat4.new(1):translate(Vec3.new(0, -4, 0)):scale(Vec3.new(4, 0.1, 4))
 floor.color = Vec3.new(0.5, 0.5, 0.5)
 floor.emissive = 0
-floor.mesh = create_mesh("mesh/box.obj")
+floor.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 floor:register()
 
 -- Set up second mesh (blue, static)
 ceiling.matrix = Mat4.new(1):translate(Vec3.new(0, 4, 0)):scale(Vec3.new(4, 0.1, 4))
 ceiling.color = Vec3.new(0.5, 0.5, 0.5)
 ceiling.emissive = 0
-ceiling.mesh = create_mesh("mesh/box.obj")
+ceiling.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 ceiling:register()
 
 for i = 3, 5 do
@@ -58,7 +58,7 @@ for i = 3, 5 do
 	end
 
 	wall.emissive = 0
-	wall.mesh = create_mesh("mesh/box.obj")
+	wall.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 	wall:register()
 
 	table.insert(meshes, wall)
@@ -73,7 +73,7 @@ mesh.matrix = Mat4.new(1)
 
 mesh.color = Vec3.new(1, 0, 0)
 mesh.emissive = 0
-mesh.mesh = create_mesh("mesh/suzanne.obj")
+mesh.mesh = create_mesh(COMMON_PATH .. "mesh/suzanne.obj")
 mesh:register()
 
 return {

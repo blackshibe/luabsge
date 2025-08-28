@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-global
 
 local font = Font.new()
-font:load("font/arial.ttf")
+font:load("font/FiraCode-Regular.ttf")
 
 local display_label = Textlabel.new()
 display_label.font = font
@@ -18,7 +18,7 @@ local mesh = Mesh.new()
 mesh:load("mesh/box.obj")
 mesh.texture = texture
 
-local camera_z_spring = require("spring").new(0)
+local camera_z_spring = require("script.spring").new(0)
 local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
@@ -39,7 +39,7 @@ World.rendering.step:connect(function(delta_time)
 		:translate(Vec3.new(0, 0, -5))
 		:rotate(0.25, Vec3.new(1, 0, 0))
 		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
-	mesh.position = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
+	mesh.matrix = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
 	mesh:render()
 
 	Gizmo.set_line_width(0.05)

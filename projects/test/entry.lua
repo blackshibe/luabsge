@@ -1,7 +1,7 @@
 ---@diagnostic disable: undefined-global
 
 local font = Font.new()
-font:load("font/FiraCode-Regular.ttf")
+font:load(COMMON_PATH .. "font/FiraCode-Regular.ttf")
 
 local display_label = Textlabel.new()
 display_label.font = font
@@ -14,31 +14,31 @@ camera.far_clip = 100
 
 -- TODO: mesh textures are not optional
 local texture = Image.new()
-texture:load("image/fox.jpg")
+texture:load(COMMON_PATH .. "image/fox.jpg")
 
 -- TODO: mesh and physicsobject should not be separate in this way
 -- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
 local mesh = Mesh.new()
-mesh:load("mesh/box.obj")
+mesh:load(COMMON_PATH .. "mesh/box.obj")
 mesh.texture = texture
 mesh.matrix = Mat4.new(1):translate(Vec3.new(0, 1.5, 0))
 local phys_object = PhysicsObject.new(mesh, true)
 
 local mesh_top = Mesh.new()
-mesh_top:load("mesh/box.obj")
+mesh_top:load(COMMON_PATH .. "mesh/box.obj")
 mesh_top.texture = texture
 mesh_top.matrix = Mat4.new(1):translate(Vec3.new(1, 4, 0.25))
 local phys_object_top = PhysicsObject.new(mesh_top, true)
 
 local floor = Mesh.new()
-floor:load("mesh/box.obj")
+floor:load(COMMON_PATH .. "mesh/box.obj")
 floor.texture = texture
 floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
 local floor_phys = PhysicsObject.new(floor, false)
 
 local raytracer_framebuffer = Framebuffer.new(256, 256)
 
-local camera_z_spring = require("spring").new(0)
+local camera_z_spring = require("script.spring").new(0)
 local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it

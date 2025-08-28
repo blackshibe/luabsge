@@ -96,7 +96,7 @@ void BSGEWindow::render_loop_init() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// probably disables vsync
-	glfwSwapInterval(0);
+	// glfwSwapInterval(0);
 
 	// fullscreen window
 	glfwMaximizeWindow(window);
@@ -120,8 +120,8 @@ void BSGEWindow::render_loop_init() {
 	ImGui::StyleColorsDark();
 	// ImGui::StyleColorsLight();
 
-	// physics
-	BSGE::Physics::init();
+	// physics - remove duplicate init, already initialized in main.cpp
+	// BSGE::Physics::init();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
@@ -226,8 +226,6 @@ bool BSGEWindow::render_loop() {
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 	glfwSwapBuffers(window);
 	glfwPollEvents();
-
-
 
 	const GLenum err = glGetError();
 	if (err != GL_NO_ERROR) {

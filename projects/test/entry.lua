@@ -43,7 +43,7 @@ World.rendering.step:connect(function(delta_time)
 		:rotate(0.25, Vec3.new(1, 0, 0))
 		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
 
-	mesh.matrix = phys_object:get_body_transform()
+	mesh.matrix = phys_object:get_transform()
 	mesh:render()
 
 	Gizmo.set_line_width(0.05)

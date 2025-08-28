@@ -198,6 +198,12 @@ static JPH::PhysicsSystem* physics_system = nullptr;
 static JPH::TempAllocatorImpl* temp_allocator = nullptr;
 static JPH::JobSystemThreadPool* job_system = nullptr;
 
+static BPLayerInterfaceImpl* broad_phase_layer_interface = nullptr;
+static ObjectVsBroadPhaseLayerFilterImpl* object_vs_broadphase_layer_filter = nullptr;
+static ObjectLayerPairFilterImpl* object_vs_object_layer_filter = nullptr;
+static BlankContactListener* contact_listener = nullptr;
+static BlankBodyACtivationListener* body_activation_listener = nullptr;
+
 void init() {
 	// Register allocation hook. In this example we'll just let Jolt use malloc / free but you can override these if you want (see Memory.h).
 	// This needs to be done before any other Jolt function is called.
@@ -241,45 +247,42 @@ void init() {
 	// Create mapping table from object layer to broadphase layer
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
 	// Also have a look at BroadPhaseLayerInterfaceTable or BroadPhaseLayerInterfaceMask for a simpler interface.
-	BPLayerInterfaceImpl broad_phase_layer_interface;
+	broad_phase_layer_interface = new BPLayerInterfaceImpl();
 
 	// Create class that filters object vs broadphase layers
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
 	// Also have a look at ObjectVsBroadPhaseLayerFilterTable or ObjectVsBroadPhaseLayerFilterMask for a simpler interface.
-	ObjectVsBroadPhaseLayerFilterImpl object_vs_broadphase_layer_filter;
+	object_vs_broadphase_layer_filter = new ObjectVsBroadPhaseLayerFilterImpl();
 
 	// Create class that filters object vs object layers
 	// Note: As this is an interface, PhysicsSystem will take a reference to this so this instance needs to stay alive!
 	// Also have a look at ObjectLayerPairFilterTable or ObjectLayerPairFilterMask for a simpler interface.
-	ObjectLayerPairFilterImpl object_vs_object_layer_filter;
+	object_vs_object_layer_filter = new ObjectLayerPairFilterImpl();
 
 	// Now we can create the actual physics system.
-	physics_system =  new PhysicsSystem();
-	physics_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, broad_phase_layer_interface, object_vs_broadphase_layer_filter, object_vs_object_layer_filter);
-	printf("set\n");
-	printf("%i\n", physics_system->GetMaxBodies());
+	physics_system = new PhysicsSystem();
+	physics_system->Init(cMaxBodies, cNumBodyMutexes, cMaxBodyPairs, cMaxContactConstraints, *broad_phase_layer_interface, *object_vs_broadphase_layer_filter, *object_vs_object_layer_filter);
 
 	// A body activation listener gets notified when bodies activate and go to sleep
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
-	BlankBodyACtivationListener body_activation_listener;
-	physics_system->SetBodyActivationListener(&body_activation_listener);
-	printf("set\n");
+	body_activation_listener = new BlankBodyACtivationListener();
+	physics_system->SetBodyActivationListener(body_activation_listener);
 
 	// A contact listener gets notified when bodies (are about to) collide, and when they separate again.
 	// Note that this is called from a job so whatever you do here needs to be thread safe.
 	// Registering one is entirely optional.
-	BlankContactListener contact_listener;
-	physics_system->SetContactListener(&contact_listener);
+	contact_listener = new BlankContactListener();
+	physics_system->SetContactListener(contact_listener);
 
-	printf("done\n");
-
+	// Set gravity for the physics world
+	physics_system->SetGravity(RVec3(0.0f, -9.81f, 0.0f));
 
 	// Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
 	// You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
 	// Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
 	physics_system->OptimizeBroadPhase();
-
+	
 	// // Remove the sphere from the physics system. Note that the sphere itself keeps all of its state and can be re-added at any time.
 	// body_interface.RemoveBody(sphere_id);
 
@@ -299,13 +302,25 @@ void init() {
 }
 
 glm::mat4x4 get_body_transform(JPH::BodyID id) {
+    if (!physics_system) {
+        printf("ERROR: Physics system not initialized!\n");
+        return glm::mat4(1.0f); // Return identity matrix
+    }
 
-       // Get the body interface from the physics system
+    // Get the body interface from the physics system
     BodyInterface& body_interface = physics_system->GetBodyInterface();
     
-
+    // Check if body is still valid
+    if (!body_interface.IsAdded(id)) {
+        static int error_count = 0;
+        if (error_count++ < 5) { // Only show first 5 errors to avoid spam
+            printf("ERROR: Body ID %u is not added to physics system!\n", id.GetIndexAndSequenceNumber());
+        }
+        return glm::mat4(1.0f); // Return identity matrix
+    }
+    
     JPH::RMat44 matrix = body_interface.GetCenterOfMassTransform(id);
-
+    
     return glm::mat4(
         matrix(0, 0), matrix(1, 0), matrix(2, 0), matrix(3, 0),
         matrix(0, 1), matrix(1, 1), matrix(2, 1), matrix(3, 1),
@@ -317,10 +332,9 @@ glm::mat4x4 get_body_transform(JPH::BodyID id) {
 JPH::BodyID create_body(meshData mesh) {
    if (!physics_system) {
         printf("ERROR: Physics system not initialized!\n");
+        return JPH::BodyID(); // Return invalid body ID
     }
 
-	printf("%i\n", physics_system->GetMaxBodies());
-	
     // The main way to interact with the bodies in the physics system is through the body interface. There is a locking and a non-locking
 	// variant of this. We're going to use the locking version (even though we're not planning to access bodies from multiple threads)
 	BodyInterface &body_interface = physics_system->GetBodyInterface();
@@ -328,34 +342,29 @@ JPH::BodyID create_body(meshData mesh) {
 	// Create the settings for the collision volume (the shape).
 	// Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
 
-	printf("setting position and creating shape\n");
     glm::vec3 scale = mat4_to_vec3_scale(mesh.matrix);
     glm::vec3 position = mat4_to_vec3(mesh.matrix);
 
 	BoxShapeSettings floor_shape_settings(Vec3(scale.x, scale.y, scale.z)); // size is temporary
 	floor_shape_settings.SetEmbedded(); // A ref counted object on the stack (base class RefTarget) should be marked as such to prevent it from being freed when its reference count goes to 0.
 
-	// Create the shape
-	printf("%f, %f, %f\n", scale.x, scale.y, scale.z);
-	printf("%f, %f, %f\n", position.x, position.y, position.z);
-
 
 	ShapeSettings::ShapeResult shape_result = floor_shape_settings.Create();
-	if (shape_result.HasError()) {
-		printf("has error\n");
-	}
 
 	// Create the settings for the body itself. Note that here you can also set other properties like the restitution / friction.
-	BodyCreationSettings floor_settings(shape_result.Get(), RVec3(0.0f, 1.0f, 0.0f), Quat::sIdentity(), EMotionType::Static, Layers::NON_MOVING);
+	BodyCreationSettings floor_settings(shape_result.Get(), RVec3(position.x, position.y, position.z), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING);
 
 	// Create the actual rigid body
-	printf("about to fail\n");
 	Body *rigid_body = body_interface.CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr
-	printf("1\n");
+	
+	if (!rigid_body) {
+		printf("ERROR: Failed to create rigid body - out of bodies!\n");
+		return JPH::BodyID(); // Return invalid body ID
+	}
 
 	// Add it to the world
-	body_interface.AddBody(rigid_body->GetID(), EActivation::DontActivate);
-	printf("1\n");
+	body_interface.AddBody(rigid_body->GetID(), EActivation::Activate);
+	body_interface.SetGravityFactor(rigid_body->GetID(), 1.0f);
 
 	// // Now create a dynamic body to bounce on the rigid_body
 	// // Note that this uses the shorthand version of creating and adding a body to the world
@@ -376,7 +385,7 @@ void update(float delta_time) {
     const int cCollisionSteps = 1;
 
     // Step the world
-    physics_system->Update(delta_time, 1, temp_allocator, job_system);
+    physics_system->Update(delta_time, cCollisionSteps, temp_allocator, job_system);
 }
 
 }

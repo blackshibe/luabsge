@@ -10,8 +10,8 @@ struct PhysicsObject {
     JPH::BodyID id;
 
     PhysicsObject(meshData mesh) {
-        printf("creating physics object\n");
         id = BSGE::Physics::create_body(mesh);
+        printf("PhysicsObject created with id: %i\n", id);
     }
 
 };

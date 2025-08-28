@@ -1,7 +1,7 @@
 #include "tbo.h"
 
 // GL_RGBA32F
-TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size) {
+TextureBufferObject setup_tbo(int packing_size, uint16_t max_size, uint16_t obj_size) {
     TextureBufferObject obj;
     obj.item_size = obj_size;
 
@@ -27,7 +27,7 @@ TextureBufferObject setup_tbo(int packing_size, uint max_size, uint obj_size) {
     return obj;
 }
 
-void upload_tbo_element(TextureBufferObject obj, uint index, const void* item) {
+void upload_tbo_element(TextureBufferObject obj, uint16_t index, const void* item) {
 #if USE_EMSCRIPTEN
     // glBindBuffer(GL_ARRAY_BUFFER, obj.tboBuffer);
     // glBufferSubData(GL_ARRAY_BUFFER,

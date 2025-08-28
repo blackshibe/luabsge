@@ -13,6 +13,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "../interop.h"
+
 #define FREETYPE_BASE_FONT_HEIGHT 96
 #define FREETYPE_CHARSET_SIZE 256
 
@@ -43,7 +45,7 @@ struct Textlabel {
 	}
 
 	void set_text(const char *new_text) {
-		text = strdup(new_text);
+		text = duplicate_string(new_text);
 	}
 
 	glm::vec3 color; // vertex color

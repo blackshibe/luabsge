@@ -20,6 +20,10 @@ else
 
 	# todo: fix
 	cd projects/$1
-	../../build/luabsge
+	if [[ "$OSTYPE" == "win32" ]] || [[ "$OSTYPE" == "msys" ]]; then
+		../../build/Debug/luabsge.exe
+	else 
+		../../build/luabsge
+	fi
 	cd ../../
 fi

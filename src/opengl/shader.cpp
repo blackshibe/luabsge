@@ -5,23 +5,29 @@
 #include "../include/colors.h"
 
 const char* load_file(const char* filename) {
-	char* buffer = NULL;
-	long length;
-	FILE* file = fopen(filename, "r");
-
-	if (file) {
-		fseek(file, 0, SEEK_END);
-		length = ftell(file) + 1;
-		fseek(file, 0, SEEK_SET);
-		buffer = (char*)malloc(length);
-		if (buffer) fread(buffer, 1, length - 1, file);
-		fclose(file);
-
-		buffer[length - 1] = '\0';
-
-	}
-
-	return buffer;
+    char* buffer = NULL;
+    long length;
+    
+    // Use binary mode to avoid line ending issues on Windows
+    FILE* file = fopen(filename, "rb");  // Note: "rb" instead of "r"
+    
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        length = ftell(file);
+        fseek(file, 0, SEEK_SET);
+        
+        // Allocate space for content + null terminator
+        buffer = (char*)malloc(length + 1);
+        
+        if (buffer) {
+            size_t bytes_read = fread(buffer, 1, length, file);
+            buffer[bytes_read] = '\0';  // Always add null terminator
+        }
+        
+        fclose(file);
+    }
+    
+    return buffer;
 }
 
 bool compile_shader(GLuint* shader, int type, const char* src) {

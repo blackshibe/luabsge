@@ -34,9 +34,9 @@ void freetype_render(
 
 	// count text size data
 	int text_length = strlen(text);
-	TextRenderData data[text_length];
+	TextRenderData* data = new TextRenderData[text_length];
 
-	for (int i = 0; i < strlen(text); i++) {
+	for (int i = 0; i < text_length; i++) {
 		struct Character ch = font.data[(int)text[i]];
 
 		// newline

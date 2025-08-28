@@ -7,7 +7,6 @@
 #include <lua.hpp>
 
 #include "math.h"
-#include "unistd.h"
 
 #include "lua/lua.h"
 #include "lua/luax.h"

@@ -10,7 +10,7 @@ struct  meshTBOTriangle {
 };
 
 // vec3s as vec4s because tbos are a pain in the ass
-alignas(16) struct meshTBOBufferData {
+struct meshTBOBufferData {
     glm::mat4 matrix; //64b
     glm::mat4 inv_matrix; //64b
     glm::vec4 color; // 16

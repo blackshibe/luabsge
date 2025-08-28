@@ -64,8 +64,8 @@ void lua_bsge_gizmo_end_frame() {
         if (vertices.empty()) continue;
         
         glLineWidth(width);
-        glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(GizmoVertex), vertices.data(), GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_LINES, 0, vertices.size());
+        glBufferData(GL_ARRAY_BUFFER, (GLsizei)(vertices.size() * sizeof(GizmoVertex)), vertices.data(), GL_DYNAMIC_DRAW);
+        glDrawArrays(GL_LINES, 0, (GLsizei)vertices.size());
     }
 
 	glUseProgram(0);

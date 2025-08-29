@@ -17,18 +17,36 @@ int64_t get_time() {
 	return ms - start;
 }
 
+// TODO load from project files
+#ifdef USE_EMSCRIPTEM
 const char* VFXEffectStruct::default_vertex_shader = R"(
-#version 330 core
-layout (location = 0) in vec2 position;
-layout (location = 1) in vec2 tex_coord;
+attribute vec2 position;
+varying vec2 tex_coord;
 
-out vec2 uv;
+varying vec2 uv;
 
 void main() {
     gl_Position = vec4(position, 0.0, 1.0);
     uv = tex_coord;
 }
 )";
+#else
+const char* VFXEffectStruct::default_vertex_shader = R"(
+#version 100
+precision mediump float;
+
+attribute vec2 position;
+attribute vec2 tex_coord;
+
+varying vec2 uv;
+
+void main() {
+    gl_Position = vec4(position, 0.0, 1.0);
+    uv = tex_coord;
+}
+)";
+#endif
+
 
 VFXEffectStruct::VFXEffectStruct() 
     : shader_program(0), quad_vao(0), quad_vbo(0), is_valid(false) {

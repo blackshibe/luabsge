@@ -36,7 +36,6 @@ glm::vec2 get_current_buffer_dimensions() {
 }
 
 void set_current_buffer_dimensions(glm::vec2 dimensions) {
-	printf("set buffer dimensions to %f, %f\n", dimensions.x, dimensions.y);
 	current_buffer_dimensions = dimensions;
 }
 

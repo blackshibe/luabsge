@@ -9,9 +9,14 @@
 #if USE_EMSCRIPTEN
 #include <emscripten.h>
 #include <emscripten/html5.h>
+#include <GLFW/emscripten_glfw3.h>
 #endif
 
 BSGEWindow::BSGEWindow() {
+	#if USE_EMSCRIPTEN
+	emscripten_glfw_set_next_window_canvas_selector("#bsge-canvas");
+	#endif	
+
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
 }
 
@@ -119,7 +124,6 @@ void BSGEWindow::render_loop_init() {
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
 	// ImGui::StyleColorsLight();
-
 	// physics - remove duplicate init, already initialized in main.cpp
 	// BSGE::Physics::init();
 
@@ -130,6 +134,7 @@ void BSGEWindow::render_loop_init() {
 	g_window = this;
 
 	#if USE_EMSCRIPTEN
+	emscripten_glfw_make_canvas_resizable(window, "#bsge-canvas-container", nullptr);
 	emscripten_set_main_loop(main_render_loop, 0, 1);
 	#else
 		while (!should_break && !glfwWindowShouldClose(g_window->window)) {
@@ -186,19 +191,30 @@ bool BSGEWindow::render_loop() {
 		return false;
 		#endif
 	}
-	
+
+	set_current_buffer_dimensions(get_window_dimensions());
+
 	BSGECameraMetadata* camera = camera_opt.value();
 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
 
-	glUseProgram(default_shader);
-	glUniformMatrix4fv(glGetUniformLocation(default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
-	glUniformMatrix4fv(glGetUniformLocation(default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera_projection));
 
+	// WebGL: Ensure attribute locations are bound correctly
+	// TODO better code
+	static bool attributes_bound = false;
+	if (!attributes_bound) {
+		glUseProgram(default_shader);
+		glBindAttribLocation(default_shader, 0, "vert_pos");
+		glBindAttribLocation(default_shader, 1, "vert_normal");
+		glBindAttribLocation(default_shader, 2, "vert_tex_coord");
+		glLinkProgram(default_shader);
+		attributes_bound = true;
+	}
+	
 	// imgui
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-
+	
 	// gizmo
 	lua_bsge_gizmo_begin_frame(camera_projection, camera->matrix);
 

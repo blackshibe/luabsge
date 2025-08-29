@@ -115,12 +115,13 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	return 0;
 }
 
-int mesh_render(meshData *bsgemesh)
-{
+int mesh_render(sol::state &lua, meshData *bsgemesh) {
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh->ebo);
 	glBindVertexArray(bsgemesh->vao);
+
+	camera_set_shader_projection_matrix(lua, context_window);
 
 	if (bsgemesh->texture != 0) {
 		glActiveTexture(GL_TEXTURE0);
@@ -147,9 +148,9 @@ void lua_bsge_init_mesh(sol::state &lua) {
 		return 0;
 	};
 
-	auto render = [](meshData *mesh)
+	auto render = [&lua](meshData *mesh)
 	{
-		return mesh_render(mesh);
+		return mesh_render(lua, mesh);
 	};
 
 	auto set_texture = [](meshData *mesh, bsgeImage *image)

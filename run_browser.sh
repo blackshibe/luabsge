@@ -1,25 +1,25 @@
-# run make and don't run program if it errors
-# https://gist.github.com/ericoporto/8ce679ecb862a12795156d31f3ecac49
-echo "-- Running emsdk activate"
-emsdk activate latest
-rm projects/webtest/luabsge.wasm.js
-rm projects/webtest/luabsge.wasm.wasm
-rm projects/webtest/luabsge.wasm.data
+# this copies build files to an external folder to run them
 
-echo "-- Running emsdk_env.sh"
-source $HOME/emsdk/emsdk_env.sh
+# ./run_browser.sh webtest /home/blackshibe/Downloads/luabsge/projects/webtest
+# ./run_browser.sh blackshibe /home/blackshibe/Downloads/blackshibe.github.io
 
-echo "-- Running cmake"
-cmake -B build-web -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ZLIB=ON -DUSE_EMSCRIPTEN=ON -DPLATFORM=Web -DEMSDK=$EMSDK -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
-
-echo "-- Running build"
-if cmake --build build-web; then
-	echo "[run.sh] compiled"
-
-	mv public/luabsge.wasm.data projects/webtest/luabsge.wasm.data
-	mv public/luabsge.wasm.js projects/webtest/luabsge.wasm.js
-	mv public/luabsge.wasm.wasm projects/webtest/luabsge.wasm.wasm
+if [ -z "$2" || -z "$2" ]
+  then
+    echo "No project to run"
+    echo "Specify the name of a folder inside ./projects as the first argument"
+    echo "Ex. test"
 else
-	echo "[run.sh] failed to compile"
-	exit
+
+	echo "-- Running build"
+	if cmake --build build-web; then
+		echo "[run.sh] compiled"
+
+		mv public/luabsge.wasm.data $2/luabsge.wasm.data
+		mv public/luabsge.wasm.js $2/luabsge.wasm.js
+		mv public/luabsge.wasm.wasm $2/luabsge.wasm.wasm
+	else
+		echo "[run.sh] failed to compile"
+		exit
+	fi
 fi
+

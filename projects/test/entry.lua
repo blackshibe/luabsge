@@ -87,7 +87,6 @@ World.rendering.step:connect(function(delta_time)
 
 	-- TODO bind(function() end) instead
 	raytracer_framebuffer:bind()
-
 	render_pass()
 	raytracer_framebuffer:unbind()
 

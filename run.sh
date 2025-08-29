@@ -5,8 +5,6 @@ if [ -z "$1" ]
     echo "Ex. test"
 else
 	echo "[run.sh] compiling"
-
-    cmake -B build 
 	
 	# run make and don't run program if it errors
 	if cmake --build build; then

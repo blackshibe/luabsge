@@ -14,5 +14,10 @@ struct BSGECameraMetadata {
 	float far_clip = 100.0f;
 };
 
+void camera_set_shader_projection_matrix(sol::state &lua, BSGEWindow *context_window);
+
+glm::vec2 get_current_buffer_dimensions();
+void set_current_buffer_dimensions(glm::vec2 dimensions); 
+
 glm::mat4 camera_get_projection_matrix(BSGECameraMetadata camera);
 void lua_bsge_init_camera(sol::state &lua);

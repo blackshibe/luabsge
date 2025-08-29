@@ -1,4 +1,3 @@
-#version 100
 precision mediump float;
 attribute vec3 vert_pos;
 attribute vec3 vert_normal;

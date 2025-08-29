@@ -2,6 +2,7 @@
 #include "image.h"
 #include "../module/lua_window.h"
 #include <glm/gtc/type_ptr.hpp>
+#include "camera.h"
 
 struct framebuffer {
     GLuint textureId;
@@ -48,12 +49,16 @@ void lua_bsge_init_framebuffer(sol::state &lua) {
         "bind", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
             glViewport(0, 0, effect.width, effect.height);
+            set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
         },
 
         "unbind", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+            // reset viewport size
             glm::vec2 window_dims = get_window_dimensions();
             glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
+            set_current_buffer_dimensions(glm::vec2(window_dims.x, window_dims.y));
         },
 
         "clear", [](framebuffer& effect) {
@@ -62,8 +67,35 @@ void lua_bsge_init_framebuffer(sol::state &lua) {
             glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
             glm::vec2 window_dims = get_window_dimensions();
             glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
+        },
+
+        "resize", [](framebuffer& effect, glm::vec2 new_size) {
+            glDeleteTextures(1, &effect.textureId);
+            glDeleteRenderbuffers(1, &effect.RBO);
+
+            effect.width = new_size.x;
+            effect.height = new_size.y;
+       
+            glGenTextures(1, &effect.textureId);
+            glBindTexture(GL_TEXTURE_2D, effect.textureId);
+            glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
+            
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, effect.width, effect.height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, effect.textureId, 0);
+
+            glGenRenderbuffers(1, &effect.RBO);
+            glBindRenderbuffer(GL_RENDERBUFFER, effect.RBO);
+            glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, effect.width, effect.height); 
+            glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, effect.RBO);
+
+            glBindFramebuffer(GL_FRAMEBUFFER, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glBindRenderbuffer(GL_RENDERBUFFER, 0);
         },
 
         "texture_id", &framebuffer::textureId

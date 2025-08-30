@@ -5,9 +5,9 @@
 echo "-- Running emsdk activate"
 emsdk activate latest
 
-rm $2/luabsge.wasm.js
-rm $2/luabsge.wasm.wasm
-rm $2/luabsge.wasm.data
+rm -f $2/luabsge.wasm.js
+rm -f $2/luabsge.wasm.wasm
+rm -f $2/luabsge.wasm.data
 
 echo "-- Running emsdk_env.sh"
 source $HOME/emsdk/emsdk_env.sh

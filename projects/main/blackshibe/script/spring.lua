@@ -8,18 +8,23 @@ function Spring.new(target, stiffness, damping)
 	self.target = target or 0
 	self.position = target or 0
 	self.velocity = 0
-	self.stiffness = stiffness or 100 -- Higher = stiffer spring
-	self.damping = damping or 10 -- Higher = more damping
+	self.stiffness = stiffness or 100
+	self.damping = damping or 10
 	return self
 end
 
 function Spring:update(dt)
-	-- Spring force equation: F = -k * (x - target) - d * velocity
-	local force = -self.stiffness * (self.position - self.target) - self.damping * self.velocity
+	-- substep simulation to prevent the spring exploding
+	dt = math.min(dt, 1)
+	local iterations = math.max((1 / dt) * 60, 1)
 
-	-- Apply force to velocity and position
-	self.velocity = self.velocity + force * dt
-	self.position = self.position + self.velocity * dt
+	for _ = 1, iterations do
+		-- Spring force equation: F = -k * (x - target) - d * velocity
+		local force = -self.stiffness * (self.position - self.target) - self.damping * self.velocity
+
+		self.velocity = self.velocity + force * (dt / iterations)
+		self.position = self.position + self.velocity * (dt / iterations)
+	end
 
 	return self.position
 end

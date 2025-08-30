@@ -16,6 +16,9 @@ camera.far_clip = 100
 local texture = Image.new()
 texture:load(COMMON_PATH .. "image/fox.jpg")
 
+local texture_grid = Image.new()
+texture_grid:load(COMMON_PATH .. "image/grid_04.png")
+
 -- TODO: mesh and physicsobject should not be separate in this way
 -- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
 local mesh = Mesh.new()
@@ -32,11 +35,11 @@ local phys_object_top = PhysicsObject.new(mesh_top, true)
 
 local floor = Mesh.new()
 floor:load(COMMON_PATH .. "mesh/box.obj")
-floor.texture = texture
-floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
+floor.texture = texture_grid
+floor.matrix = Mat4.new(1):scale(Vec3.new(4, 0.1, 4))
 local floor_phys = PhysicsObject.new(floor, false)
 
-local raytracer_framebuffer = Framebuffer.new(256, 256)
+local raytracer_framebuffer = Framebuffer.new(512, 512)
 
 local camera_z_spring = require("script.spring").new(0)
 local base_matrix = Mat4.new(1)
@@ -81,7 +84,7 @@ World.rendering.step:connect(function(delta_time)
 	-- TODO should not be necessary
 	mesh.matrix = phys_object:get_transform()
 	mesh_top.matrix = phys_object_top:get_transform()
-	floor.matrix = floor_phys:get_transform():scale(Vec3.new(10, 0.1, 10))
+	floor.matrix = floor_phys:get_transform():scale(Vec3.new(4, 0.1, 4))
 
 	raytracer_framebuffer:clear()
 

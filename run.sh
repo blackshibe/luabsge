@@ -16,12 +16,12 @@ else
 
 	echo "[run.sh] running"
 
-	# todo: fix
+	ROOTPATH=$(realpath .)
 	cd projects/$1
 	if [[ "$OSTYPE" == "win32" ]] || [[ "$OSTYPE" == "msys" ]]; then
-		../../build/Debug/luabsge.exe
+		$ROOTPATH/build/Debug/luabsge.exe
 	else 
-		../../build/luabsge
+		$ROOTPATH/build/luabsge
 	fi
 	cd ../../
 fi

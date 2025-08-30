@@ -25,6 +25,6 @@ _deps
 CMakeUserPresets.json
 
 # exporter folder
-projects/export/.cookie
-projects/export/**/**.lock
-projects/export/out
+projects/other/export/.cookie
+projects/other/export/**/**.lock
+projects/other/export/out

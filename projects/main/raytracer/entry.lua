@@ -146,7 +146,7 @@ World.rendering.step:connect(function(delta_time)
 
 	-- ImGui controls
 	if ImGui.Begin("LuaBSGE Ray Tracer") then
-		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(800, 600))
+		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(800, 600), false)
 		ImGui.Separator()
 		ImGui.Spacing()
 

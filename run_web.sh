@@ -1,7 +1,7 @@
 # this copies build files to an external folder to run them
 
-# ./run_browser.sh webtest /home/blackshibe/Downloads/luabsge/projects/webtest
-# ./run_browser.sh blackshibe /home/blackshibe/Downloads/blackshibe.github.io
+# ./run_web.sh minimal/webtest minimal/webtest
+# ./run_web.sh main/blackshibe /home/blackshibe/Downloads/blackshibe.github.io
 
 if [ -z "$2" || -z "$2" ]
   then

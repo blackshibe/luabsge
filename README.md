@@ -17,7 +17,15 @@ Small rendering engine that integrates Lua with OpenGL.<br/>
 
 ## compilation
 
-run `./run.sh test` to run the test project. Tested on Windows and Linux.
+```bash
+# Native
+./setup.sh
+./run.sh test
+
+# Web
+./setup_web.sh blackshibe
+./run_browser.sh blackshibe ~/Downloads/blackshibe.github.io # Path to a folder that will host the wasm files
+```
 
 ## features
 

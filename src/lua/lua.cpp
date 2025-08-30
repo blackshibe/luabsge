@@ -86,7 +86,9 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_framebuffer(lua);
 	lua_bsge_init_physics(lua);
 
-	// temporary (?)
+	// ECS
+	lua_bsge_init_object(lua);
+
 #if !USE_EMSCRIPTEN
 	lua_bsge_init_sphere_tbo(lua);
 	lua_bsge_init_mesh_tbo(lua);

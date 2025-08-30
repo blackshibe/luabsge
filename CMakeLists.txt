@@ -155,3 +155,15 @@ FetchContent_MakeAvailable(JoltPhysics)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${JoltPhysics_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} PRIVATE Jolt)
+
+# Entt
+FetchContent_Declare(
+        EnTT
+        GIT_REPOSITORY "https://github.com/skypjack/entt"
+        GIT_TAG "v3.15.0"
+)
+FetchContent_MakeAvailable(EnTT)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${EnTT_SOURCE_DIR}/..)
+target_link_libraries(${PROJECT_NAME} PRIVATE EnTT)
+

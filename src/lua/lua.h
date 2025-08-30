@@ -32,6 +32,8 @@
 #include "class/rt/sphere_tbo.h"
 #include "class/rt/mesh_tbo.h"
 
+#include "ecs/object.h"
+
 int64_t now();
 
 // adds a prefix to Lua print

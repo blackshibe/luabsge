@@ -9,6 +9,7 @@
 
 #include "freetype.h"
 #include "shader.h"
+#include <entt/entt.hpp>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -35,6 +36,8 @@ public:
 	int stack_warning_threshold = 100;
 
 	GLFWwindow *window;
+	entt::registry registry;
+
 	sol::state *lua;
 	const char *name = "Window";
 
@@ -43,5 +46,6 @@ public:
 	void size_callback(int width, int height);
 	void focus_callback(int focused);
 	bool render_loop();
+	void render_pass();
 	void render_loop_init();
 };

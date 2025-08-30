@@ -15,8 +15,16 @@ function Camera.new() end
 ---@return Mat4 projection matrix
 function Camera:get_projection_matrix() end
 
+---@param x number Window width
+---@param y number Window height
+---@return Mat4 projection matrix for specific resolution
+function Camera:get_projection_matrix_for_resolution(x, y) end
+
 ---@class Font
 Font = {}
+
+---@return Font
+function Font.new() end
 
 ---@param path string Path to font file
 ---@return number 0 on success, 1 on error
@@ -26,14 +34,28 @@ function Font:load(path) end
 ---@return table Character information
 function Font:get_info_for_char(character) end
 
+---Debug function for font data
 function Font:dbg_get_data() end
 
 ---@class Image
+---@field id number OpenGL texture ID
+---@field width number Image width in pixels
+---@field height number Image height in pixels
 Image = {}
 
----@param path string Path to image file
----@return number 0 on success, 1 on error
-function Image:load(path) end
+---@param path string Path to image file (automatically loads on construction)
+---@return Image
+function Image.new(path) end
+
+---@class Shader
+Shader = {}
+
+---@return Shader
+function Shader.new() end
+
+---@param type number Shader type (GL_VERTEX_SHADER, GL_FRAGMENT_SHADER, etc)
+---@param path string Path to shader source file
+function Shader:compile(type, path) end
 
 ---@class PhysicsObject
 PhysicsObject = {}
@@ -49,17 +71,15 @@ function PhysicsObject.new(mesh, is_dynamic) end
 function PhysicsObject:get_transform() end
 
 ---@class Mesh
----@field texture Image|number Texture applied to mesh
----@field matrix Mat4 Transformation matrix for mesh position
+---@field texture number OpenGL texture ID to bind during rendering
+---@field matrix Mat4 Transformation matrix for mesh position/rotation/scale
 Mesh = {}
 
+---@param path string Path to mesh file (.obj, .fbx, etc) - automatically loads on construction
 ---@return Mesh
-function Mesh.new() end
+function Mesh.new(path) end
 
----@param path string Path to mesh file (.obj, .fbx, etc)
----@return number 0 on success, 1 on error
-function Mesh:load(path) end
-
+---Renders the mesh with current matrix and texture
 function Mesh:render() end
 
 ---@class Textlabel
@@ -112,6 +132,8 @@ function Vec2:dot(other) end
 ---@return number Distance between vectors
 function Vec2:distance(other) end
 
+-- Vec2 supports arithmetic operators: +, -, *, /, unary -
+
 ---@class Vec3
 ---@field x number
 ---@field y number
@@ -140,6 +162,8 @@ function Vec3:cross(other) end
 ---@param other Vec3
 ---@return number Distance between vectors
 function Vec3:distance(other) end
+
+-- Vec3 supports arithmetic operators: +, -, *, /, unary -
 
 ---@class Vec4
 ---@field x number
@@ -203,6 +227,8 @@ function Mat4.lookAt(eye, center, up) end
 
 ---@return Vec3 Translation component
 function Mat4:to_vec3() end
+
+-- Mat4 supports matrix multiplication operator: *
 
 ---@class World
 ---@field rendering {camera: Camera, step: Signal}
@@ -432,6 +458,46 @@ function ImGui.GetWindowWidth() end
 ---@return number Window height
 function ImGui.GetWindowHeight() end
 
+-- Child Windows
+---@param str_id string Child ID
+---@return boolean Child window is open
+---@overload fun(str_id: string, size_x: number, size_y: number): boolean
+---@overload fun(str_id: string, size_x: number, size_y: number, border: boolean): boolean
+function ImGui.BeginChild(str_id) end
+
+function ImGui.EndChild() end
+
+-- ImGui Window Flags Constants
+ImGuiWindowFlags_None = 0
+ImGuiWindowFlags_NoTitleBar = 1
+ImGuiWindowFlags_NoResize = 2
+ImGuiWindowFlags_NoMove = 4
+ImGuiWindowFlags_NoScrollbar = 8
+ImGuiWindowFlags_NoScrollWithMouse = 16
+ImGuiWindowFlags_NoCollapse = 32
+ImGuiWindowFlags_AlwaysAutoResize = 64
+ImGuiWindowFlags_NoBackground = 128
+ImGuiWindowFlags_NoSavedSettings = 256
+ImGuiWindowFlags_NoMouseInputs = 512
+ImGuiWindowFlags_MenuBar = 1024
+ImGuiWindowFlags_HorizontalScrollbar = 2048
+ImGuiWindowFlags_NoFocusOnAppearing = 4096
+ImGuiWindowFlags_NoBringToFrontOnFocus = 8192
+
+-- ImGui Tree Node Flags Constants
+ImGuiTreeNodeFlags_None = 0
+ImGuiTreeNodeFlags_Selected = 1
+ImGuiTreeNodeFlags_Framed = 2
+ImGuiTreeNodeFlags_AllowItemOverlap = 4
+ImGuiTreeNodeFlags_NoTreePushOnOpen = 8
+ImGuiTreeNodeFlags_NoAutoOpenOnLog = 16
+ImGuiTreeNodeFlags_DefaultOpen = 32
+ImGuiTreeNodeFlags_OpenOnDoubleClick = 64
+ImGuiTreeNodeFlags_OpenOnArrow = 128
+ImGuiTreeNodeFlags_Leaf = 256
+ImGuiTreeNodeFlags_Bullet = 512
+ImGuiTreeNodeFlags_FramePadding = 1024
+
 -- Input system (World.input)
 ---@class InputSystem
 ---@field get_mouse_position fun(): Vec2
@@ -446,9 +512,46 @@ function ImGui.GetWindowHeight() end
 ---@field is_key_up fun(key: number): boolean
 local InputSystem = {}
 
+---@class Object
+Object = {}
+
+---@return Object
+function Object.new() end
+
+---@class Template
+---@field function_calls number Number of function calls
+Template = {}
+
+---@return Template
+function Template.new() end
+
 -- Global functions
 ---@return number Current time in milliseconds
 function now() end
+
+---Print with blue [Lua] prefix
+---@param ... any Values to print
+function print(...) end
+
+---Print with yellow [Lua] prefix for warnings
+---@param ... any Values to print
+function warn(...) end
+
+---Create empty userdata (internal use)
+function make_userdata() end
+
+-- Temporary/Legacy Raytracer Functions (Desktop Only)
+---@param position Vec3 Sphere position
+---@param color Vec3 Sphere color
+---@param radius number Sphere radius
+---@param emissive number Emissive strength
+function TEMP_make_sphere(position, color, radius, emissive) end
+
+---Bind sphere texture buffer object
+function TEMP_bind_tbo_texture() end
+
+---@return number Sphere count
+function TEMP_get_tbo_texture_count() end
 
 -- Global variables
 _G.Camera = Camera
@@ -516,24 +619,55 @@ function VFXEffect:set_uniform_texture(name, image) end
 ---@param matrix Mat4 Matrix value
 function VFXEffect:set_uniform_mat4(name, matrix) end
 
+---Bind shader program for use
 function VFXEffect:bind() end
+
+---Unbind shader program
 function VFXEffect:unbind() end
+
+---@class Framebuffer
+---@field texture_id number OpenGL texture ID of color attachment
+Framebuffer = {}
+
+---@param width number Framebuffer width
+---@param height number Framebuffer height
+---@return Framebuffer
+function Framebuffer.new(width, height) end
+
+---Bind framebuffer for rendering
+function Framebuffer:bind() end
+
+---Restore default framebuffer
+function Framebuffer:unbind() end
+
+---Clear framebuffer contents
+function Framebuffer:clear() end
+
+---@param new_size Vec2 New dimensions
+function Framebuffer:resize(new_size) end
+
+---@param texture_slot number Texture slot to bind to
+function Framebuffer:bind_texture(texture_slot) end
 
 ---@class MeshBufferObject
 ---@field matrix Mat4 Transformation matrix
 ---@field color Vec3 Mesh color
 ---@field emissive number Emissive strength
 ---@field triangles number Triangle count
+---@field mesh bsgeMesh Mesh geometry data
 MeshBufferObject = {}
 
 ---@return MeshBufferObject
 function MeshBufferObject.new() end
 
----@param mesh Mesh Mesh to register
----@return MeshBufferObject
-function MeshBufferObject:register(mesh) end
+---@return MeshBufferObject Register mesh for raytracing
+function MeshBufferObject:register() end
 
+---Update mesh data in GPU buffers
 function MeshBufferObject:update() end
+
+---@return boundingBox Axis-aligned bounding box
+function MeshBufferObject:get_bounding_box() end
 
 ---@return number Mesh count
 function MeshBufferObject.get_count() end
@@ -552,9 +686,10 @@ SphereBufferObject = {}
 ---@return SphereBufferObject
 function SphereBufferObject.new() end
 
----@return SphereBufferObject
+---@return SphereBufferObject Register sphere for raytracing
 function SphereBufferObject:register() end
 
+---Update sphere data in GPU buffers
 function SphereBufferObject:update() end
 
 ---@return number Sphere count
@@ -562,6 +697,11 @@ function SphereBufferObject.get_count() end
 
 ---@param texture_slot number Texture slot
 function SphereBufferObject.bind_textures(texture_slot) end
+
+---@class boundingBox
+---@field world_min Vec3 Minimum bounds
+---@field world_max Vec3 Maximum bounds
+boundingBox = {}
 
 -- Key Constants
 KEY_A = 65
@@ -669,11 +809,15 @@ GL_CLAMP_TO_EDGE = 33071
 GL_DEPTH_TEST = 2929
 GL_BLEND = 3042
 
+-- Additional Global Constants
+BASE_FONT_HEIGHT = 96
+
 -- Global variables
 _G.Camera = Camera
 _G.Font = Font
 _G.Image = Image
 _G.Mesh = Mesh
+_G.Shader = Shader
 _G.PhysicsObject = PhysicsObject
 _G.Textlabel = Textlabel
 _G.Signal = Signal

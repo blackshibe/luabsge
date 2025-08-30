@@ -5,6 +5,7 @@
 #include "../lua/class/gizmo.h"
 #include "../lua/class/input.h"
 #include "../lua/module/lua_rendering.h"
+#include "../lua/ecs/static_registry.h"
 
 #if USE_EMSCRIPTEN
 #include <emscripten.h>
@@ -17,6 +18,7 @@ BSGEWindow::BSGEWindow() {
 	emscripten_glfw_set_next_window_canvas_selector("#bsge-canvas");
 	#endif	
 
+	this->registry = entt::registry();
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
 }
 
@@ -66,6 +68,7 @@ void BSGEWindow::init() {
 	// Initialize input system
 	// TODO move everything to lua_window
 	set_input_window(window);
+	lua_bsge_set_registry_reference(&registry);
 }
 
 // todo: dynamic resizing that works with textlabels
@@ -82,7 +85,6 @@ void BSGEWindow::size_callback(int width, int height) {
 void BSGEWindow::focus_callback(int focused) {
 	this->focused = (focused == GLFW_TRUE);
 }
-
 
 void BSGEWindow::render_loop_init() {
 
@@ -256,6 +258,13 @@ bool BSGEWindow::render_loop() {
 	#else
 	return !glfwWindowShouldClose(window) && !should_break;
 	#endif
+}
+
+void BSGEWindow::render_pass() {
+	// auto view = registry.view<const position, velocity>();
+
+    // use a callback
+    // view.each([](const auto &pos, auto &vel) { /* ... */ });
 }
 
 void main_render_loop() {

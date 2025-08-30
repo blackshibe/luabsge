@@ -25,7 +25,7 @@ struct meshTBOBufferData {
 int meshCount = 0;
 int triangle_count = 0;
 
-struct boundingBox {
+struct BoundingBox {
     glm::vec3 world_min;
     glm::vec3 world_max;
 };
@@ -33,8 +33,8 @@ struct boundingBox {
 // AABB box positions become completely invalid once the mesh is rotated
 // TODO: make a box model where a select amount of points is checked, rather than all of them
 // TODO: pass mesh by pointer somehow
-boundingBox get_bounding_box(MeshBufferObject &self) {
-    boundingBox box;
+BoundingBox get_bounding_box(MeshBufferObject &self) {
+    BoundingBox box;
     bsgeMesh mesh = self.mesh;
     
     glm::vec3 min_position = glm::vec3(10000.0f, 10000.0f, 10000.0f);
@@ -72,7 +72,7 @@ void update_tbo(MeshBufferObject &self) {
     metadata.emissive = self.emissive;
     metadata.triangles = self.triangles;
 
-    boundingBox bb = get_bounding_box(self);
+    BoundingBox bb = get_bounding_box(self);
     metadata.box_max = glm::vec4(bb.world_max, 1.0);
     metadata.box_min = glm::vec4(bb.world_min, 1.0);
 
@@ -83,9 +83,9 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
     meshTriangles = setup_tbo(GL_RGB32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOTriangle));
     meshes = setup_tbo(GL_RGBA32F, MESH_MAX_TRIANGLE_BUFFER_COUNT, sizeof(meshTBOBufferData));
 
-    lua.new_usertype<boundingBox>("boundingBox",
-                                "world_min", &boundingBox::world_min,
-                                "world_max", &boundingBox::world_max
+    lua.new_usertype<BoundingBox>("BoundingBox",
+                                "world_min", &BoundingBox::world_min,
+                                "world_max", &BoundingBox::world_max
                             );
 
     lua.new_usertype<MeshBufferObject>("MeshBufferObject",

@@ -666,7 +666,7 @@ function MeshBufferObject:register() end
 ---Update mesh data in GPU buffers
 function MeshBufferObject:update() end
 
----@return boundingBox Axis-aligned bounding box
+---@return BoundingBox Axis-aligned bounding box
 function MeshBufferObject:get_bounding_box() end
 
 ---@return number Mesh count
@@ -698,10 +698,10 @@ function SphereBufferObject.get_count() end
 ---@param texture_slot number Texture slot
 function SphereBufferObject.bind_textures(texture_slot) end
 
----@class boundingBox
+---@class BoundingBox
 ---@field world_min Vec3 Minimum bounds
 ---@field world_max Vec3 Maximum bounds
-boundingBox = {}
+BoundingBox = {}
 
 -- Key Constants
 KEY_A = 65
@@ -830,6 +830,10 @@ _G.Window = Window
 _G.Gizmo = Gizmo
 _G.ImGui = ImGui
 _G.VFXEffect = VFXEffect
+_G.Framebuffer = Framebuffer
 _G.MeshBufferObject = MeshBufferObject
 _G.SphereBufferObject = SphereBufferObject
+_G.BoundingBox = BoundingBox
+_G.Object = Object
+_G.Template = Template
 _G.now = now

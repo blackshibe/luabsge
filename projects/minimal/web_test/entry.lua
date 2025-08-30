@@ -12,8 +12,7 @@ camera.near_clip = 0.1
 camera.far_clip = 100
 
 local texture = Image.new("image/fox.jpg")
-local mesh = Mesh.new()
-mesh:load("mesh/box.obj")
+local mesh = Mesh.new("mesh/box.obj")
 mesh.texture = texture
 
 local camera_z_spring = require("script.spring").new(0)

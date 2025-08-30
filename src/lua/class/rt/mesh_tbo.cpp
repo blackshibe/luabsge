@@ -35,7 +35,7 @@ struct boundingBox {
 // TODO: pass mesh by pointer somehow
 boundingBox get_bounding_box(MeshBufferObject &self) {
     boundingBox box;
-    meshData mesh = self.mesh;
+    bsgeMesh mesh = self.mesh;
     
     glm::vec3 min_position = glm::vec3(10000.0f, 10000.0f, 10000.0f);
     glm::vec3 max_position = glm::vec3(-10000.0f, -10000.0f, -10000.0f);
@@ -93,7 +93,7 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
                                     self.index = meshCount++;
                                     self.triangles = 0;
 
-                                    meshData mesh = self.mesh;
+                                    bsgeMesh mesh = self.mesh;
                                     for (size_t i = 0; i < mesh.geometry.indices.size(); i += 3) {
                                         uint32_t idx0 = mesh.geometry.indices[i];
                                         uint32_t idx1 = mesh.geometry.indices[i + 1];

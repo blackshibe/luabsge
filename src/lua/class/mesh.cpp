@@ -1,6 +1,8 @@
 #include "mesh.h"
-#include "string"
-#include <vector>
+
+
+#include "../lua.h"
+
 
 meshGeometry mesh_load_geometry(const char *path)
 {
@@ -75,7 +77,7 @@ meshGeometry mesh_load_geometry(const char *path)
 }
 
 
-int mesh_load(meshData *bsgemesh, const char *path)
+int mesh_load(bsgeMesh *bsgemesh, const char *path)
 {
 	printf("[mesh.cpp] loading mesh from %s\n", path);
 	meshGeometry geometry = mesh_load_geometry(path);
@@ -115,7 +117,7 @@ int mesh_load(meshData *bsgemesh, const char *path)
 	return 0;
 }
 
-int mesh_render(sol::state &lua, meshData *bsgemesh) {
+int mesh_render(sol::state &lua, bsgeMesh *bsgemesh) {
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh->ebo);
@@ -138,37 +140,27 @@ int mesh_render(sol::state &lua, meshData *bsgemesh) {
 
 void lua_bsge_init_mesh(sol::state &lua) {
 	lua_State *L = lua.lua_state();
-	auto load = [&L](meshData *mesh, const char *path)
-	{
-		if (mesh_load(mesh, path) != 0)
-		{
-			luax_push_error(L, "Failed to load mesh!");
-			return 1;
-		}
-		return 0;
-	};
 
-	auto render = [&lua](meshData *mesh)
+	auto render = [&lua](bsgeMesh *mesh)
 	{
 		return mesh_render(lua, mesh);
 	};
 
-	auto set_texture = [](meshData *mesh, bsgeImage *image)
+	auto set_texture = [](bsgeMesh *mesh, bsgeImage *image)
 	{
 		mesh->texture = image->id;
 	};
 
-	auto set_position = [](meshData *mesh, glm::mat4 matrix)
+	auto set_position = [](bsgeMesh *mesh, glm::mat4 matrix)
 	{
 		mesh->matrix = matrix;
 	};
 
-	lua.new_usertype<meshData>("Mesh",
-							   sol::constructors<meshData()>(),
-							   "load", load,
+	lua.new_usertype<bsgeMesh>("Mesh",
+								sol::constructors<bsgeMesh(sol::this_state&, const char*)>(),
 							   "render", render,
-							   "texture", sol::property([](meshData *mesh)
+							   "texture", sol::property([](bsgeMesh *mesh)
 														{ return mesh->texture; }, set_texture),
-							   "matrix", sol::property([](meshData *mesh)
+							   "matrix", sol::property([](bsgeMesh *mesh)
 														 { return mesh->matrix; }, set_position));
 }

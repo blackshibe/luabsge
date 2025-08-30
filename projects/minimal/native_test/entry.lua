@@ -18,20 +18,18 @@ local texture_grid = Image.new(COMMON_PATH .. "image/grid_04.png")
 
 -- TODO: mesh and physicsobject should not be separate in this way
 -- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
-local mesh = Mesh.new()
-mesh:load(COMMON_PATH .. "mesh/box.obj")
+local mesh = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 mesh.texture = texture
 mesh.matrix = Mat4.new(1):translate(Vec3.new(0, 1.5, 0))
 local phys_object = PhysicsObject.new(mesh, true)
 
-local mesh_top = Mesh.new()
-mesh_top:load(COMMON_PATH .. "mesh/box.obj")
+local mesh_top = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 mesh_top.texture = texture
 mesh_top.matrix = Mat4.new(1):translate(Vec3.new(1, 4, 0.25))
 local phys_object_top = PhysicsObject.new(mesh_top, true)
 
-local floor = Mesh.new()
-floor:load(COMMON_PATH .. "mesh/box.obj")
+local floor = Mesh.new(COMMON_PATH .. "mesh/box.obj")
+floor:load()
 floor.texture = texture_grid
 floor.matrix = Mat4.new(1):scale(Vec3.new(4, 0.1, 4))
 local floor_phys = PhysicsObject.new(floor, false)

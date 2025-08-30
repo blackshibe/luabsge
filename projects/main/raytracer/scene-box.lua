@@ -4,8 +4,7 @@ local meshes = {}
 local texture = Image.new(COMMON_PATH .. "image/fox.jpg") -- TODO why isn't this optional
 
 local function create_mesh(src)
-	local mesh = Mesh.new()
-	mesh:load(src)
+	local mesh = Mesh.new(src)
 	mesh.texture = texture
 
 	return mesh

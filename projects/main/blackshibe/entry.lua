@@ -14,8 +14,7 @@ camera.far_clip = 100
 
 local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
 
-local mesh = Mesh.new()
-mesh:load("mesh/plane.obj")
+local mesh = Mesh.new("mesh/plane.obj")
 mesh.texture = texture
 
 local font = Font.new()

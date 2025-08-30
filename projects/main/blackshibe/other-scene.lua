@@ -20,8 +20,7 @@ local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 local boxes = {}
 local next_spawn_time = now()
 
-local floor = Mesh.new()
-floor:load(COMMON_PATH .. "mesh/box.obj")
+local floor = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 floor.texture = texture
 floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
 local floor_phys = PhysicsObject.new(floor, false)
@@ -62,8 +61,7 @@ local camera_inputs = {
 local MOUSE_SENSITIVITY = 0.002
 
 local function spawn_one()
-	local mesh_top = Mesh.new()
-	mesh_top:load(COMMON_PATH .. "mesh/box.obj")
+	local mesh_top = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 	mesh_top.texture = texture
 	mesh_top.matrix = Mat4.new(1)
 		:scale(Vec3.new(0.5, 0.5, 0.5))

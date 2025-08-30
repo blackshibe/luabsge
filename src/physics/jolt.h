@@ -26,7 +26,7 @@
 #include <cstdarg>
 #include <thread>
 
-#include "../lua/class/struct/mesh.h"
+#include "../lua/class/mesh.h"
 #include "../lua/module/lua_glm_bindings.h"
 
 // Disable common warnings triggered by Jolt, you can use JPH_SUPPRESS_WARNING_PUSH / JPH_SUPPRESS_WARNING_POP to store and restore the warning state
@@ -49,7 +49,7 @@ namespace BSGE {
 namespace Physics {
 
 glm::mat4x4 get_body_transform(JPH::BodyID id);
-JPH::BodyID create_body(meshData mesh, bool is_dynamic);
+JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic);
 
 void init();
 void update(float delta_time);

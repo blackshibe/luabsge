@@ -329,7 +329,7 @@ glm::mat4x4 get_body_transform(JPH::BodyID id) {
     );
 }
 
-JPH::BodyID create_body(meshData mesh, bool is_dynamic) {
+JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic) {
    if (!physics_system) {
         printf("ERROR: Physics system not initialized!\n");
         return JPH::BodyID(); // Return invalid body ID

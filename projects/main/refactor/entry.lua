@@ -6,16 +6,17 @@ camera.near_clip = 0.1
 camera.far_clip = 100
 
 -- TODO: these should be userdatas that store information only
-local texture = Image.new("image/fox.jpg")
-local mesh = Mesh.new("mesh/box.obj")
+local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
+local mesh = Mesh.new(COMMON_PATH .. "mesh/box.obj")
+mesh.texture = texture -- legacy
 
 local object = Object.new()
-object.transform = Mat4.new()
+object.transform = Mat4.new(1)
 object.parent = World.scene
 
-object:AddComponent(MeshComponent, { mesh = mesh })
-object:AddComponent(MeshTextureComponent, { texture = texture }) -- later mesh material
-object:AddComponent(PhysicsComponent, { is_dynamic = true })
+object:add_component(ECS_MESH_COMPONENT, { mesh = mesh })
+object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture }) -- later mesh material
+-- object:add_component(ECS_PHYSICS_COMPONENT, { is_dynamic = true })
 
 World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)
@@ -26,4 +27,6 @@ World.rendering.step:connect(function(delta_time)
 
 	Gizmo.set_line_width(0.05)
 	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
+
+	World.rendering.render_pass()
 end)

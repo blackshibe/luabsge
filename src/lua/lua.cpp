@@ -89,10 +89,8 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	// ECS
 	lua_bsge_init_object(lua);
 
-#if !USE_EMSCRIPTEN
 	lua_bsge_init_sphere_tbo(lua);
 	lua_bsge_init_mesh_tbo(lua);
-#endif
 
 	printf("[lua.cpp] init modules\n");
 	lua_bsge_init_rendering(lua);
@@ -106,10 +104,12 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 
 	lua_bsge_connect_rendering(window, lua);
 	lua_bsge_connect_window(window, lua);
-
 	lua_setglobal(L, "World");
 	
 	lua_bsge_init_input(lua);
+
+	printf("[lua.cpp] init Scene\n");
+	lua["Scene"] = BSGEObject();
 
 	printf("[lua.cpp] start\n");
 

@@ -33,6 +33,8 @@ void lua_bsge_init_sphere_tbo(sol::state &lua) {
     });
 
     lua.new_usertype<SphereBufferObject>("SphereBufferObject",
+		                        sol::constructors<SphereBufferObject()>(),
+
                                 "register", [](SphereBufferObject &self) {
                                     self.index = sphere_count++;
 

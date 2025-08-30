@@ -86,7 +86,7 @@ World.rendering.step:connect(function(delta_time)
 		draw_bounding_box(bb.world_min, bb.world_max)
 	end
 
-	camera.matrix = Mat4.new(1)
+	camera.transform = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -8))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
@@ -107,7 +107,7 @@ World.rendering.step:connect(function(delta_time)
 
 	-- Camera to world matrix (inverse of view matrix)
 	-- camera.matrix is already the transform matrix (camera-to-world)
-	local camera_to_world_matrix = camera.matrix:inverse()
+	local camera_to_world_matrix = camera.transform:inverse()
 
 	-- Use the actual camera position from our input state
 	local camera_final_position = camera_to_world_matrix:to_vec3()

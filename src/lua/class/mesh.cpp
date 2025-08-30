@@ -117,22 +117,22 @@ int mesh_load(bsgeMesh *bsgemesh, const char *path)
 	return 0;
 }
 
-int mesh_render(sol::state &lua, bsgeMesh *bsgemesh) {
+int mesh_render(sol::state &lua, bsgeMesh &bsgemesh) {
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh->ebo);
-	glBindVertexArray(bsgemesh->vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh.ebo);
+	glBindVertexArray(bsgemesh.vao);
 
 	camera_set_shader_projection_matrix(lua, context_window);
 
-	if (bsgemesh->texture != 0) {
+	if (bsgemesh.texture != 0) {
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, bsgemesh->texture);
+		glBindTexture(GL_TEXTURE_2D, bsgemesh.texture);
 		glUniform1i(glGetUniformLocation(context_window->default_shader, "img_texture"), 0);
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(bsgemesh->matrix));
-	glDrawElements(GL_TRIANGLES, bsgemesh->indices_count, GL_UNSIGNED_INT, 0);
+	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(bsgemesh.matrix));
+	glDrawElements(GL_TRIANGLES, bsgemesh.indices_count, GL_UNSIGNED_INT, 0);
 	glUseProgram(0);
 
 	return 0;
@@ -143,7 +143,7 @@ void lua_bsge_init_mesh(sol::state &lua) {
 
 	auto render = [&lua](bsgeMesh *mesh)
 	{
-		return mesh_render(lua, mesh);
+		return mesh_render(lua, *mesh);
 	};
 
 	auto set_texture = [](bsgeMesh *mesh, bsgeImage *image)

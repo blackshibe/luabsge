@@ -518,12 +518,25 @@ Object = {}
 ---@return Object
 function Object.new() end
 
+---Add a component to this object
+---@param component_type EcsComponentType Type of component to add
+---@param data table Initialization data for the component
+function Object:add_component(component_type, data) end
+
 ---@class Template
 ---@field function_calls number Number of function calls
 Template = {}
 
 ---@return Template
 function Template.new() end
+
+-- ECS Component System
+---@alias EcsComponentType integer
+
+-- Component Type Constants
+ECS_MESH_COMPONENT = 0
+ECS_MESH_TEXTURE_COMPONENT = 1
+ECS_PHYSICS_COMPONENT = 2
 
 -- Global functions
 ---@return number Current time in milliseconds
@@ -836,4 +849,7 @@ _G.SphereBufferObject = SphereBufferObject
 _G.BoundingBox = BoundingBox
 _G.Object = Object
 _G.Template = Template
+_G.ECS_MESH_COMPONENT = ECS_MESH_COMPONENT
+_G.ECS_MESH_TEXTURE_COMPONENT = ECS_MESH_TEXTURE_COMPONENT
+_G.ECS_PHYSICS_COMPONENT = ECS_PHYSICS_COMPONENT
 _G.now = now

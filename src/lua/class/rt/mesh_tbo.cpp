@@ -89,6 +89,8 @@ void lua_bsge_init_mesh_tbo(sol::state &lua) {
                             );
 
     lua.new_usertype<MeshBufferObject>("MeshBufferObject",
+								sol::constructors<MeshBufferObject(sol::this_state, const char*)>(),
+
                                 "register", [](MeshBufferObject &self) {
                                     self.index = meshCount++;
                                     self.triangles = 0;

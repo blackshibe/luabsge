@@ -5,3 +5,5 @@
 BSGE = {
 	default_asset_directory = "../../common/",
 }
+
+COMMON_PATH = BSGE.default_asset_directory

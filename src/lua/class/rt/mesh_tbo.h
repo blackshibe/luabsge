@@ -22,6 +22,8 @@ struct MeshBufferObject {
     float emissive;
     float triangles;
     int index;
+
+    MeshBufferObject(sol::this_state lua, const char* src) : mesh(lua, src) {};
 };
 
 void lua_bsge_init_mesh_tbo(sol::state &lua);

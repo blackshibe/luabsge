@@ -30,6 +30,7 @@ local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
+
 camera.matrix = base_matrix
 
 function render_pass()

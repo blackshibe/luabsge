@@ -4,97 +4,94 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-LuaBSGE (Lua-Based Small Game Engine) is a lightweight game engine that combines C++ OpenGL rendering with Lua scripting. The engine uses Sol2 for seamless C++/Lua integration and provides a complete API for 3D game development.
+LuaBSGE is a cross-platform game engine with C++ backend and Lua scripting frontend. It combines:
+- **C++ Engine Core**: OpenGL rendering, physics (Jolt), asset loading (Assimp), font rendering (FreeType)
+- **Lua Scripting Layer**: Game logic, scene management via sol2 bindings
+- **ECS Architecture**: Entity-Component-System using EnTT registry
+- **Cross-Platform**: Native builds (Linux/Windows) and WebAssembly via Emscripten
 
-## Build Commands
+## Common Commands
 
+### Native Development
 ```bash
+# Initial setup
+./setup.sh
+
 # Build and run a project
-./run.sh test
-
-# Debug build with GDB
-./debug.sh test
-
-# Install to ~/.local/bin
-./install.sh
+./run.sh <project_name>
+# Examples:
+./run.sh minimal/native_test
+./run.sh main/blackshibe
 ```
 
-The build system uses GNU Make and compiles to `bin/program`. Uses ccache for faster compilation.
+### Web Development
+```bash
+# Setup for web build (requires emsdk)
+./setup_web.sh <project_name> <output_directory>
 
-## Dependencies (Arch Linux)
+# Build and deploy to web
+./run_web.sh <project_name> <output_directory>
+# Example:
+./setup_web.sh minimal/web_test minimal/web_test
+./run_web.sh minimal/web_test minimal/web_test
+```
 
-- OpenGL, GLFW, GLM (graphics)
-- FreeType2 (text rendering) 
-- Lua, Sol2 (scripting)
-- Assimp (3D model loading)
+### Manual Build Commands
+```bash
+# Native build
+cmake -B build
+cmake --build build
+
+# Web build (with emsdk activated)
+cmake -B build-web -DPROJ=<project> -DUSE_EMSCRIPTEN=ON -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+cmake --build build-web
+```
 
 ## Architecture
 
 ### Core Structure
-- **C++ Engine Core** (`src/`): OpenGL rendering, window management, asset loading
-- **Lua Bindings** (`src/lua/`): Sol2-based bindings for engine systems
-- **Project System** (`projects/`): Each project is a folder with `entry.lua` as entry point
+- **src/main.cpp**: Entry point, initializes GLFW, Lua state, and engine systems
+- **src/lua/**: Lua-C++ bindings and scripting interface
+  - **lua.cpp**: Main Lua state initialization and bindings setup
+  - **class/**: C++ classes exposed to Lua (Mesh, Camera, Shader, etc.)
+  - **module/**: Lua modules (rendering, input, ImGui bindings)
+  - **ecs/**: Entity-Component-System implementation with EnTT
+- **src/opengl/**: OpenGL rendering utilities (shaders, window management)
+- **src/physics/**: Jolt physics integration
 
-### Key Directories
-- `src/lua/class/`: Lua-bindable C++ classes (Camera, Font, Image, Mesh, etc.)
-- `src/lua/module/`: System modules (rendering, UI, GLM math)
-- `src/opengl/`: OpenGL rendering pipeline and utilities
-- `projects/[name]/`: Self-contained game projects with assets
+### ECS System
+The engine uses EnTT for entity-component management:
+- **BSGEObject**: Wrapper around entt::entity with transform and parent hierarchy
+- **Components**: MeshComponent, TextureComponent, PhysicsComponent
+- **Registry**: Global static registry accessible via `lua_bsge_get_registry()`
 
-### Lua API Classes
-- **Camera**: 3D camera with FOV, position, near/far clipping
-- **Font/Textlabel**: Text rendering system
-- **Image**: Texture loading and management
-- **Mesh**: 3D model loading with Assimp
-- **Signal**: Event system for callbacks
-- **World.rendering**: Main render loop and camera management
-
-## Development Patterns
-
-### Sol2 Binding Format
-All Lua bindings follow this pattern (see `font.cpp` as reference):
-```cpp
-void lua_bsge_init_[class](sol::state &lua) {
-    lua_State *L = lua.lua_state();
-    auto method = [&L](Class *obj, params...) {
-        // error handling with luax_push_error(L, "message")
-        return result;
-    };
-    
-    lua.new_usertype<Class>("ClassName", 
-                           "method", method);
-}
-```
+### Lua Integration
+- **sol2**: Modern C++ Lua binding library
+- **Classes**: C++ objects exposed as Lua usertypes (Mesh, Camera, Image, etc.)
+- **World Table**: Global Lua table containing engine state and systems
+- **Projects**: Located in `projects/` directory, each with `config.lua` and `entry.lua`
 
 ### Project Structure
-Each project in `projects/[name]/` contains:
-- `entry.lua`: Main entry point
-- `font/`, `image/`, `mesh/`, `shader/`: Asset directories
+Each project in `projects/` contains:
+- **config.lua**: Engine configuration (window size, title, etc.)
+- **entry.lua**: Main game script entry point
+- **Assets**: Organized in subdirectories (mesh/, image/, shader/, font/)
 
-### Error Handling
-- C++ functions return 0 for success, non-zero for failure
-- Lua errors use `luax_push_error(L, "message")` in lambda wrappers
-- Sol2 bindings handle Lua stack management automatically
+### Build System Notes
+- **CMake**: Primary build system with FetchContent for dependencies
+- **Cross-compilation**: Same codebase builds for native and web via USE_EMSCRIPTEN flag
+- **Dependencies**: All fetched from source (GLFW, Lua, FreeType, Assimp, sol2, GLM, Jolt, EnTT)
+- **Output**: Native executable in `build/`, web files in `public/`
 
-## Current Development State
+## Development Workflow
 
-### Working Systems
-- OpenGL 4.0 Core Profile rendering
-- 3D model loading and rendering
-- Texture and font loading
-- Complete GLM math bindings
-- Camera and render loop systems
+1. Create new project directory in `projects/`
+2. Add `config.lua` and `entry.lua` files
+3. Use `./run.sh <project_name>` for iterative development
+4. For web deployment, use `./setup_web.sh` and `./run_web.sh`
 
-### Known Issues
-- Text rendering has positioning problems
-- Text scaling requires window resize to work properly
-- ImGui integration is disabled
-
-## Testing
-
-Run the test project to verify engine functionality:
-```bash
-./run.sh test
-```
-
-The test project demonstrates loading textures, 3D meshes, fonts, and basic rendering.
+## Key Files for Understanding
+- **src/main.cpp**: Engine initialization sequence
+- **src/lua/lua.cpp**: Lua binding setup and class registration
+- **src/lua/ecs/object.h**: ECS object structure
+- **projects/main/refactor/entry.lua**: Example of modern Lua scripting patterns

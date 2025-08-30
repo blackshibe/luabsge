@@ -10,7 +10,7 @@ int camera_newindex(lua_State *L) {
 	if (strcmp(index, "position") == 0) {
 		BSGECameraMetadata *camera = (BSGECameraMetadata *)lua_touserdata(L, 1);
 		glm::mat4 *position = (glm::mat4 *)lua_touserdata(L, 3);
-		camera->matrix = *position;
+		camera->transform = *position;
 
 		return 0;
 	}
@@ -26,7 +26,7 @@ void camera_set_shader_projection_matrix(sol::state &lua, BSGEWindow *context_wi
 	BSGECameraMetadata* camera = camera_opt.value();
 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
 
-	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->matrix));
+	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "camera_transform"), 1, GL_FALSE, glm::value_ptr(camera->transform));
 	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "projection"), 1, GL_FALSE, glm::value_ptr(camera_projection));
 }
 
@@ -73,7 +73,7 @@ void lua_bsge_init_camera(sol::state &lua) {
 		// @field far_clip number Far clipping plane distance (default: 100.0)
 		"far_clip", &BSGECameraMetadata::far_clip,
 		// @field matrix table 4x4 transformation matrix (glm::mat4)
-		"matrix", &BSGECameraMetadata::matrix,
+		"transform", &BSGECameraMetadata::transform,
 		// @field get_projection_matrix returns perspective matrix 
 		"get_projection_matrix", camera_get_projection_matrix,
 		"get_projection_matrix_for_resolution", camera_get_projection_matrix_for_resolution

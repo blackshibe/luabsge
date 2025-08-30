@@ -21,6 +21,8 @@ struct SphereBufferObject {
     float emissive;
 
     int index;
+
+    SphereBufferObject() {};
 };
 
 void lua_bsge_init_sphere_tbo(sol::state &lua);

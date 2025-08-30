@@ -19,6 +19,7 @@
 struct bsgeMesh;
 
 int mesh_load(bsgeMesh *bsgemesh, const char *path);
+int mesh_render(sol::state &lua, bsgeMesh &bsgemesh);
 void lua_bsge_init_mesh(sol::state &lua);
 
 struct meshVertexData {

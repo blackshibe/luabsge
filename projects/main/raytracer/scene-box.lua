@@ -24,26 +24,24 @@ obj2.radius = 0.5
 obj2.emissive = 5
 obj2:register()
 
-local floor = MeshBufferObject.new()
-local ceiling = MeshBufferObject.new()
+local floor = MeshBufferObject.new(COMMON_PATH .. "mesh/box.obj")
+local ceiling = MeshBufferObject.new(COMMON_PATH .. "mesh/box.obj")
 table.insert(meshes, floor)
 table.insert(meshes, ceiling)
 
 floor.matrix = Mat4.new(1):translate(Vec3.new(0, -4, 0)):scale(Vec3.new(4, 0.1, 4))
 floor.color = Vec3.new(0.5, 0.5, 0.5)
 floor.emissive = 0
-floor.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 floor:register()
 
 -- Set up second mesh (blue, static)
 ceiling.matrix = Mat4.new(1):translate(Vec3.new(0, 4, 0)):scale(Vec3.new(4, 0.1, 4))
 ceiling.color = Vec3.new(0.5, 0.5, 0.5)
 ceiling.emissive = 0
-ceiling.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 ceiling:register()
 
 for i = 3, 5 do
-	local wall = MeshBufferObject.new()
+	local wall = MeshBufferObject.new(COMMON_PATH .. "mesh/box.obj")
 	wall.matrix =
 		Mat4.new(1):rotate(i * math.pi / 2, Vec3.new(0, 1, 0)):translate(Vec3.new(4, 0, 0)):scale(Vec3.new(0.1, 4, 4))
 	wall.color = Vec3.new(1, 1, 1)
@@ -56,13 +54,12 @@ for i = 3, 5 do
 	end
 
 	wall.emissive = 0
-	wall.mesh = create_mesh(COMMON_PATH .. "mesh/box.obj")
 	wall:register()
 
 	table.insert(meshes, wall)
 end
 
-local mesh = MeshBufferObject.new()
+local mesh = MeshBufferObject.new(COMMON_PATH .. "mesh/suzanne.obj")
 mesh.matrix = Mat4.new(1)
 	:rotate(math.pi + 1, Vec3.new(0, 1, 0))
 	:translate(Vec3.new(0, 0, -0.5))
@@ -71,7 +68,6 @@ mesh.matrix = Mat4.new(1)
 
 mesh.color = Vec3.new(1, 0, 0)
 mesh.emissive = 0
-mesh.mesh = create_mesh(COMMON_PATH .. "mesh/suzanne.obj")
 mesh:register()
 
 return {

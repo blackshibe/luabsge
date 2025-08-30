@@ -133,6 +133,13 @@ void BSGEWindow::render_loop_init() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
+	// Lua render pass function
+	sol::table world = (*lua)["World"];
+	sol::table rendering = world["rendering"];
+	rendering["render_pass"] = [this]() {
+		this->render_pass();
+	};
+
 	g_window = this;
 
 	#if USE_EMSCRIPTEN
@@ -218,7 +225,7 @@ bool BSGEWindow::render_loop() {
 	ImGui::NewFrame();
 	
 	// gizmo
-	lua_bsge_gizmo_begin_frame(camera_projection, camera->matrix);
+	lua_bsge_gizmo_begin_frame(camera_projection, camera->transform);
 
 	// lua
 	bsge_call_lua_render(lua, delta_time);
@@ -261,10 +268,24 @@ bool BSGEWindow::render_loop() {
 }
 
 void BSGEWindow::render_pass() {
-	// auto view = registry.view<const position, velocity>();
+    auto view = registry.view<const EcsObjectComponent>();
 
-    // use a callback
-    // view.each([](const auto &pos, auto &vel) { /* ... */ });
+	view.each([this](entt::entity entity, const EcsObjectComponent &object) {
+		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
+		if (!mesh_component) return; // some things aren't renderable
+
+		// Get optional texture component
+		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
+
+		mesh_component->mesh.matrix = object.transform;
+		if (texture_component) {
+			mesh_component->mesh.texture = texture_component->texture.id;
+			mesh_render(*lua, mesh_component->mesh);
+		} else {
+			mesh_component->mesh.texture = 0;
+			mesh_render(*lua, mesh_component->mesh);
+		}
+	});
 }
 
 void main_render_loop() {

@@ -1,12 +1,12 @@
-# Luabsge
+# LuaBSGE
 
-Small rendering engine that integrates Lua with OpenGL.<br/>
+Small cross-platform game engine that uses Lua as the scripting frontend.<br/>
 
 | test                              | raytracer                         | webtest                           |
 | --------------------------------- | --------------------------------- | --------------------------------- |
 | ![Test project](repo/luabsge.png) | ![Ray tracer](repo/luabsge_2.png) | ![Test project](repo/webtest.png) |
 
-## dependencies
+## Dependencies
 
 Everything is compiled from source.
 
@@ -17,7 +17,7 @@ Everything is compiled from source.
 -   assimp
 -   sol2
 
-## compilation
+## Compilation
 
 ```bash
 # Native
@@ -29,7 +29,7 @@ Everything is compiled from source.
 ./run_web.sh minimal/web_test minimal/web_test # Path to a folder that will host the wasm files
 ```
 
-## features
+## Features
 
 -   OpenGL window drawing
 -   GLM bindings
@@ -39,7 +39,7 @@ Everything is compiled from source.
 -   Ray tracing TBO support
 -   ImGUI support
 
-## todo
+## TODO
 
 -   Showstoppers
     -   Abstracting objects properly
@@ -59,7 +59,3 @@ Everything is compiled from source.
 -   Other
     -   Raytracer BVH
     -   UTF-8 Text Rendering
-
-## goals
-
--   To have fun

@@ -10,6 +10,7 @@ struct EcsObjectComponent {
     EcsObjectComponent(glm::mat4 *transform, EcsObjectComponent* parent) : transform(*transform), parent(parent) {}
 };
 
+// TODO: Refactor your mesh system to avoid storing OpenGL resources in components
 struct EcsMeshComponent {
     bsgeMesh mesh;
 

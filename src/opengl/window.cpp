@@ -271,6 +271,12 @@ void BSGEWindow::render_pass() {
     auto view = registry.view<const EcsObjectComponent>();
 
 	view.each([this](entt::entity entity, const EcsObjectComponent &object) {
+
+		// TODO prevents a bug where shit renders incorrectly
+		glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
 		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
 		if (!mesh_component) return; // some things aren't renderable
 

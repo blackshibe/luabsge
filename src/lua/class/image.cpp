@@ -46,7 +46,7 @@ int image_load(bsgeImage* texture, const char* path) {
 
 void lua_bsge_init_image(sol::state &lua) {
 	lua.new_usertype<bsgeImage>("Image",
-								sol::constructors<bsgeImage(sol::this_state&, const char*)>(),
+								sol::constructors<bsgeImage(sol::this_state, const char*)>(),
 								"id", &bsgeImage::id,
 								"width", &bsgeImage::width,
 								"height", &bsgeImage::height

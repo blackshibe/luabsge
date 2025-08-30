@@ -42,7 +42,7 @@ struct bsgeMesh {
 	unsigned int vao;
 	unsigned int ebo;
 
-	bsgeMesh(sol::this_state &lua, const char* src)  {
+	bsgeMesh(sol::this_state lua, const char* src)  {
 		if (mesh_load(this, src) != 0) {
 			luax_push_error(lua.lua_state(), "Failed to load mesh!");
 		}

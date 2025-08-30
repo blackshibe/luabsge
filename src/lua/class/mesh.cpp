@@ -157,7 +157,7 @@ void lua_bsge_init_mesh(sol::state &lua) {
 	};
 
 	lua.new_usertype<bsgeMesh>("Mesh",
-								sol::constructors<bsgeMesh(sol::this_state&, const char*)>(),
+								sol::constructors<bsgeMesh(sol::this_state, const char*)>(),
 							   "render", render,
 							   "texture", sol::property([](bsgeMesh *mesh)
 														{ return mesh->texture; }, set_texture),

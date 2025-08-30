@@ -17,7 +17,7 @@ struct bsgeImage {
 	int num_channels;
 	GLuint id;
 
-	bsgeImage(sol::this_state &lua, const char* src)  {
+	bsgeImage(sol::this_state lua, const char* src)  {
         if (image_load(this, src) != 0) {
             luax_push_error(lua.lua_state(), "Failed to load image!");
         }

@@ -7,7 +7,7 @@ uniform vec2 u_resolution;
 uniform vec2 u_img_resolution;
 
 // fun stuff
-uniform float time;
+uniform float u_time;
 uniform float u_glitch;
 uniform float u_invert;
 uniform vec2 u_mouse_position;
@@ -78,7 +78,7 @@ vec4 get_noise(float x) {
 vec4 noise_shader(vec2 uv_shader, float strength) {
 	vec4 color = vec4(1.0, 0.0, 0.0, 1);
 
-	float x = (uv_shader.x + 1.0) * (uv_shader.y + 0.0123421) * (time * 0.1);
+	float x = (uv_shader.x + 1.0) * (uv_shader.y + 0.0123421) * (u_time * 0.1);
 
 	if (rand(x) > 0.98) return vec4(strength, strength, strength, 0.0);
 	else if (rand(x) > 0.9) return vec4(strength, 0.0, 0.0, 0.0);
@@ -92,23 +92,23 @@ void main() {
     vec2 uv_shader = uv;
 
     // noise blackbox magic
-    float time = time;
+    float u_time = u_time;
     float GLITCH =  1.0 * u_glitch;
 
     float rdist = length((uv_shader - vec2(0.5, 0.5)));
     float gnm = sat(GLITCH);
-    float rnd0 = rand(mytrunc(vec2(time, time), 6.0));
+    float rnd0 = rand(mytrunc(vec2(u_time, u_time), 6.0));
     float r0 = sat((1.0 - gnm) * 0.7 + rnd0);
-    float rnd1 = rand(vec2(mytrunc(uv_shader.x, 10.0 * r0), time)); //horz
+    float rnd1 = rand(vec2(mytrunc(uv_shader.x, 10.0 * r0), u_time)); //horz
     float r1 = 0.5 - 0.5 * gnm + rnd1;
     r1 = 1.0 - max(0.0, ((r1 < 1.0) ? r1 : 0.99999));
-    float rnd2 = rand(vec2(mytrunc(uv_shader.y, 40.0 * r1), time)); //vert
+    float rnd2 = rand(vec2(mytrunc(uv_shader.y, 40.0 * r1), u_time)); //vert
     float r2 = sat(rnd2);
 
-    float rnd3 = rand(vec2(mytrunc(uv_shader.y, 10.0 * r0), time));
+    float rnd3 = rand(vec2(mytrunc(uv_shader.y, 10.0 * r0), u_time));
     float r3 = (1.0 - sat(rnd3 + 0.8)) - 0.1;
 
-    float pxrnd = rand(uv_shader + time);
+    float pxrnd = rand(uv_shader + u_time);
 
     float ofs = 0.05 * r2 * GLITCH * (rnd0 > 0.5 ? 1.0 : -1.0);
     ofs += 0.5 * pxrnd * ofs;
@@ -120,11 +120,6 @@ void main() {
     float chromatic_aberration = distance_to_center * distance_to_center;
     float noise_strength = distance_to_center * distance_to_center;
 
-    // zoom in a little
-    float zoom = 1.3;
-    uv_shader.x = uv_shader.x * zoom + (1.0 - zoom) * 0.5;
-    uv_shader.y = uv_shader.y * zoom + (1.0 - zoom) * 0.5;
-
     const int NUM_SAMPLES = 10;
     const float RCP_NUM_SAMPLES_F = 1.0 / float(NUM_SAMPLES);
 
@@ -135,7 +130,7 @@ void main() {
         uv_shader.x = sat(uv_shader.x + ofs * t);
 
         vec4 samplecol = vec4(
-            texture2D(u_image, uv_shader + vec2(chromatic_aberration, 0.0)).r,
+            texture2D(u_image, uv_shader + vec2(chromatic_aberration, chromatic_aberration)).r,
             texture2D(u_image, uv_shader + vec2(0.0, 0.0)).g,
             texture2D(u_image, uv_shader + vec2(-chromatic_aberration, 0.0)).b,
             1.0
@@ -149,16 +144,16 @@ void main() {
     sum.rgb /= wsum;
     sum.a *= RCP_NUM_SAMPLES_F;
 
-    sum.rgb += get_noise(rand(time) + rdist).xyz;
+    sum.rgb += get_noise(rand(u_time) + rdist).xyz;
     sum.rgb -= vec3(0.8, 1.0, 1.0) * (noise_strength * 4.0);
 
-    gl_FragColor.a = sum.a;
-    gl_FragColor.rgb = lerp(sum.rgb, texture2D(u_image, uv_shader).rgb, -1.0);
+    gl_FragColor = sum;
+    // gl_FragColor.rgb = lerp(sum.rgb, texture2D(u_image, uv_shader).rgb, -1.0);
 
     uv_shader.x += (u_mouse_position.x + 0.5) / 20.0;
     uv_shader.y += (u_mouse_position.y + 0.5) / 40.0;
 
-    vec4 inverted_data = texture2D(u_inverted_texture, uv_shader);
-    gl_FragColor.rgb = lerp(gl_FragColor.rgb, inverted_data.rgb, inverted_data.a);
+    // vec4 inverted_data = texture2D(u_inverted_texture, uv_shader);
+    // gl_FragColor.rgb = lerp(gl_FragColor.rgb, inverted_data.rgb, inverted_data.a);
     gl_FragColor.rgb += noise_shader(uv_shader, noise_strength * 25.0).xyz;
 }

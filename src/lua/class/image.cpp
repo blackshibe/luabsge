@@ -56,6 +56,8 @@ void lua_bsge_init_image(sol::state &lua) {
 
 	lua.new_usertype<bsgeImage>("Image",
 							   "load", load,
-								"id", &bsgeImage::id
+								"id", &bsgeImage::id,
+								"width", &bsgeImage::width,
+								"height", &bsgeImage::height
 							);
 }

@@ -121,8 +121,8 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     );
     imgui_namespace["NewLine"] = &ImGui::NewLine;
     imgui_namespace["Spacing"] = &ImGui::Spacing;
-    imgui_namespace["Image"] = [](int user_texture, glm::vec2 pos) {
-        ImGui::Image((void *)user_texture, ImVec2(pos.x, pos.y), ImVec2(0, 1), ImVec2(1, 0));
+    imgui_namespace["Image"] = [](int user_texture, glm::vec2 pos, bool invert = false) {
+        ImGui::Image((void *)user_texture, ImVec2(pos.x, pos.y), invert ? ImVec2(0, 0) : ImVec2(0, 1), invert ? ImVec2(1, 1) : ImVec2(1, 0));
     };
 
     imgui_namespace["Dummy"] = [](float size_x, float size_y) { ImGui::Dummy(ImVec2(size_x, size_y)); };

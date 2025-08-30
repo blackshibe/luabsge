@@ -18,17 +18,8 @@ texture:load(COMMON_PATH .. "image/fox.jpg")
 
 -- TODO: mesh and physicsobject should not be separate in this way
 -- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
-local mesh = Mesh.new()
-mesh:load(COMMON_PATH .. "mesh/box.obj")
-mesh.texture = texture
-mesh.matrix = Mat4.new(1):translate(Vec3.new(0, 1.5, 0))
-local phys_object = PhysicsObject.new(mesh, true)
-
-local mesh_top = Mesh.new()
-mesh_top:load(COMMON_PATH .. "mesh/box.obj")
-mesh_top.texture = texture
-mesh_top.matrix = Mat4.new(1):translate(Vec3.new(1, 4, 0.25))
-local phys_object_top = PhysicsObject.new(mesh_top, true)
+local boxes = {}
+local next_spawn_time = now()
 
 local floor = Mesh.new()
 floor:load(COMMON_PATH .. "mesh/box.obj")
@@ -37,8 +28,6 @@ floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
 local floor_phys = PhysicsObject.new(floor, false)
 
 local raytracer_framebuffer = Framebuffer.new(256, 256)
-
-local camera_z_spring = require("script.spring").new(0)
 local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
@@ -47,10 +36,12 @@ camera.matrix = base_matrix
 
 function render_pass()
 	-- TODO should not be necessary
-	mesh:render()
 	floor:render()
-	mesh_top:render()
 	display_label:render()
+
+	for i, v in pairs(boxes) do
+		v.mesh:render()
+	end
 
 	Gizmo.set_line_width(0.05)
 	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
@@ -71,6 +62,18 @@ local camera_inputs = {
 
 local MOUSE_SENSITIVITY = 0.002
 
+local function spawn_one()
+	local mesh_top = Mesh.new()
+	mesh_top:load(COMMON_PATH .. "mesh/box.obj")
+	mesh_top.texture = texture
+	mesh_top.matrix = Mat4.new(1)
+		:scale(Vec3.new(0.5, 0.5, 0.5))
+		:translate(Vec3.new(math.random(-100, 100) / 10, 15, math.random(-100, 100) / 10))
+	local phys_object_top = PhysicsObject.new(mesh_top, true)
+
+	table.insert(boxes, { mesh = mesh_top, phys = phys_object_top })
+end
+
 return function(delta_time)
 	local dim = Window.get_window_dimensions()
 	local alpha = math.sin(now() * 0.001) * 0.5
@@ -79,9 +82,13 @@ return function(delta_time)
 	display_label.scale = 0.5 + alpha
 	display_label.color = Vec3.new(1, alpha, math.abs(math.sin(now() / 5000)))
 
-	local camera_z = camera_z_spring:update(delta_time)
+	if now() > next_spawn_time then
+		next_spawn_time = now() + 500
 
-	if World.input.is_right_mouse_down() then
+		spawn_one()
+	end
+
+	if World.input.is_left_mouse_down() then
 		local delta = World.input.get_mouse_delta()
 		camera_inputs.r_x = camera_inputs.r_x + delta.x * MOUSE_SENSITIVITY
 		camera_inputs.r_y = camera_inputs.r_y + delta.y * MOUSE_SENSITIVITY
@@ -93,13 +100,15 @@ return function(delta_time)
 	-- TODO camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
 	-- it would make sense to have a primary window framebuffer object that's assigned in World instead
 	camera.matrix = Mat4.new(1)
-		:translate(Vec3.new(0, 0, -8))
+		:translate(Vec3.new(0, 0, -16))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 
 	-- TODO should not be necessary
-	mesh.matrix = phys_object:get_transform()
-	mesh_top.matrix = phys_object_top:get_transform()
+	for i, v in pairs(boxes) do
+		v.mesh.matrix = v.phys:get_transform():scale(Vec3.new(0.5, 0.5, 0.5))
+	end
+
 	floor.matrix = floor_phys:get_transform():scale(Vec3.new(10, 0.1, 10))
 
 	raytracer_framebuffer:clear()
@@ -112,9 +121,14 @@ return function(delta_time)
 
 	if ImGui.Begin("LuaBSGE ImGui Demo") then
 		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(256, 256), false)
+		ImGui.Text("Hold LMB and move the mouse to change the camera position")
+		ImGui.Text(string.format("Objects: %s", #boxes))
 
-		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
-		ImGui.Separator()
+		if ImGui.Button("Ok but give more") then
+			for i = 1, 10 do
+				spawn_one()
+			end
+		end
 
 		ImGui.End()
 	end

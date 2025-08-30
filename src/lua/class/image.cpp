@@ -1,8 +1,8 @@
 #include "image.h"
-#include <string>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../include/stbi_image.h"
+
 
 int image_load(bsgeImage* texture, const char* path) {
 	printf("[image.cpp] load path: %s\n", path);
@@ -45,17 +45,8 @@ int image_load(bsgeImage* texture, const char* path) {
 }
 
 void lua_bsge_init_image(sol::state &lua) {
-	lua_State *L = lua.lua_state();
-	auto load = [&L](bsgeImage *image, const char *path) {
-		if (image_load(image, path) != 0) {
-			luax_push_error(L, "Failed to load image!");
-			return 1;
-		}
-		return 0;
-	};
-
 	lua.new_usertype<bsgeImage>("Image",
-							   "load", load,
+								sol::constructors<bsgeImage(sol::this_state&, const char*)>(),
 								"id", &bsgeImage::id,
 								"width", &bsgeImage::width,
 								"height", &bsgeImage::height

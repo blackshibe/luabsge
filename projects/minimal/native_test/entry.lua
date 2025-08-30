@@ -13,11 +13,8 @@ camera.near_clip = 0.1
 camera.far_clip = 100
 
 -- TODO: mesh textures are not optional
-local texture = Image.new()
-texture:load(COMMON_PATH .. "image/fox.jpg")
-
-local texture_grid = Image.new()
-texture_grid:load(COMMON_PATH .. "image/grid_04.png")
+local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
+local texture_grid = Image.new(COMMON_PATH .. "image/grid_04.png")
 
 -- TODO: mesh and physicsobject should not be separate in this way
 -- TODO: mesh scale needs to be reapplied when getting physics object translation every frame

@@ -12,7 +12,6 @@
 #include "module/lua_imgui_bindings.h"
 #include "module/lua_opengl_constants.h"
 #include "module/lua_rendering.h"
-#include "module/lua_ui.h"
 #include "module/lua_window.h"
 
 #include "class/camera.h"

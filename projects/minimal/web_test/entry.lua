@@ -11,9 +11,7 @@ camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
-local texture = Image.new()
-texture:load("image/fox.jpg")
-
+local texture = Image.new("image/fox.jpg")
 local mesh = Mesh.new()
 mesh:load("mesh/box.obj")
 mesh.texture = texture

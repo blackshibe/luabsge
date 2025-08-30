@@ -12,8 +12,7 @@ camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
-local texture = Image.new()
-texture:load(string.format("image/active-%s.jpg", math.random(1, 5)))
+local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
 
 local mesh = Mesh.new()
 mesh:load("mesh/plane.obj")

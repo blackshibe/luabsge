@@ -104,7 +104,6 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 
 	lua_bsge_connect_rendering(window, lua);
 	lua_bsge_connect_window(window, lua);
-	lua_bsge_connect_ui(window, L);
 
 	lua_setglobal(L, "World");
 	

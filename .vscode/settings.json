@@ -90,6 +90,7 @@
 		"shared_mutex": "cpp",
 		"stack": "cpp",
 		"*.inc": "cpp",
-		"regex": "cpp"
-	},
+		"regex": "cpp",
+		"filesystem": "cpp"
+	}
 }

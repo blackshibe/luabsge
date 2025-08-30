@@ -82,7 +82,7 @@ World.rendering.step:connect(function(delta_time)
 	Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	for i, v in pairs(scene.meshes) do
-		local bb = v:get_bounding_box(v.mesh)
+		local bb = v:get_bounding_box()
 		draw_bounding_box(bb.world_min, bb.world_max)
 	end
 
@@ -98,7 +98,7 @@ World.rendering.step:connect(function(delta_time)
 		:rotate((now() / 3000) % math.pi * 2, Vec3.new(1, 0, 0))
 	scene.monkey:update()
 
-	local bb = scene.monkey:get_bounding_box(scene.monkey.mesh)
+	local bb = scene.monkey:get_bounding_box()
 	draw_bounding_box(bb.world_min, bb.world_max)
 
 	-- Calculate projection matrix and its inverse
@@ -106,7 +106,7 @@ World.rendering.step:connect(function(delta_time)
 		camera:get_projection_matrix_for_resolution(framebuffer_resolution.x, framebuffer_resolution.y):inverse()
 
 	-- Camera to world matrix (inverse of view matrix)
-	-- camera.matrix is already the transform matrix (camera-to-world)
+	-- camera.transform is already the transform matrix (camera-to-world)
 	local camera_to_world_matrix = camera.transform:inverse()
 
 	-- Use the actual camera position from our input state

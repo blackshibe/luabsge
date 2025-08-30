@@ -1,5 +1,6 @@
 #include "../class/mesh.h"
 #include "../class/image.h"
+#include "../../physics/jolt.h"
 
 struct EcsObjectComponent {
     glm::mat4 transform;
@@ -21,8 +22,10 @@ struct EcsMeshTextureComponent {
     EcsMeshTextureComponent(bsgeImage* start_texture) : texture(*start_texture) {}
 };
 
-// TODO
-struct EcsPhysicsObjectComponent {
 
-    EcsPhysicsObjectComponent() {}
+struct EcsPhysicsComponent {
+    JPH::BodyID body_id;
+    bool is_dynamic;
+
+    EcsPhysicsComponent(JPH::BodyID id, bool dynamic) : body_id(id), is_dynamic(dynamic) {}
 };

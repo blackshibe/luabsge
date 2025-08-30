@@ -8,26 +8,26 @@ CameraController.__index = CameraController
 function CameraController.new(camera)
 	local self = setmetatable({}, CameraController)
 	self.camera = camera or Camera.new()
-	
+
 	-- Mouse tracking
 	self.mouse_sensitivity = 0.002
 	self.last_mouse_position = Vec2.new(0, 0)
-	
+
 	-- Springs for smooth movement
 	self.x_spring = Spring.new(0.5, 100, 50)
 	self.y_spring = Spring.new(0.5, 100, 50)
 	self.z_spring = Spring.new(0, 100, 50)
-	
+
 	-- Rotation tracking
 	self.rotation = {
 		x = 1.9,
-		y = 0.1
+		y = 0.1,
 	}
-	
+
 	-- Position
 	self.position = Vec3.new(0, 0, -5)
 	self.base_matrix = Mat4.new(1)
-	
+
 	return self
 end
 
@@ -36,19 +36,19 @@ function CameraController:update_mouse_tracking(delta_time)
 	local mouse_position = World.input.get_mouse_position()
 	local mouse_delta = mouse_position - self.last_mouse_position
 	self.last_mouse_position = mouse_position
-	
+
 	local window_dims = Window.get_window_dimensions()
 	local mouse_position_scaled = self.last_mouse_position / window_dims
-	
+
 	self.x_spring.target = mouse_position_scaled.x
 	self.y_spring.target = mouse_position_scaled.y
-	
+
 	local camera_x = self.x_spring:update(delta_time)
 	local camera_y = self.y_spring:update(delta_time)
-	
+
 	-- Apply smooth camera movement
-	self.camera.matrix = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
-	
+	self.camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+
 	return mouse_delta
 end
 
@@ -59,10 +59,10 @@ function CameraController:update_fps_controls(delta_time)
 		self.rotation.x = self.rotation.x + delta.x * self.mouse_sensitivity
 		self.rotation.y = self.rotation.y + delta.y * self.mouse_sensitivity
 	end
-	
+
 	local camera_z = self.z_spring:update(delta_time)
-	
-	self.camera.matrix = Mat4.new(1)
+
+	self.camera.transform = Mat4.new(1)
 		:translate(Vec3.new(self.position.x, self.position.y, self.position.z + camera_z))
 		:rotate(self.rotation.y, Vec3.new(1, 0, 0))
 		:rotate(self.rotation.x, Vec3.new(0, 1, 0))
@@ -99,7 +99,7 @@ function CameraController:setup_camera()
 	self.camera.fov = 70
 	self.camera.near_clip = 0.1
 	self.camera.far_clip = 100
-	self.camera.matrix = self.base_matrix
+	self.camera.transform = self.base_matrix
 	World.rendering.camera = self.camera
 end
 

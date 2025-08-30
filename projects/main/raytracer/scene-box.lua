@@ -1,14 +1,7 @@
 ---@diagnostic disable: undefined-global
 
 local meshes = {}
-local texture = Image.new(COMMON_PATH .. "image/fox.jpg") -- TODO why isn't this optional
-
-local function create_mesh(src)
-	local mesh = Mesh.new(src)
-	mesh.texture = texture
-
-	return mesh
-end
+local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 
 local obj2 = SphereBufferObject.new()
 obj2.center = Vec3.new(1, 0, -2)

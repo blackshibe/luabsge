@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-global, redundant-parameter, undefined-field
+---@diagnostic disable: undefined-global, redundant-parameter, undefined-field, inject-field, assign-type-mismatch
 
 local camera = Camera.new()
 camera.fov = 70
@@ -12,11 +12,11 @@ mesh.texture = texture -- legacy
 
 local object = Object.new()
 object.transform = Mat4.new(1)
-object.parent = World.scene
+object.parent = Scene
 
 object:add_component(ECS_MESH_COMPONENT, { mesh = mesh })
 object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture }) -- later mesh material
--- object:add_component(ECS_PHYSICS_COMPONENT, { is_dynamic = true })
+object:add_component(ECS_PHYSICS_COMPONENT, { mesh = mesh, is_dynamic = true })
 
 World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)

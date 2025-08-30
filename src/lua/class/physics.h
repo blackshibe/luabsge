@@ -10,7 +10,7 @@ struct PhysicsObject {
     JPH::BodyID id;
 
     PhysicsObject(bsgeMesh mesh, bool is_dynamic) {
-        id = BSGE::Physics::create_body(mesh, is_dynamic);
+        // id = BSGE::Physics::create_body(mesh, is_dynamic);
     }
 
 };

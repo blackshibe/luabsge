@@ -6,19 +6,41 @@ void lua_bsge_init_object(sol::state &lua) {
                                 "add_component", [](sol::this_state state, BSGEObject &object, EcsComponentType type, const sol::table& data) {
                                     return lua_bsge_load_component(state, object, type, data);
                                 },
-                                "transform", [](BSGEObject &object, glm::mat4 transform) {
-                                    entt::registry* registry = lua_bsge_get_registry();
-    
-                                    EcsObjectComponent& component = registry->get<EcsObjectComponent>(object.entity);
-                                    component.transform = transform;
+                                "get_component", [](sol::this_state state, BSGEObject &object, EcsComponentType type) {
+                                    return lua_bsge_get_component(state, object, type);
                                 },
-                                "parent", [](BSGEObject &object, BSGEObject& parent) {
+                                "transform", sol::property(
+                                    [](BSGEObject &object) -> glm::mat4 {
+                                        entt::registry* registry = lua_bsge_get_registry();
+                                        
+                                        if (registry->all_of<EcsPhysicsComponent>(object.entity)) {
+                                            auto& physics_comp = registry->get<EcsPhysicsComponent>(object.entity);
+                                            return BSGE::Physics::get_body_transform(physics_comp.body_id);
+                                        }
+                                        
+                                        auto& obj_comp = registry->get<EcsObjectComponent>(object.entity);
+                                        return obj_comp.transform;
+                                    },
+                                    [](BSGEObject &object, glm::mat4 transform) {
+                                        entt::registry* registry = lua_bsge_get_registry();
+        
+                                        registry->patch<EcsObjectComponent>(object.entity, [&transform](auto& comp) {
+                                            comp.transform = transform;
+                                        });
+                                        
+                                        if (registry->all_of<EcsPhysicsComponent>(object.entity)) {
+                                            auto& physics_comp = registry->get<EcsPhysicsComponent>(object.entity);
+                                            BSGE::Physics::set_body_transform(physics_comp.body_id, transform);
+                                        }
+                                    }),
+                                "parent", sol::property([](BSGEObject &object, BSGEObject& parent) {
                                     entt::registry* registry = lua_bsge_get_registry();
     
-                                    EcsObjectComponent& component = registry->get<EcsObjectComponent>(object.entity);
-                                    EcsObjectComponent& parent_component = registry->get<EcsObjectComponent>(parent.entity);
-                                    component.parent = &parent_component;
-                                }
+                                    EcsObjectComponent parent_component = registry->get<EcsObjectComponent>(parent.entity);
+                                    registry->patch<EcsObjectComponent>(object.entity, [&parent_component](auto& comp) {
+                                        comp.parent = &parent_component;
+                                    });
+                                })
     );
 
     lua["ECS_MESH_COMPONENT"] = ECS_MESH_COMPONENT;
@@ -47,11 +69,67 @@ void lua_bsge_load_component(sol::this_state lua, BSGEObject &object, EcsCompone
                 }
                 break;
             }
-            // case EcsComponentType::ECS_PHYSICS_COMPONENT: {
-            //     // Extract is_dynamic from Lua table
-            //     bool is_dynamic = data.get_or("is_dynamic", false);
-            //     registry->emplace<PhysicsComponent>(entity, is_dynamic);
-            //     break;
-            // }
+            case EcsComponentType::ECS_PHYSICS_COMPONENT: {
+                // Extract mesh and is_dynamic from Lua table
+                sol::optional<bsgeMesh*> mesh_opt = data["mesh"];
+                bool is_dynamic = data.get_or("is_dynamic", false);
+                if (mesh_opt.has_value()) {
+                    // Get the object's current transform to initialize physics body
+                    auto& obj_comp = registry->get<EcsObjectComponent>(object.entity);
+                    
+                    // Temporarily set mesh matrix to object transform for physics body creation
+                    glm::mat4 original_mesh_matrix = mesh_opt.value()->matrix;
+                    mesh_opt.value()->matrix = obj_comp.transform;
+                    
+                    JPH::BodyID body_id = BSGE::Physics::create_body(*mesh_opt.value(), is_dynamic);
+                    
+                    // Restore original mesh matrix
+                    mesh_opt.value()->matrix = original_mesh_matrix;
+                    
+                    registry->emplace<EcsPhysicsComponent>(object.entity, body_id, is_dynamic);
+                }
+                break;
+            }
         }
+}
+
+sol::object lua_bsge_get_component(sol::this_state lua, BSGEObject &object, EcsComponentType type) {
+    entt::registry* registry = lua_bsge_get_registry();
+    sol::state_view lua_state(lua);
+    
+    switch (type) {
+        case EcsComponentType::ECS_MESH_COMPONENT: {
+            if (registry->all_of<EcsMeshComponent>(object.entity)) {
+                auto& mesh_comp = registry->get<EcsMeshComponent>(object.entity);
+                sol::table result = lua_state.create_table();
+                result["mesh"] = &mesh_comp.mesh;
+                return result;
+            }
+            break;
+        }
+        case EcsComponentType::ECS_MESH_TEXTURE_COMPONENT: {
+            if (registry->all_of<EcsMeshTextureComponent>(object.entity)) {
+                auto& texture_comp = registry->get<EcsMeshTextureComponent>(object.entity);
+                sol::table result = lua_state.create_table();
+                result["texture"] = &texture_comp.texture;
+                return result;
+            }
+            break;
+        }
+        case EcsComponentType::ECS_PHYSICS_COMPONENT: {
+            if (registry->all_of<EcsPhysicsComponent>(object.entity)) {
+                auto& physics_comp = registry->get<EcsPhysicsComponent>(object.entity);
+                sol::table result = lua_state.create_table();
+                result["body_id"] = physics_comp.body_id.GetIndexAndSequenceNumber();
+                result["is_dynamic"] = physics_comp.is_dynamic;
+                result["get_transform"] = [&physics_comp]() -> glm::mat4 {
+                    return BSGE::Physics::get_body_transform(physics_comp.body_id);
+                };
+                return result;
+            }
+            break;
+        }
+    }
+    
+    return sol::nil;
 }

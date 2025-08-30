@@ -49,6 +49,7 @@ namespace BSGE {
 namespace Physics {
 
 glm::mat4x4 get_body_transform(JPH::BodyID id);
+void set_body_transform(JPH::BodyID id, const glm::mat4& transform);
 JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic);
 
 void init();

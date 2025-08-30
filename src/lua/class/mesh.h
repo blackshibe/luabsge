@@ -19,7 +19,7 @@
 struct bsgeMesh;
 
 int mesh_load(bsgeMesh *bsgemesh, const char *path);
-int mesh_render(sol::state &lua, bsgeMesh &bsgemesh);
+int mesh_render(sol::state &lua, glm::mat4 matrix, bsgeMesh &bsgemesh);
 void lua_bsge_init_mesh(sol::state &lua);
 
 struct meshVertexData {
@@ -34,16 +34,16 @@ struct meshGeometry {
 };
 
 struct bsgeMesh {
-	int indices_count;
 	glm::mat4 matrix;
 	meshGeometry geometry;
 
+	int indices_count;
 	unsigned int texture;
 	unsigned int vbo;
 	unsigned int vao;
 	unsigned int ebo;
 
-	bsgeMesh(sol::this_state lua, const char* src)  {
+	bsgeMesh(sol::this_state lua, const char* src) : matrix(glm::mat4(1))  {
 		if (mesh_load(this, src) != 0) {
 			luax_push_error(lua.lua_state(), "Failed to load mesh!");
 		}

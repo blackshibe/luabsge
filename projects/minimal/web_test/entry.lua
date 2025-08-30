@@ -13,14 +13,18 @@ camera.far_clip = 100
 
 local texture = Image.new("image/fox.jpg")
 local mesh = Mesh.new("mesh/box.obj")
-mesh.texture = texture
+
+local box_object = Object.new()
+box_object.transform = Mat4.new(1)
+box_object:add_component(ECS_MESH_COMPONENT, { mesh = mesh })
+box_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 
 local camera_z_spring = require("script.spring").new(0)
 local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
-camera.matrix = base_matrix
+camera.transform = base_matrix
 
 World.rendering.step:connect(function(delta_time)
 	local dim = Window.get_window_dimensions()
@@ -32,12 +36,12 @@ World.rendering.step:connect(function(delta_time)
 	display_label:render()
 
 	local camera_z = camera_z_spring:update(delta_time)
-	camera.matrix = Mat4.new(1)
+	camera.transform = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -5))
 		:rotate(0.25, Vec3.new(1, 0, 0))
 		:rotate((now() / 5000) % math.pi * 2, Vec3.new(0, 1, 0))
-	mesh.matrix = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
-	mesh:render()
+	box_object.transform = Mat4.new(1):rotate(camera_z, Vec3.new(1, 0, 0))
+	World.rendering.render_pass()
 
 	Gizmo.set_line_width(0.05)
 	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))

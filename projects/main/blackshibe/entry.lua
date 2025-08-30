@@ -14,8 +14,15 @@ camera.far_clip = 100
 
 local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
 
-local mesh = Mesh.new("mesh/plane.obj")
-mesh.texture = texture
+local plane_mesh = Mesh.new("mesh/plane.obj")
+
+local plane_object = Object.new()
+plane_object.transform =
+	Mat4.new(1):scale(Vec3.new(texture.width / texture.height, 1, 1)):rotate(math.pi / 2, Vec3.new(1, 0, 0))
+plane_object.parent = Scene
+
+plane_object:add_component(ECS_MESH_COMPONENT, { mesh = plane_mesh })
+plane_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 
 local font = Font.new()
 font:load("font/arial.ttf")
@@ -31,11 +38,11 @@ local base_matrix = Mat4.new(1)
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
 
-camera.matrix = base_matrix
+camera.transform = base_matrix
 
 function render_pass()
 	display_label:render()
-	mesh:render()
+	World.rendering.render_pass()
 end
 
 -- TODO: buffers don't work in librewolf, so images are at 1k res rn (<1k max texture res)
@@ -79,9 +86,10 @@ World.rendering.step:connect(function(delta_time)
 	local camera_x = camera_x_spring:update(delta_time)
 	local camera_y = camera_y_spring:update(delta_time)
 
-	mesh.matrix =
+	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+	plane_object.transform =
 		Mat4.new(1):scale(Vec3.new(texture.width / texture.height, 1, 1)):rotate(math.pi / 2, Vec3.new(1, 0, 0))
-	camera.matrix = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+
 	-- Mat4.new(1):translate(Vec3.new(0, 0, -10)):rotate(0.1, Vec3.new(0, 1, 0)):rotate(0.1, Vec3.new(1, 0, 0))
 	-- :translate(Vec3.new(camera_y / 1000, camera_y / 1000, -5))
 

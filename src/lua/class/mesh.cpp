@@ -117,7 +117,7 @@ int mesh_load(bsgeMesh *bsgemesh, const char *path)
 	return 0;
 }
 
-int mesh_render(sol::state &lua, bsgeMesh &bsgemesh) {
+int mesh_render(sol::state &lua, glm::mat4 matrix, bsgeMesh &bsgemesh) {
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh.ebo);
@@ -131,7 +131,7 @@ int mesh_render(sol::state &lua, bsgeMesh &bsgemesh) {
 		glUniform1i(glGetUniformLocation(context_window->default_shader, "img_texture"), 0);
 	}
 
-	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(bsgemesh.matrix));
+	glUniformMatrix4fv(glGetUniformLocation(context_window->default_shader, "transform"), 1, GL_FALSE, glm::value_ptr(matrix));
 	glDrawElements(GL_TRIANGLES, bsgemesh.indices_count, GL_UNSIGNED_INT, 0);
 	glUseProgram(0);
 
@@ -141,26 +141,14 @@ int mesh_render(sol::state &lua, bsgeMesh &bsgemesh) {
 void lua_bsge_init_mesh(sol::state &lua) {
 	lua_State *L = lua.lua_state();
 
-	auto render = [&lua](bsgeMesh *mesh)
-	{
-		return mesh_render(lua, *mesh);
-	};
-
 	auto set_texture = [](bsgeMesh *mesh, bsgeImage *image)
 	{
 		mesh->texture = image->id;
 	};
 
-	auto set_position = [](bsgeMesh *mesh, glm::mat4 matrix)
-	{
-		mesh->matrix = matrix;
-	};
-
 	lua.new_usertype<bsgeMesh>("Mesh",
 								sol::constructors<bsgeMesh(sol::this_state, const char*)>(),
-							   "render", render,
 							   "texture", sol::property([](bsgeMesh *mesh)
-														{ return mesh->texture; }, set_texture),
-							   "matrix", sol::property([](bsgeMesh *mesh)
-														 { return mesh->matrix; }, set_position));
+														{ return mesh->texture; }, set_texture)
+								);
 }

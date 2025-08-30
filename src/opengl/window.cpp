@@ -277,13 +277,25 @@ void BSGEWindow::render_pass() {
 		// Get optional texture component
 		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
 
-		mesh_component->mesh.matrix = object.transform;
+		// Use physics transform if available, otherwise use object transform
+		glm::mat4 final_transform = object.transform;
+		EcsPhysicsComponent* physics_component = registry.try_get<EcsPhysicsComponent>(entity);
+		if (physics_component) {
+			glm::mat4 physics_transform = BSGE::Physics::get_body_transform(physics_component->body_id);
+			glm::vec3 scale = glm::vec3(
+				glm::length(glm::vec3(object.transform[0])),
+				glm::length(glm::vec3(object.transform[1])),
+				glm::length(glm::vec3(object.transform[2]))
+			);
+			final_transform = physics_transform * glm::scale(glm::mat4(1.0f), scale);
+		}
+
 		if (texture_component) {
 			mesh_component->mesh.texture = texture_component->texture.id;
-			mesh_render(*lua, mesh_component->mesh);
+			mesh_render(*lua, final_transform, mesh_component->mesh);
 		} else {
 			mesh_component->mesh.texture = 0;
-			mesh_render(*lua, mesh_component->mesh);
+			mesh_render(*lua, final_transform, mesh_component->mesh);
 		}
 	});
 }

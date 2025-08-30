@@ -12,34 +12,26 @@ camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
--- TODO: mesh textures are not optional
 local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 
--- TODO: mesh and physicsobject should not be separate in this way
--- TODO: mesh scale needs to be reapplied when getting physics object translation every frame
 local boxes = {}
 local next_spawn_time = now()
 
-local floor = Mesh.new(COMMON_PATH .. "mesh/box.obj")
-floor.texture = texture
-floor.matrix = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
-local floor_phys = PhysicsObject.new(floor, false)
+local box_mesh = Mesh.new(COMMON_PATH .. "mesh/box.obj")
+
+local floor_object = Object.new()
+floor_object.transform = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
+floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh })
+floor_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
+floor_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box_mesh, is_dynamic = false })
 
 local raytracer_framebuffer = Framebuffer.new(256, 256)
-local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
-camera.matrix = base_matrix
-
 function render_pass()
-	-- TODO should not be necessary
-	floor:render()
 	display_label:render()
-
-	for i, v in pairs(boxes) do
-		v.mesh:render()
-	end
+	World.rendering.render_pass()
 
 	Gizmo.set_line_width(0.05)
 	Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
@@ -60,15 +52,20 @@ local camera_inputs = {
 
 local MOUSE_SENSITIVITY = 0.002
 
+-- TODO plane object isn't deleted when scene switches
+-- TODO last new box has invalid mesh data
+
 local function spawn_one()
-	local mesh_top = Mesh.new(COMMON_PATH .. "mesh/box.obj")
-	mesh_top.texture = texture
-	mesh_top.matrix = Mat4.new(1)
+	local box_object = Object.new()
+	box_object.transform = Mat4.new(1)
 		:scale(Vec3.new(0.5, 0.5, 0.5))
 		:translate(Vec3.new(math.random(-100, 100) / 10, 15, math.random(-100, 100) / 10))
-	local phys_object_top = PhysicsObject.new(mesh_top, true)
 
-	table.insert(boxes, { mesh = mesh_top, phys = phys_object_top })
+	box_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh })
+	box_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
+	box_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box_mesh, is_dynamic = true })
+
+	table.insert(boxes, box_object)
 end
 
 return function(delta_time)
@@ -96,17 +93,10 @@ return function(delta_time)
 
 	-- TODO camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
 	-- it would make sense to have a primary window framebuffer object that's assigned in World instead
-	camera.matrix = Mat4.new(1)
+	camera.transform = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -16))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
-
-	-- TODO should not be necessary
-	for i, v in pairs(boxes) do
-		v.mesh.matrix = v.phys:get_transform():scale(Vec3.new(0.5, 0.5, 0.5))
-	end
-
-	floor.matrix = floor_phys:get_transform():scale(Vec3.new(10, 0.1, 10))
 
 	raytracer_framebuffer:clear()
 

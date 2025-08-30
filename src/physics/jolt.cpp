@@ -329,6 +329,30 @@ glm::mat4x4 get_body_transform(JPH::BodyID id) {
     );
 }
 
+void set_body_transform(JPH::BodyID id, const glm::mat4& transform) {
+    if (!physics_system) {
+        printf("ERROR: Physics system not initialized!\n");
+        return;
+    }
+
+    BodyInterface& body_interface = physics_system->GetBodyInterface();
+    
+    if (!body_interface.IsAdded(id)) {
+        printf("ERROR: Body ID %u is not added to physics system!\n", id.GetIndexAndSequenceNumber());
+        return;
+    }
+
+    // Extract position from transform matrix
+    glm::vec3 position = glm::vec3(transform[3]);
+    
+    // Extract rotation (assuming uniform scale for now)
+    glm::mat3 rotation_matrix = glm::mat3(transform);
+    // Convert to quaternion - simplified for now, could use glm::quat_cast(rotation_matrix)
+    JPH::Quat rotation = JPH::Quat::sIdentity(); // TODO: proper matrix to quaternion conversion
+    
+    body_interface.SetPositionAndRotation(id, JPH::RVec3(position.x, position.y, position.z), rotation, JPH::EActivation::Activate);
+}
+
 JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic) {
    if (!physics_system) {
         printf("ERROR: Physics system not initialized!\n");
@@ -356,11 +380,6 @@ JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic) {
 	// Create the actual rigid body
 	Body *rigid_body = body_interface.CreateBody(floor_settings); // Note that if we run out of bodies this can return nullptr
 	
-	if (!rigid_body) {
-		printf("ERROR: Failed to create rigid body - out of bodies!\n");
-		return JPH::BodyID(); // Return invalid body ID
-	}
-
 	// Add it to the world
 	body_interface.AddBody(rigid_body->GetID(), EActivation::Activate);
 	body_interface.SetGravityFactor(rigid_body->GetID(), 1.0f);

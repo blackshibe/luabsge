@@ -93,7 +93,7 @@ World.rendering.step:connect(function(delta_time)
 	render_pass()
 
 	if ImGui.Begin("LuaBSGE ImGui Demo") then
-		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(800, 600))
+		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(800, 600), false)
 
 		ImGui.Text("FPS: " .. string.format("%.1f", 1000.0 / (delta_time * 1000)))
 		ImGui.Separator()

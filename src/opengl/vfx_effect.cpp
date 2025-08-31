@@ -18,19 +18,6 @@ int64_t get_time() {
 }
 
 // TODO load from project files
-#ifdef USE_EMSCRIPTEM
-const char* VFXEffectStruct::default_vertex_shader = R"(
-attribute vec2 position;
-varying vec2 tex_coord;
-
-varying vec2 uv;
-
-void main() {
-    gl_Position = vec4(position, 0.0, 1.0);
-    uv = tex_coord;
-}
-)";
-#else
 const char* VFXEffectStruct::default_vertex_shader = R"(
 #version 100
 precision mediump float;
@@ -45,8 +32,6 @@ void main() {
     uv = tex_coord;
 }
 )";
-#endif
-
 
 VFXEffectStruct::VFXEffectStruct() 
     : shader_program(0), quad_vao(0), quad_vbo(0), is_valid(false) {

@@ -12,7 +12,8 @@ camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
-local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
+-- local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
+local texture = Emscripten.download_image("image.jpg")
 
 local plane_mesh = Mesh.new("mesh/plane.obj")
 
@@ -47,6 +48,7 @@ end
 
 -- TODO: buffers don't work in librewolf, so images are at 1k res rn (<1k max texture res)
 -- TODO: blackshibe.net interactivity (listening to hover events and stuff)
+-- TODO: correct aspect ratio of image
 
 local use_shader = true
 local last_mouse_position = World.input.get_mouse_position()

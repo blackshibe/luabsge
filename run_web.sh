@@ -3,11 +3,9 @@
 # ./run_web.sh minimal/webtest minimal/webtest
 # ./run_web.sh main/blackshibe /home/blackshibe/Downloads/blackshibe.github.io
 
-if [ -z "$2" || -z "$2" ]
+if [ -z "$2" ]
   then
     echo "No project to run"
-    echo "Specify the name of a folder inside ./projects as the first argument"
-    echo "Ex. test"
 else
 
 	echo "-- Running build"

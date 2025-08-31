@@ -107,9 +107,16 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_setglobal(L, "World");
 	
 	lua_bsge_init_input(lua);
+	lua_bsge_init_emscripten(lua);
 
 	printf("[lua.cpp] init Scene\n");
 	lua["Scene"] = BSGEObject();
+
+#ifdef USE_EMSCRIPTEN
+	lua["PLATFORM"] = "WEB";
+#else
+	lua["PLATFORM"] = "NATIVE";
+#endif
 
 	printf("[lua.cpp] start\n");
 

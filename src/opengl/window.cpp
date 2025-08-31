@@ -299,17 +299,13 @@ void BSGEWindow::render_pass() {
 	});
 
     auto view = registry.view<EcsObjectComponent>();
-
-	printf("frame\n\n");
 	view.each([this, &transforms, &depths](entt::entity entity, EcsObjectComponent &object_component) {
 
 		// handle hierarchy
 		glm::mat4 final_transform;
 
 		if (object_component.parent != entt::null) {
-			printf("parent at scene depth %i\n", depths[object_component.parent]);
 			EcsObjectComponent* parent_object = registry.try_get<EcsObjectComponent>(object_component.parent);
-			print_mat4(transforms[object_component.parent]);
 
 			final_transform = transforms[object_component.parent] * object_component.transform;
 		} else {
@@ -329,9 +325,6 @@ void BSGEWindow::render_pass() {
 
 		transforms[entity] = final_transform;
 	
-		printf("entity final transform: \n");
-		print_mat4(transforms[entity]);
-
 		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
 		if (!mesh_component) {
 			return; // some things aren't renderable

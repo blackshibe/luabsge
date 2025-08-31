@@ -1,5 +1,7 @@
 #include "image.h"
 
+#include "../../web/download_image.h"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "../../include/stbi_image.h"
 
@@ -43,6 +45,17 @@ int image_load(bsgeImage* texture, const char* path) {
 		return 1;
 	}
 }
+
+int image_download(bsgeImage* texture, const char* path) {
+	#ifdef USE_EMSCRIPTEN
+	js_download_image(path);
+	#else
+	printf("[image.cpp] tried to download image, but build is native?\n");
+	#endif
+
+	return image_load(texture, "/download.temp");
+}
+
 
 void lua_bsge_init_image(sol::state &lua) {
 	lua.new_usertype<bsgeImage>("Image",

@@ -1,7 +1,5 @@
 #pragma once
 
-#define SOL_ALL_SAFETIES_ON 1
-
 #include <chrono>
 #include <lua.hpp>
 #include <sol/sol.hpp>
@@ -33,6 +31,8 @@
 #include "class/rt/mesh_tbo.h"
 
 #include "ecs/object.h"
+
+#include "emscripten.h"
 
 int64_t now();
 

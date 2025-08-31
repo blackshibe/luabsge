@@ -42,12 +42,12 @@ if(USE_EMSCRIPTEN)
         if(JS_ONLY)
                 message(STATUS "Setting compilation target to native JavaScript")
                 set(CMAKE_EXECUTABLE_SUFFIX ".js")
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -O3 -s WASM=0 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
+                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-flto -g3 -fno-fat-lto-objects -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=0 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
         else(JS_ONLY)
                 message(STATUS "Setting compilation target to WASM")
                 set(CMAKE_EXECUTABLE_SUFFIX ".wasm.js")
 
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ALLOW_MEMORY_GROWTH=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
+                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-flto -g3 -fno-fat-lto-objects -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
         endif(JS_ONLY)
 
         FetchContent_Declare(
@@ -78,6 +78,14 @@ else()
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw_SOURCE_DIR}/include)
         target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 endif()
+
+# Build faster pls
+target_link_options(${PROJECT_NAME} PRIVATE
+        "-Wl,--threads=20"
+        "-Wl,--lto-partitions=20"
+        "-Wl,--lto-O0"
+        "-Wl,--lto-CGO0")
+
 
 # Project files
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -123,6 +131,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(sol2)
+add_definitions(-DSOL_ALL_SAFETIES_ON=1)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${sol2_SOURCE_DIR}/include)
 target_compile_definitions(${PROJECT_NAME} PRIVATE 

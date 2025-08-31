@@ -1,13 +1,14 @@
 #include "../class/mesh.h"
 #include "../class/image.h"
 #include "../../physics/jolt.h"
+#include <entt/entt.hpp>
 
 struct EcsObjectComponent {
     glm::mat4 transform;
-    EcsObjectComponent* parent;
+    entt::entity* parent;
 
     EcsObjectComponent() : transform(glm::mat4(1.0f)), parent(nullptr) {}
-    EcsObjectComponent(glm::mat4 *transform, EcsObjectComponent* parent) : transform(*transform), parent(parent) {}
+    EcsObjectComponent(glm::mat4 *transform, entt::entity* parent) : transform(*transform), parent(parent) {}
 };
 
 // TODO: Refactor your mesh system to avoid storing OpenGL resources in components

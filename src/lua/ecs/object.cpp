@@ -36,9 +36,8 @@ void lua_bsge_init_object(sol::state &lua) {
                                 "parent", sol::property([](BSGEObject &object, BSGEObject& parent) {
                                     entt::registry* registry = lua_bsge_get_registry();
     
-                                    EcsObjectComponent parent_component = registry->get<EcsObjectComponent>(parent.entity);
-                                    registry->patch<EcsObjectComponent>(object.entity, [&parent_component](auto& comp) {
-                                        comp.parent = &parent_component;
+                                    registry->patch<EcsObjectComponent>(object.entity, [&parent](auto& comp) {
+                                        comp.parent = &parent.entity;
                                     });
                                 })
     );

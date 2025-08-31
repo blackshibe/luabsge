@@ -268,33 +268,82 @@ bool BSGEWindow::render_loop() {
 }
 
 void BSGEWindow::render_pass() {
-    auto view = registry.view<const EcsObjectComponent>();
 
-	view.each([this](entt::entity entity, const EcsObjectComponent &object) {
+	// https://skypjack.github.io/2019-08-20-ecs-baf-part-4-insights
+	// TODO: only sort objects updated this frame
+	std::unordered_map<entt::entity, int> depths;
+	std::unordered_map<entt::entity, glm::mat4> transforms;
+	auto calculate_depth = [this, &depths](const entt::entity entity, auto&& self) -> int {
+		if (depths.find(entity) != depths.end()) {
+			return depths[entity];
+		}
+		
+		EcsObjectComponent* object = registry.try_get<EcsObjectComponent>(entity);
+		if (!object || object->parent == nullptr) {
+			depths[entity] = 0;
 
-		// TODO prevents a bug where shit renders incorrectly
-		glBindVertexArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			return 0;
+		}
 
-		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
-		if (!mesh_component) return; // some things aren't renderable
+		int parent_depth = self(*object->parent, self);
+		depths[entity] = parent_depth + 1;
 
-		// Get optional texture component
-		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
+		return parent_depth + 1;
+	};
 
-		// Use physics transform if available, otherwise use object transform
-		glm::mat4 final_transform = object.transform;
+	registry.view<EcsObjectComponent>().each([&calculate_depth](const entt::entity entity, const EcsObjectComponent &object_component) {
+		calculate_depth(entity, calculate_depth);
+	});
+
+	registry.sort<EcsObjectComponent>([&depths](const entt::entity lhs, const entt::entity rhs) {
+		return depths[lhs] < depths[rhs];
+	});
+
+    auto view = registry.view<EcsObjectComponent>();
+
+	printf("frame\n\n");
+	view.each([this, &transforms, &depths](entt::entity entity, EcsObjectComponent &object_component) {
+
+		// handle hierarchy
+		glm::mat4 final_transform;
+
+		if (object_component.parent != nullptr) {
+			printf("parent at scene depth %i\n", depths[*object_component.parent]);
+			EcsObjectComponent* parent_object = registry.try_get<EcsObjectComponent>(*object_component.parent);
+			print_mat4(transforms[*object_component.parent]);
+
+			final_transform = transforms[*object_component.parent] * object_component.transform;
+		} else {
+			final_transform = object_component.transform;
+		}
+
 		EcsPhysicsComponent* physics_component = registry.try_get<EcsPhysicsComponent>(entity);
 		if (physics_component) {
 			glm::mat4 physics_transform = BSGE::Physics::get_body_transform(physics_component->body_id);
 			glm::vec3 scale = glm::vec3(
-				glm::length(glm::vec3(object.transform[0])),
-				glm::length(glm::vec3(object.transform[1])),
-				glm::length(glm::vec3(object.transform[2]))
+				glm::length(glm::vec3(object_component.transform[0])),
+				glm::length(glm::vec3(object_component.transform[1])),
+				glm::length(glm::vec3(object_component.transform[2]))
 			);
 			final_transform = physics_transform * glm::scale(glm::mat4(1.0f), scale);
 		}
+
+		transforms[entity] = final_transform;
+	
+		printf("entity final transform: \n");
+		print_mat4(transforms[entity]);
+
+		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
+		if (!mesh_component) {
+			return; // some things aren't renderable
+		}
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		
+		// Get optional texture component
+		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
 
 		if (texture_component) {
 			mesh_component->mesh.texture = texture_component->texture.id;

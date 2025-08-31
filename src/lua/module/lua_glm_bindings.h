@@ -7,6 +7,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+void print_mat4(glm::mat4 m);
+
 glm::vec4 mat4_to_vec4(glm::mat4 m);
 glm::vec3 mat4_to_vec3(glm::mat4 m);
 glm::vec3 mat4_to_vec3_scale(glm::mat4 m);

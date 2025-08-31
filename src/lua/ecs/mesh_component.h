@@ -5,10 +5,10 @@
 
 struct EcsObjectComponent {
     glm::mat4 transform;
-    entt::entity* parent;
+    entt::entity parent = entt::null;
 
-    EcsObjectComponent() : transform(glm::mat4(1.0f)), parent(nullptr) {}
-    EcsObjectComponent(glm::mat4 *transform, entt::entity* parent) : transform(*transform), parent(parent) {}
+    EcsObjectComponent() : transform(glm::mat4(1.0f)) {}
+    EcsObjectComponent(glm::mat4 *transform, entt::entity* parent) : transform(*transform), parent(*parent) {}
 };
 
 // TODO: Refactor your mesh system to avoid storing OpenGL resources in components

@@ -279,13 +279,12 @@ void BSGEWindow::render_pass() {
 		}
 		
 		EcsObjectComponent* object = registry.try_get<EcsObjectComponent>(entity);
-		if (!object || object->parent == nullptr) {
+		if (!object || object->parent == entt::null) {
 			depths[entity] = 0;
-
 			return 0;
 		}
 
-		int parent_depth = self(*object->parent, self);
+		int parent_depth = self(object->parent, self);
 		depths[entity] = parent_depth + 1;
 
 		return parent_depth + 1;
@@ -307,12 +306,12 @@ void BSGEWindow::render_pass() {
 		// handle hierarchy
 		glm::mat4 final_transform;
 
-		if (object_component.parent != nullptr) {
-			printf("parent at scene depth %i\n", depths[*object_component.parent]);
-			EcsObjectComponent* parent_object = registry.try_get<EcsObjectComponent>(*object_component.parent);
-			print_mat4(transforms[*object_component.parent]);
+		if (object_component.parent != entt::null) {
+			printf("parent at scene depth %i\n", depths[object_component.parent]);
+			EcsObjectComponent* parent_object = registry.try_get<EcsObjectComponent>(object_component.parent);
+			print_mat4(transforms[object_component.parent]);
 
-			final_transform = transforms[*object_component.parent] * object_component.transform;
+			final_transform = transforms[object_component.parent] * object_component.transform;
 		} else {
 			final_transform = object_component.transform;
 		}

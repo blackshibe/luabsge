@@ -37,7 +37,7 @@ void lua_bsge_init_object(sol::state &lua) {
                                     entt::registry* registry = lua_bsge_get_registry();
     
                                     registry->patch<EcsObjectComponent>(object.entity, [&parent](auto& comp) {
-                                        comp.parent = &parent.entity;
+                                        comp.parent = parent.entity;
                                     });
                                 })
     );

@@ -3,8 +3,6 @@ precision highp float;
 // boring stuff
 uniform sampler2D u_image;
 uniform sampler2D u_inverted_texture;
-uniform vec2 u_resolution;
-uniform vec2 u_img_resolution;
 
 // fun stuff
 uniform float u_time;

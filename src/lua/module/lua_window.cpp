@@ -1,5 +1,9 @@
 #include "lua_window.h"
 
+#ifdef USE_EMSCRIPTEN
+#include <emscripten/html5.h>
+#endif
+
 BSGEWindow *window;
 
 // Track VSync state since GLFW doesn't provide a getter
@@ -10,7 +14,13 @@ void lua_bsge_window_quit() {
 }
 
 glm::vec2 get_window_dimensions() {
+#ifdef USE_EMSCRIPTEN
+	int canvas_width, canvas_height;
+	emscripten_get_canvas_element_size("#bsge-canvas", &canvas_width, &canvas_height);
+	return glm::vec2(canvas_width, canvas_height);
+#else
 	return glm::vec2(window->width, window->height);
+#endif
 }
 
 bool get_window_focused() {

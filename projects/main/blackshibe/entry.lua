@@ -109,8 +109,8 @@ World.rendering.step:connect(function(delta_time)
 	camera_x_spring.target = mouse_position_scaled.x
 	camera_y_spring.target = mouse_position_scaled.y
 
-	local camera_x = math.max(math.min(camera_x_spring:update(delta_time), 1), 1)
-	local camera_y = math.max(math.min(camera_y_spring:update(delta_time), 1), 1)
+	local camera_x = math.max(math.min(camera_x_spring:update(delta_time), 1), -1)
+	local camera_y = math.max(math.min(camera_y_spring:update(delta_time), 1), -1)
 
 	if render_other_scene then
 		COMMON_PATH = ""

@@ -60,7 +60,8 @@ Everything is compiled from source.
         -   [ ] window controls (ai generated mess)
         -   [ ] Don't hardcode js identifiers for bsge canvas and container
         -   [ ] Gizmo drawing to secondary framebuffers
-
+        -   [ ] Optimize link times for web
+        -   [ ] Different build types (Release, Debug)
     -   Datamodel format
         -   Scene explorer
             -   Child traversal

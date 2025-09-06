@@ -1,29 +1,20 @@
 ---@diagnostic disable: undefined-global
 
+require("assets")
+
 local spring = require("script.spring")
+local max_axis_resize = require("script.max_axis_resize")
 
 local glitch_effect = VFXEffect.new()
 glitch_effect:load_fragment_shader("shader/glitch_frag.glsl")
-
-local scene_buffer = Framebuffer.new(2048, 1333)
 
 local camera = Camera.new()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
--- local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
-local texture = Emscripten.download_image("image.jpg")
-
-local plane_mesh = Mesh.new("mesh/plane.obj")
-
-local plane_object = Object.new()
-plane_object.transform =
-	Mat4.new(1):scale(Vec3.new(texture.width / texture.height, 1, 1)):rotate(math.pi / 2, Vec3.new(1, 0, 0))
-plane_object.parent = Scene
-
-plane_object:add_component(ECS_MESH_COMPONENT, { mesh = plane_mesh })
-plane_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
+local targetSceneBufferSize = Vec2.new(2000, 1333)
+local scene_buffer = Framebuffer.new(targetSceneBufferSize.x, targetSceneBufferSize.y)
 
 local font = Font.new()
 font:load("font/arial.ttf")
@@ -38,8 +29,9 @@ local base_matrix = Mat4.new(1)
 
 -- you must create a central camera yourself to define the default position of it
 World.rendering.camera = camera
-
 camera.transform = base_matrix
+
+print(texture)
 
 function render_pass()
 	display_label:render()
@@ -63,13 +55,6 @@ World.rendering.step:connect(function(delta_time)
 
 		return
 	end
-	-- Gizmo.set_line_width(0.05)
-	-- Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
-
-	-- Gizmo.set_line_width(2)
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
 
 	display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
 	display_label.anchor = Vec2.new(0, 1)
@@ -89,18 +74,13 @@ World.rendering.step:connect(function(delta_time)
 	local camera_y = camera_y_spring:update(delta_time)
 
 	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
-	plane_object.transform =
-		Mat4.new(1):scale(Vec3.new(texture.width / texture.height, 1, 1)):rotate(math.pi / 2, Vec3.new(1, 0, 0))
-
-	-- Mat4.new(1):translate(Vec3.new(0, 0, -10)):rotate(0.1, Vec3.new(0, 1, 0)):rotate(0.1, Vec3.new(1, 0, 0))
-	-- :translate(Vec3.new(camera_y / 1000, camera_y / 1000, -5))
 
 	local glitch_factor = 0.01 + (mouse_delta.x + mouse_delta.y) / 500
 	if use_shader and glitch_effect.is_valid then
 		if now() > next_update then
 			next_update = now() + (1 / 15) * 1000
 
-			-- scene_buffer:resize(Vec2.new(Window.get_window_dimensions().x, Window.get_window_dimensions().y))
+			scene_buffer:resize(max_axis_resize(Window.get_window_dimensions(), targetSceneBufferSize))
 			scene_buffer:clear()
 
 			scene_buffer:bind()
@@ -125,11 +105,6 @@ World.rendering.step:connect(function(delta_time)
 	end
 
 	if ImGui.Begin("Look at me I'm a fucking C++ application") then
-		ImGui.Text("Image")
-		ImGui.Image(texture.id, Vec2.new(texture.width * 0.1, texture.height * 0.1), true)
-		ImGui.Spacing()
-		ImGui.Separator()
-
 		ImGui.Text(string.format("Mouse position: %.1f, %.1f", camera_x, camera_y))
 		ImGui.Text(string.format("Delta: %.2f", glitch_factor))
 

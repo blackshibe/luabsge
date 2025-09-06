@@ -24,10 +24,21 @@ struct EcsMeshTextureComponent {
     EcsMeshTextureComponent(bsgeImage* start_texture) : texture(*start_texture) {}
 };
 
-
 struct EcsPhysicsComponent {
     JPH::BodyID body_id;
     bool is_dynamic;
 
     EcsPhysicsComponent(JPH::BodyID id, bool dynamic) : body_id(id), is_dynamic(dynamic) {}
 };
+
+// struct EcsTextlabelComponent {
+//     bsgeTextlabel textlabel;
+
+//     EcsPhysicsComponent(bsgeTextlabel* text) : textlabel(*text) {}
+// };
+
+// struct EcsFrameComponent {
+//     bsgeTextlabel textlabel;
+
+//     EcsPhysicsComponent(bsgeTextlabel* text) : textlabel(*text) {}
+// };

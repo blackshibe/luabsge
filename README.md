@@ -42,12 +42,8 @@ Everything is compiled from source.
 ## TODO
 
 -   Showstoppers
-    -   Abstracting objects properly
-        -   Transform component
-        -   Design a better abstraction layer
     -   The various TODOs
     -   Datamodel format
-        -   Scene hierarchy
         -   Scene explorer
     -   Editor
         -   Scene creation format for a datamodel
@@ -57,5 +53,8 @@ Everything is compiled from source.
         -   Don't use source built libs in native build
     -   Audio
 -   Other
+    -   UI Rendering hierarchy + how it's gonna interact with 3D objects
+        -   New component for UI objects that has helpers for positioning
+        -   Maybe similiar to Unity rendering?
     -   Raytracer BVH
     -   UTF-8 Text Rendering

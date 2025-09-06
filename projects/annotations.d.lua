@@ -513,6 +513,8 @@ ImGuiTreeNodeFlags_FramePadding = 1024
 local InputSystem = {}
 
 ---@class Object
+---@field transform Mat4 Object's 4x4 transformation matrix (position, rotation, scale). Returns physics body transform if physics component exists, otherwise ECS transform.
+---@field parent Object Set this object's parent in the scene hierarchy. Creates parent-child relationship where this object inherits transformations.
 Object = {}
 
 ---@return Object
@@ -522,6 +524,11 @@ function Object.new() end
 ---@param component_type EcsComponentType Type of component to add
 ---@param data table Initialization data for the component
 function Object:add_component(component_type, data) end
+
+---Get a component from this object
+---@param component_type EcsComponentType Type of component to get
+---@return table|nil Component data as a table, or nil if component doesn't exist
+function Object:get_component(component_type) end
 
 ---@class Template
 ---@field function_calls number Number of function calls

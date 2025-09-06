@@ -24,4 +24,5 @@ struct BSGEObject {
 
 void lua_bsge_init_object(sol::state &lua);
 void lua_bsge_load_component(sol::this_state lua, BSGEObject &object, EcsComponentType type, const sol::table& data);
+void lua_bsge_patch_component(sol::this_state lua, BSGEObject &object, EcsComponentType type, const sol::table& data);
 sol::object lua_bsge_get_component(sol::this_state lua, BSGEObject &object, EcsComponentType type);

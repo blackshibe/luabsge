@@ -1,5 +1,8 @@
 #include "input.h"
 
+// Forward declaration
+extern glm::vec2 get_window_dimensions();
+
 // Global mouse state
 static glm::vec2 mouse_position{0.0f};
 static glm::vec2 mouse_delta{0.0f};
@@ -17,6 +20,12 @@ glm::vec2 get_mouse_position() {
 	glfwGetCursorPos(input_window, &xpos, &ypos);
 
 	return glm::vec2(xpos, ypos);
+}
+
+glm::vec2 get_mouse_position_normalized() {
+	glm::vec2 pos = get_mouse_position();
+	glm::vec2 window_dims = get_window_dimensions();
+	return pos / window_dims;
 }
 
 void update_mouse_input() {
@@ -98,6 +107,7 @@ void lua_bsge_init_input(sol::state &lua) {
 	sol::table input = lua.create_named_table("input");
 
 	input["get_mouse_position"] = &get_mouse_position;
+	input["get_mouse_position_normalized"] = &get_mouse_position_normalized;
     input["get_mouse_delta"] = &get_mouse_delta;
     input["is_left_mouse_down"] = &is_left_mouse_down;
     input["is_right_mouse_down"] = &is_right_mouse_down;

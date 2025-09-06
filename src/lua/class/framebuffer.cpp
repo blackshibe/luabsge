@@ -46,11 +46,28 @@ void lua_bsge_init_framebuffer(sol::state &lua) {
             glBindTexture(GL_TEXTURE_2D, effect.textureId);
         },
 
-        "bind", [](framebuffer& effect) {
-            glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
-            glViewport(0, 0, effect.width, effect.height);
-            set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
-        },
+        "bind", sol::overload(
+            [](framebuffer& effect) {
+                glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
+                glViewport(0, 0, effect.width, effect.height);
+                set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
+            },
+            [](framebuffer& effect, sol::function callback) {
+                // Bind framebuffer
+                glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
+                glViewport(0, 0, effect.width, effect.height);
+                set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
+                
+                // Execute callback
+                callback();
+                
+                // Unbind framebuffer
+                glBindFramebuffer(GL_FRAMEBUFFER, 0);
+                glm::vec2 window_dims = get_window_dimensions();
+                glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
+                set_current_buffer_dimensions(glm::vec2(window_dims.x, window_dims.y));
+            }
+        ),
 
         "unbind", [](framebuffer& effect) {
             glBindFramebuffer(GL_FRAMEBUFFER, 0);

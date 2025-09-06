@@ -296,6 +296,22 @@ function Window.quit() end
 ---@return boolean Window focus state
 function Window.get_focused() end
 
+---@param enabled boolean Enable/disable VSync (vertical synchronization)
+function Window.set_vsync(enabled) end
+
+---@return boolean Current VSync state
+function Window.get_vsync() end
+
+---@param width number Window width in pixels
+---@param height number Window height in pixels
+function Window.set_window_size(width, height) end
+
+---@param enabled boolean Enable fullscreen mode
+function Window.set_fullscreen(enabled) end
+
+---Maximize the window to fill the screen
+function Window.maximize() end
+
 ---@class Gizmo
 Gizmo = {}
 
@@ -572,13 +588,30 @@ function Object.new() end
 
 ---Add a component to this object
 ---@param component_type EcsComponentType Type of component to add
----@param data table Initialization data for the component
+---@param data EcsMeshComponentData|EcsMeshTextureComponentData|EcsPhysicsComponentData Initialization data for the component
 function Object:add_component(component_type, data) end
 
 ---Get a component from this object
 ---@param component_type EcsComponentType Type of component to get
 ---@return table|nil Component data as a table, or nil if component doesn't exist
 function Object:get_component(component_type) end
+
+---Patch an existing component on this object at runtime
+---@param component_type EcsComponentType Type of component to patch
+---@param data EcsMeshComponentData|EcsMeshTextureComponentData|EcsPhysicsComponentData Data fields to update in the component
+---
+---Allows runtime modification of component properties without full replacement.
+---Useful for updating mesh colors, textures, or other component data dynamically.
+---
+---Example usage:
+---```lua
+----- Update mesh color at runtime
+---my_object:patch_component(ECS_MESH_COMPONENT, { color = Vec4.new(1, 0, 0, 0.5) })
+---
+----- Update texture dynamically
+---my_object:patch_component(ECS_MESH_TEXTURE_COMPONENT, { texture = new_texture })
+---```
+function Object:patch_component(component_type, data) end
 
 ---@class Template
 ---@field function_calls number Number of function calls
@@ -594,6 +627,18 @@ function Template.new() end
 ECS_MESH_COMPONENT = 0
 ECS_MESH_TEXTURE_COMPONENT = 1
 ECS_PHYSICS_COMPONENT = 2
+
+-- ECS Component Data Structures
+---@class EcsMeshComponentData
+---@field mesh Mesh The mesh object to render
+---@field color Vec4|nil Optional mesh color (R, G, B, A). Applied as uniform color multiplier in shader. If not provided, defaults to white (1, 1, 1, 1).
+
+---@class EcsMeshTextureComponentData  
+---@field texture Image The texture to apply to the mesh
+
+---@class EcsPhysicsComponentData
+---@field mesh Mesh The mesh to use for physics collision shape
+---@field is_dynamic boolean Whether the physics body is dynamic (moveable) or static
 
 -- Global functions
 ---@return number Current time in milliseconds
@@ -706,6 +751,24 @@ function Framebuffer.new(width, height) end
 
 ---Bind framebuffer for rendering
 function Framebuffer:bind() end
+
+---Bind framebuffer and execute callback, automatically unbinding afterward
+---@param callback function Function to execute while framebuffer is bound
+---
+---This method provides automatic framebuffer management by binding the framebuffer,
+---executing the provided callback function, and then automatically unbinding.
+---Viewport dimensions are properly set and restored.
+---
+---Example usage:
+---```lua
+---scene_buffer:bind(function()
+---    -- Render scene to framebuffer
+---    World.rendering.render_pass()
+---    display_label:render()
+---end)
+---```
+---@overload fun(self: Framebuffer, callback: function)
+function Framebuffer:bind(callback) end
 
 ---Restore default framebuffer
 function Framebuffer:unbind() end

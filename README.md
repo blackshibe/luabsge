@@ -46,6 +46,7 @@ Everything is compiled from source.
     -   The various TODOs
 
         -   Throw error when setting no mesh
+        -   Make mesh color optional
         -   Patching ECS entities at runtime (mesh.color?)
         -   Queried mouse position doesn't match up with window position
         -   Camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
@@ -55,6 +56,9 @@ Everything is compiled from source.
         -   Can't use separate cameras for separate buffers(?)
         -   Buffer:bind(function() end)
         -   mesh_render is a mess
+        -   VSync controls (ai generated mess)
+        -   text is stretched
+        -   window controls (ai generated mess)
 
     -   Datamodel format
         -   Scene explorer

@@ -45,6 +45,10 @@ local last_mouse_position = World.input.get_mouse_position()
 local next_update = (1 / 30) * 1000
 local start = now()
 local render_other_scene = false
+
+Window.set_vsync(false)
+Window.maximize()
+
 World.rendering.step:connect(function(delta_time)
 	local mouse_position = World.input.get_mouse_position()
 	local mouse_delta = mouse_position - last_mouse_position
@@ -77,9 +81,9 @@ World.rendering.step:connect(function(delta_time)
 			scene_buffer:resize(max_axis_resize(Window.get_window_dimensions(), targetSceneBufferSize))
 			scene_buffer:clear()
 
-			scene_buffer:bind()
-			render_pass()
-			scene_buffer:unbind()
+			scene_buffer:bind(function()
+				render_pass()
+			end)
 
 			scene_buffer:bind_texture(GL_TEXTURE0)
 			scene_buffer:bind_texture(GL_TEXTURE1)
@@ -101,6 +105,7 @@ World.rendering.step:connect(function(delta_time)
 	if ImGui.Begin("Look at me I'm a fucking C++ application") then
 		ImGui.Text(string.format("Mouse position: %.1f, %.1f", camera_x, camera_y))
 		ImGui.Text(string.format("Delta: %.2f", glitch_factor))
+		ImGui.Text(string.format("FPS: %.2f", 1 / delta_time))
 
 		ImGui.Spacing()
 		ImGui.Separator()

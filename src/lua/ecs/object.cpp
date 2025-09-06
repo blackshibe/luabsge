@@ -9,6 +9,9 @@ void lua_bsge_init_object(sol::state &lua) {
                                 "get_component", [](sol::this_state state, BSGEObject &object, EcsComponentType type) {
                                     return lua_bsge_get_component(state, object, type);
                                 },
+                                "patch_component", [](sol::this_state state, BSGEObject &object, EcsComponentType type, const sol::table& data) {
+                                    lua_bsge_patch_component(state, object, type, data);
+                                },
                                 "transform", sol::property(
                                     [](BSGEObject &object) -> glm::mat4 {
                                         entt::registry* registry = lua_bsge_get_registry();
@@ -55,11 +58,17 @@ void lua_bsge_load_component(sol::this_state lua, BSGEObject &object, EcsCompone
         case EcsComponentType::ECS_MESH_COMPONENT: {
             // Extract mesh from Lua table
                 sol::optional<bsgeMesh*> mesh_opt = data["mesh"];
-                sol::optional<glm::vec4*> color_opt = data["color"];
+                sol::optional<glm::vec4> color_opt = data["color"];
 
-                if (!mesh_opt.has_value()) return; 
-                if (color_opt.has_value()) mesh_opt.value()->color = *color_opt.value();
-                registry->emplace<EcsMeshComponent>(object.entity, mesh_opt.value());
+                if (mesh_opt.value() == nullptr) {
+                    luaL_error(lua, "ECS_MESH_COMPONENT requires a 'mesh' field");
+                    return;
+                } 
+
+                bsgeMesh mesh = *mesh_opt.value();
+                if (color_opt.has_value()) mesh.color = color_opt.value();
+
+                registry->emplace<EcsMeshComponent>(object.entity, &mesh);
 
                 break;
             }
@@ -134,4 +143,38 @@ sol::object lua_bsge_get_component(sol::this_state lua, BSGEObject &object, EcsC
     }
     
     return sol::nil;
+}
+
+void lua_bsge_patch_component(sol::this_state lua, BSGEObject &object, EcsComponentType type, const sol::table& data) {
+    entt::registry* registry = lua_bsge_get_registry();
+    
+    switch (type) {
+        case EcsComponentType::ECS_MESH_COMPONENT: {
+            if (registry->all_of<EcsMeshComponent>(object.entity)) {
+                registry->patch<EcsMeshComponent>(object.entity, [&data](auto& comp) {
+                    sol::optional<glm::vec4*> color_opt = data["color"];
+                    if (color_opt.has_value()) {
+                        comp.mesh.color = *color_opt.value();
+                    }
+                });
+            }
+            break;
+        }
+        case EcsComponentType::ECS_MESH_TEXTURE_COMPONENT: {
+            if (registry->all_of<EcsMeshTextureComponent>(object.entity)) {
+                registry->patch<EcsMeshTextureComponent>(object.entity, [&data](auto& comp) {
+                    sol::optional<bsgeImage*> texture_opt = data["texture"];
+                    if (texture_opt.has_value()) {
+                        comp.texture = *texture_opt.value();
+                    }
+                });
+            }
+            break;
+        }
+        case EcsComponentType::ECS_PHYSICS_COMPONENT: {
+            // Physics components generally shouldn't be patched at runtime
+            // as they require physics world updates
+            break;
+        }
+    }
 }

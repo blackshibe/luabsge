@@ -62,6 +62,10 @@ function draw_bounding_box(min, max)
 end
 
 local next_update = now() + 1000
+
+Window.set_vsync(false)
+Window.maximize()
+
 World.rendering.step:connect(function(delta_time)
 	if World.input.is_right_mouse_down() then
 		local delta = World.input.get_mouse_delta()

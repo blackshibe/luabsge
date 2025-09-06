@@ -1,6 +1,10 @@
 ---@diagnostic disable: undefined-global
 
+-- TODO mouse position becomes nan
+-- TODO clean up code
+
 require("assets")
+MAX_BUFFER_RESOLUTION = Vec2.new(2048, 1333)
 
 local spring = require("script.spring")
 local max_axis_resize = require("script.max_axis_resize")
@@ -8,44 +12,21 @@ local max_axis_resize = require("script.max_axis_resize")
 local glitch_effect = VFXEffect.new()
 glitch_effect:load_fragment_shader("shader/glitch_frag.glsl")
 
-local MAX_BUFFER_RES = Vec2.new(2048, 1333)
-local scene_buffer = Framebuffer.new(MAX_BUFFER_RES.x, MAX_BUFFER_RES.y)
+local scene_buffer = Framebuffer.new(MAX_BUFFER_RESOLUTION.x, MAX_BUFFER_RESOLUTION.y)
 
 local camera = Camera.new()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
--- local texture = Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
-local texture = Emscripten.download_image("image.jpg")
-
-local plane_mesh = Mesh.new("mesh/plane.obj")
-
-local plane_object = Object.new()
-plane_object.transform =
-	Mat4.new(1):scale(Vec3.new(texture.width / texture.height, 1, 1)):rotate(math.pi / 2, Vec3.new(1, 0, 0))
-plane_object.parent = Scene
-
-plane_object:add_component(ECS_MESH_COMPONENT, { mesh = plane_mesh })
-plane_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
-
 local font = Font.new()
 font:load("font/arial.ttf")
 
-local message = "blackshibe.net"
 local display_label = Textlabel.new()
 display_label.font = font
 
 local camera_x_spring = spring.new(0.5, 100, 50)
 local camera_y_spring = spring.new(0.5, 100, 50)
-
-function render_pass()
-	display_label:render()
-	World.rendering.render_pass()
-end
-
--- TODO mouse position becomes nan
--- TODO clean up code
 
 local use_shader = true
 local last_mouse_position = World.input.get_mouse_position()
@@ -54,6 +35,8 @@ local start = now()
 
 local last_browser_text = 0
 local last_browser_text_expiry = now()
+local render_other_scene = false
+
 local browser_texts = {
 	"email",
 	"discord",
@@ -73,32 +56,48 @@ local motive_texts = {
 	"we always think there is going to be more time",
 	"watching the happiest days end",
 }
+
 local motive_text_index = math.random(1, #motive_texts)
 local render_other_scene = false
+
+function render_pass()
+	display_label:render()
+	World.rendering.render_pass()
+end
 
 Window.set_vsync(false)
 Window.maximize()
 
+camera.transform = Mat4.new(1)
 World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)
 	if render_other_scene then
 		COMMON_PATH = ""
 		require("other-scene")(delta_time)
-
-		return
 	end
-	-- Gizmo.set_line_width(0.05)
-	-- Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))
 
-	-- Gizmo.set_line_width(2)
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(10, 0, 0), Vec3.new(1, 0, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 10, 0), Vec3.new(0, 1, 0))
-	-- Gizmo.draw_line(Vec3.new(), Vec3.new(0, 0, 10), Vec3.new(0, 0, 1))
+	local default = motive_texts[motive_text_index]
+	local cur_message = browser_texts[last_browser_text + 1] or default
+	local completion_factor = 0
+	display_label.scale = 0.6
 
-	display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
-	display_label.anchor = Vec2.new(0, 1)
-	display_label.scale = 1.0
-	display_label.text = message:sub(1, math.floor(now() / 200) % (#message + 1))
+	if now() > last_browser_text_expiry then
+		display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
+		display_label.anchor = Vec2.new(0, 1)
+
+		cur_message = default
+		completion_factor = math.floor(now() / 200) % ((#default + 1) * 3)
+	else
+		display_label.position = Vec2.new(
+			Window.get_window_dimensions().x - 100,
+			(0.2 + last_browser_text * 0.07) * Window.get_window_dimensions().y
+		)
+		display_label.anchor = Vec2.new(1, 0.5)
+
+		completion_factor = #cur_message
+	end
+
+	display_label.text = cur_message:sub(1, completion_factor)
 
 	-- TODO mouse position doesn't match up with real position
 	local mouse_position = World.input.get_mouse_position()
@@ -112,41 +111,27 @@ World.rendering.step:connect(function(delta_time)
 	local camera_x = math.max(math.min(camera_x_spring:update(delta_time), 1), -1)
 	local camera_y = math.max(math.min(camera_y_spring:update(delta_time), 1), -1)
 
-	if render_other_scene then
-		COMMON_PATH = ""
-		require("other-scene")(delta_time)
-	else
-		camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
-	end
+	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
 
-	display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
-	display_label.anchor = Vec2.new(0, 1)
-	display_label.scale = 1.0
-	display_label.text = message:sub(1, math.floor(now() / 200) % (#message + 1))
+	-- Mat4.new(1):translate(Vec3.new(0, 0, -10)):rotate(0.1, Vec3.new(0, 1, 0)):rotate(0.1, Vec3.new(1, 0, 0))
+	-- :translate(Vec3.new(camera_y / 1000, camera_y / 1000, -5))
 
 	local glitch_factor = 0.01 + (mouse_delta.x + mouse_delta.y) / 500
+	local framerate = render_other_scene and 60 or 15
 	if use_shader and glitch_effect.is_valid then
 		if now() > next_update then
-			next_update = now() + (1 / 15) * 1000
+			next_update = now() + (1 / framerate) * 1000
 
-			scene_buffer:resize(
-				Vec2.new(
-					math.min(Window.get_window_dimensions().x, MAX_BUFFER_RES.x),
-					math.min(Window.get_window_dimensions().y, MAX_BUFFER_RES.y)
-				)
-			)
-			scene_buffer:clear()
-
+			scene_buffer:resize(max_axis_resize(Window.get_window_dimensions(), MAX_BUFFER_RESOLUTION))
 			scene_buffer:bind(function()
 				render_pass()
 			end)
 
-			scene_buffer:bind_texture(GL_TEXTURE0)
-			scene_buffer:bind_texture(GL_TEXTURE1)
+			scene_buffer:bind_texture(GL_TEXTURE4)
 
 			glitch_effect:set_uniform_float("u_time", now() - start) -- texture 0
-			glitch_effect:set_uniform_int("u_image", 0) -- texture 0
-			glitch_effect:set_uniform_int("u_inverted_texture", 1) -- texture 1
+			glitch_effect:set_uniform_int("u_image", 4) -- texture 0
+			glitch_effect:set_uniform_int("u_inverted_texture", 4) -- texture 1
 
 			glitch_effect:set_uniform_float("u_glitch", glitch_factor)
 			glitch_effect:set_uniform_float("u_invert", 0)

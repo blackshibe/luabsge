@@ -13,4 +13,12 @@ echo "-- Running emsdk_env.sh"
 source $HOME/emsdk/emsdk_env.sh
 
 echo "-- Running cmake"
-cmake -B build-web -DPROJ=$1 -DASSIMP_BUILD_TESTS=OFF -DASSIMP_BUILD_ZLIB=ON -DUSE_EMSCRIPTEN=ON -DPLATFORM=Web -DEMSDK=$EMSDK -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+cmake -B build-web \
+    -DPROJ=$1 \
+    -DASSIMP_BUILD_TESTS=OFF \
+    -DASSIMP_BUILD_ZLIB=ON \
+    -DUSE_EMSCRIPTEN=ON \
+    -DPLATFORM=Web \
+    -DEMSDK=$EMSDK \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_TOOLCHAIN_FILE=~/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake

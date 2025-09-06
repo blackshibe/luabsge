@@ -7,7 +7,7 @@ else
 	echo "[run.sh] compiling"
 	
 	# run make and don't run program if it errors
-	if cmake --build build; then
+	if cmake --build build -j 16; then
 		echo "[run.sh] compiled"
 	else
 		echo "[run.sh] failed to compile"

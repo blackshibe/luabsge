@@ -963,6 +963,43 @@ Emscripten = {}
 ---```
 function Emscripten.download_image(src) end
 
+---Get an integer value from the JavaScript-Lua communication bridge (Web platform only)
+---@param key string The key to retrieve the integer value for
+---@return number The integer value associated with the key, or 0 if the key doesn't exist
+---
+---This function provides cross-platform communication between JavaScript and Lua when running
+---on the web platform via WebAssembly. It retrieves integer values that have been set by
+---JavaScript code using the corresponding js_set_int() function from the browser side.
+---
+---The function accesses a global string-to-integer map that persists throughout the application's
+---runtime. Values are not persistent between application restarts.
+---
+---Common use cases:
+---- Reading configuration values set by web UI
+---- Polling for state changes from JavaScript events
+---- Receiving user input or selections from DOM elements
+---- Cross-platform communication in web deployments
+---
+---Example usage:
+---```lua
+----- Poll for changes from JavaScript
+---if Emscripten.get_int("selected") ~= last_selected then
+---    last_selected = Emscripten.get_int("selected")
+---    handle_selection_change()
+---end
+---
+----- Display value in ImGui
+---ImGui.Text(string.format("Current selection: %i", Emscripten.get_int("selected")))
+---
+----- Check for web-based configuration
+---local quality_setting = Emscripten.get_int("graphics_quality")
+---```
+---
+---Platform compatibility:
+--- - WEB: Fully functional, enables JavaScript-Lua communication
+--- - NATIVE: Function exists but returns 0 for all keys (no-op)
+function Emscripten.get_int(key) end
+
 -- Platform detection constant
 ---@type string "WEB" | "NATIVE"
 ---Global constant indicating the current platform:

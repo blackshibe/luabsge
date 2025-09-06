@@ -97,12 +97,8 @@ return function(delta_time)
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 
 	-- todo doesn't work idk why
-	-- raytracer_framebuffer:clear()
-
-	-- raytracer_framebuffer:bind()
-	-- render_pass()
-	-- raytracer_framebuffer:unbind()
-	-- render_pass()
+	raytracer_framebuffer:clear()
+	raytracer_framebuffer:bind(render_pass)
 
 	if ImGui.Begin("LuaBSGE ImGui Demo") then
 		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(256, 256), false)

@@ -9,7 +9,7 @@ if [ -z "$2" ]
 else
 
 	echo "-- Running build"
-	if cmake --build build-web; then
+	if cmake --build build-web -j 16; then
 		echo "[run.sh] compiled"
 
 		mv public/luabsge.wasm.data $2/luabsge.wasm.data

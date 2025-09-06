@@ -21,10 +21,18 @@ option(GLFW_BUILD_EXAMPLES "" OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 
 # WASM Build option
 if(USE_EMSCRIPTEN)
         option(JS_ONLY "Compiles to native JS (No WASM)" OFF)
+
+        # Build faster pls
+        target_link_options(${PROJECT_NAME} PRIVATE
+                "-Wl,--threads=20"
+                "-Wl,--lto-partitions=20"
+                "-Wl,--lto-O0"
+                "-Wl,--lto-CGO0")
 
         file(GLOB SOURCES src/*.cpp)
 
@@ -75,14 +83,6 @@ else()
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw_SOURCE_DIR}/include)
         target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 endif()
-
-# Build faster pls
-target_link_options(${PROJECT_NAME} PRIVATE
-        "-Wl,--threads=20"
-        "-Wl,--lto-partitions=20"
-        "-Wl,--lto-O0"
-        "-Wl,--lto-CGO0")
-
 
 # Project files
 file(GLOB_RECURSE SOURCES "src/*.cpp")

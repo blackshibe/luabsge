@@ -11,8 +11,9 @@ local function loadImageAsMesh(texture, opacity)
 end
 
 SCENE_TEXTURES = {
-	backdrop = PLATFORM == "NATIVE" and Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
-		or Emscripten.download_image("image.jpg"),
+	-- backdrop = PLATFORM == "NATIVE" and Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
+	-- 	or Emscripten.download_image("image.jpg"),
+	backdrop = Image.new(string.format("image/active-%s.jpg", math.random(1, 5))),
 	frame = Image.new("image/ui/black.png"),
 }
 

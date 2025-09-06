@@ -22,17 +22,10 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
+set(CMAKE_COLOR_DIAGNOSTICS ON)
 
 # WASM Build option
 if(USE_EMSCRIPTEN)
-        option(JS_ONLY "Compiles to native JS (No WASM)" OFF)
-
-        # Build faster pls
-        target_link_options(${PROJECT_NAME} PRIVATE
-                "-Wl,--threads=20"
-                "-Wl,--lto-partitions=20"
-                "-Wl,--lto-O0"
-                "-Wl,--lto-CGO0")
 
         file(GLOB SOURCES src/*.cpp)
 
@@ -44,16 +37,11 @@ if(USE_EMSCRIPTEN)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/public")
         add_executable(${PROJECT_NAME} ${SOURCES})
 
-        if(JS_ONLY)
-                message(STATUS "Setting compilation target to native JavaScript")
-                set(CMAKE_EXECUTABLE_SUFFIX ".js")
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE\_DUPLICATE\_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=0 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
-        else(JS_ONLY)
-                message(STATUS "Setting compilation target to WASM")
-                set(CMAKE_EXECUTABLE_SUFFIX ".wasm.js")
 
-                set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE\_DUPLICATE\_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
-        endif(JS_ONLY)
+        message(STATUS "Setting compilation target to WASM")
+        set(CMAKE_EXECUTABLE_SUFFIX ".wasm.js")
+
+        set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE\_DUPLICATE\_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
 
         FetchContent_Declare(
                 glfw3
@@ -65,6 +53,14 @@ if(USE_EMSCRIPTEN)
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw3_SOURCE_DIR}/src)
         target_link_libraries(${PROJECT_NAME} PRIVATE glfw3)
         target_compile_definitions(${PROJECT_NAME} PRIVATE USE_EMSCRIPTEN=1)
+
+        # Build faster pls
+        target_link_options(${PROJECT_NAME} PRIVATE
+                "-Wl,--threads=20"
+                "-Wl,--lto-partitions=20"
+                "-Wl,--lto-O0"
+                "-Wl,--lto-CGO0")
+
 else()
 
         # Engine executable

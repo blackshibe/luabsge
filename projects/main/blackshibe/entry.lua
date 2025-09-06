@@ -4,7 +4,7 @@
 -- TODO clean up code
 
 require("assets")
-MAX_BUFFER_RESOLUTION = Vec2.new(2048, 1333)
+MAX_BUFFER_RESOLUTION = Vec2.new(2000, 1333)
 
 local spring = require("script.spring")
 local max_axis_resize = require("script.max_axis_resize")

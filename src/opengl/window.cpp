@@ -13,6 +13,16 @@
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #include <GLFW/emscripten_glfw3.h>
+
+// Static pointer for emscripten main loop callback
+static BSGEWindow* g_window_instance = nullptr;
+
+// Static callback function for emscripten
+static void emscripten_render_loop_callback() {
+	if (g_window_instance) {
+		g_window_instance->render_loop();
+	}
+}
 #endif
 
 BSGEWindow::BSGEWindow() {
@@ -115,19 +125,18 @@ void BSGEWindow::render_loop_init() {
 		this->render_pass();
 	};
 
-	auto render_loop = [this]() {
-		this->render_loop();
-	};
-
-
 	#if USE_EMSCRIPTEN
 	
+	// Set up static instance for emscripten callback
+	g_window_instance = this;
 	emscripten_glfw_make_canvas_resizable(window, "#bsge-canvas-container", nullptr);
-	emscripten_set_main_loop(render_loop, 0, 1);
+	emscripten_set_main_loop(emscripten_render_loop_callback, 0, 1);
 	
 	#else
 
-	while (!should_break && !glfwWindowShouldClose(this->window)) render_loop();
+	while (!should_break && !glfwWindowShouldClose(this->window)) {
+		this->render_loop();
+	}
 	
 	#endif	
 }

@@ -38,6 +38,7 @@ Everything is compiled from source.
 -   Post process shader effects
 -   Ray tracing TBO support
 -   ImGUI support
+-   ECS-based mesh rendering
 
 ## TODO
 
@@ -53,7 +54,7 @@ Everything is compiled from source.
         -   [ ] Remove all remaining functionality from Image and Texture besides loading them
         -   [ ] Entire engine breaks if BSGE isn't declared
         -   [ ] Can't use separate cameras for separate buffers(?)
-        -   [ ] Buffer:bind(function() end)
+        -   [x] Buffer:bind(function() end)
         -   [ ] mesh_render is a mess
         -   [ ] VSync controls (ai generated mess)
         -   [ ] text is stretched
@@ -62,6 +63,7 @@ Everything is compiled from source.
         -   [ ] Gizmo drawing to secondary framebuffers
         -   [ ] Optimize link times for web
         -   [ ] Different build types (Release, Debug)
+            -   Minimize final web build size
     -   Datamodel format
         -   Scene explorer
             -   Child traversal

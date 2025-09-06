@@ -55,9 +55,12 @@ void lua_bsge_load_component(sol::this_state lua, BSGEObject &object, EcsCompone
         case EcsComponentType::ECS_MESH_COMPONENT: {
             // Extract mesh from Lua table
                 sol::optional<bsgeMesh*> mesh_opt = data["mesh"];
-                if (mesh_opt.has_value()) {
-                    registry->emplace<EcsMeshComponent>(object.entity, mesh_opt.value());
-                }
+                sol::optional<glm::vec4*> color_opt = data["color"];
+
+                if (!mesh_opt.has_value()) return; 
+                if (color_opt.has_value()) mesh_opt.value()->color = *color_opt.value();
+                registry->emplace<EcsMeshComponent>(object.entity, mesh_opt.value());
+
                 break;
             }
             case EcsComponentType::ECS_MESH_TEXTURE_COMPONENT: {

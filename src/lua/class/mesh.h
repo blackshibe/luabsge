@@ -35,6 +35,7 @@ struct meshGeometry {
 
 struct bsgeMesh {
 	glm::mat4 matrix;
+	glm::vec4 color;
 	meshGeometry geometry;
 
 	int indices_count;
@@ -43,7 +44,7 @@ struct bsgeMesh {
 	unsigned int vao;
 	unsigned int ebo;
 
-	bsgeMesh(sol::this_state lua, const char* src) : matrix(glm::mat4(1))  {
+	bsgeMesh(sol::this_state lua, const char* src) : matrix(glm::mat4(1)), color(glm::vec4(1.0f, 1.0f, 1.0f, 1.0f))  {
 		if (mesh_load(this, src) != 0) {
 			luax_push_error(lua.lua_state(), "Failed to load mesh!");
 		}

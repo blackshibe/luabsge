@@ -14,6 +14,7 @@ struct EcsObjectComponent {
 // TODO: Refactor your mesh system to avoid storing OpenGL resources in components
 struct EcsMeshComponent {
     bsgeMesh mesh;
+    glm::vec4 color;
 
     EcsMeshComponent(bsgeMesh* start_mesh) : mesh(*start_mesh) {}
 };

@@ -45,7 +45,6 @@ void lua_bsge_gizmo_begin_frame(glm::mat4 camera_projection, glm::mat4 camera_tr
 void lua_bsge_gizmo_end_frame() {
     if (vertices_by_width.empty()) return;
 
-    // Set depth test state
     if (depth_test_enabled) {
         glEnable(GL_DEPTH_TEST);
     } else {

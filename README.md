@@ -42,7 +42,20 @@ Everything is compiled from source.
 ## TODO
 
 -   Showstoppers
+
     -   The various TODOs
+
+        -   Throw error when setting no mesh
+        -   Patching ECS entities at runtime (mesh.color?)
+        -   Queried mouse position doesn't match up with window position
+        -   Camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
+            -   Fixed?
+        -   Remove all remaining functionality from Image and Texture besides loading them
+        -   Entire engine breaks if BSGE isn't declared
+        -   Can't use separate cameras for separate buffers(?)
+        -   Buffer:bind(function() end)
+        -   mesh_render is a mess
+
     -   Datamodel format
         -   Scene explorer
     -   Editor
@@ -52,6 +65,7 @@ Everything is compiled from source.
         -   Inconsistent structure
         -   Don't use source built libs in native build
     -   Audio
+
 -   Other
     -   UI Rendering hierarchy + how it's gonna interact with 3D objects
         -   New component for UI objects that has helpers for positioning

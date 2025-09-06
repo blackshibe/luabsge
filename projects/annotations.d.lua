@@ -6,7 +6,7 @@
 ---@field fov number Field of view in degrees (default: 70.0)
 ---@field near_clip number Near clipping plane distance (default: 0.1)
 ---@field far_clip number Far clipping plane distance (default: 100.0)
----@field matrix Mat4 4x4 transformation matrix
+---@field transform Mat4 4x4 transformation matrix for camera position, rotation, and scale
 Camera = {}
 
 ---@return Camera
@@ -19,6 +19,34 @@ function Camera:get_projection_matrix() end
 ---@param y number Window height
 ---@return Mat4 projection matrix for specific resolution
 function Camera:get_projection_matrix_for_resolution(x, y) end
+
+---Camera.transform - 4x4 transformation matrix controlling camera position, rotation, and scale
+---
+---This field contains a Mat4 that defines the camera's position and orientation in 3D space.
+---The engine uses this matrix to calculate the view transformation for rendering.
+---
+---Default: Mat4.new(1):translate(Vec3.new(0, 0, 5)) - Identity matrix translated 5 units back on Z-axis
+---
+---The transform matrix is automatically applied during World.rendering.render_pass() and
+---used to set the "camera_transform" uniform in shaders via camera_set_shader_projection_matrix().
+---
+---Common patterns:
+---```lua
+----- Basic positioning
+---camera.transform = Mat4.new(1):translate(Vec3.new(x, y, z))
+---
+----- Position with rotation
+---camera.transform = Mat4.new(1):translate(pos):rotate(angle, axis)
+---
+----- Animated camera movement
+---local spring_x = spring.new(0.5, 100, 50)
+---spring_x.target = mouse_x
+---local smooth_x = spring_x:update(delta_time)
+---camera.transform = Mat4.new(1):translate(Vec3.new(smooth_x, 0, -4))
+---
+----- Look-at camera
+---camera.transform = Mat4.lookAt(eye_pos, target_pos, up_vector)
+---```
 
 ---@class Font
 Font = {}
@@ -231,9 +259,31 @@ function Mat4:to_vec3() end
 -- Mat4 supports matrix multiplication operator: *
 
 ---@class World
----@field rendering {camera: Camera, step: Signal}
+---@field rendering {camera: Camera, step: Signal, render_pass: fun()}
 ---@field input table Input system
 World = {}
+
+---World.rendering.render_pass() - Core rendering function that processes and renders all ECS entities
+---
+---This function performs a complete render pass of the 3D scene:
+---1. Calculates hierarchical depths for all ECS entities with transform components
+---2. Sorts entities by depth to ensure proper parent-child rendering order
+---3. Computes final world transforms by combining local transforms with parent transforms
+---4. Updates transforms based on physics bodies when physics components are present
+---5. Renders all meshes with proper transformation matrices and textures
+---6. Sets up shader uniforms for camera projection and transformation
+---
+---The render pass handles the Entity-Component-System rendering pipeline automatically.
+---Call this function inside your custom render_pass() function after rendering UI elements.
+---
+---Example usage:
+---```lua
+---function render_pass()
+---    display_label:render()  -- Render UI first
+---    World.rendering.render_pass()  -- Render 3D scene
+---    Gizmo.draw_grid(100, 100, Vec3.new(0.25, 0.25, 0.25))  -- Render debug gizmos
+---end
+---```
 
 ---@class Window
 Window = {}
@@ -832,6 +882,56 @@ GL_BLEND = 3042
 -- Additional Global Constants
 BASE_FONT_HEIGHT = 96
 
+---@class Emscripten
+Emscripten = {}
+
+---Download and load an image from a URL (Web platform only)
+---@param src string URL of the image to download
+---@return Image Downloaded image object
+---
+---This function is only available when running on the web platform (PLATFORM == "WEB").
+---It downloads an image from the specified URL and returns an Image object that can be used
+---for texturing meshes or other rendering operations.
+---
+---Example usage:
+---```lua
+---local backdrop = PLATFORM == "NATIVE" and Image.new("image/texture.jpg")
+---    or Emscripten.download_image("https://example.com/texture.jpg")
+---```
+function Emscripten.download_image(src) end
+
+-- Platform detection constant
+---@type string "WEB" | "NATIVE"
+---Global constant indicating the current platform:
+--- "WEB" - Running in browser via Emscripten/WebAssembly
+--- "NATIVE" - Running as native executable (Windows/Linux)
+---
+---Use this to conditionally load assets or enable platform-specific features:
+---```lua
+---local image = PLATFORM == "NATIVE" 
+---    and Image.new("local/path.jpg")
+---    or Emscripten.download_image("url/path.jpg")
+---```
+PLATFORM = "NATIVE"
+
+-- Scene root object
+---@type Object
+---Global scene root object - the top-level parent in the ECS hierarchy.
+---All objects without an explicit parent are children of Scene.
+---
+---This is a BSGEObject instance that serves as the default parent for all scene objects.
+---Use it to organize your scene hierarchy:
+---```lua
+---local my_object = Object.new()
+---my_object.parent = Scene  -- Parent to scene root
+---
+---local mesh_data = {
+---    path = "mesh/cube.obj"
+---}
+---my_object:add_component(ECS_MESH_COMPONENT, mesh_data)
+---```
+Scene = {}
+
 -- Global variables
 _G.Camera = Camera
 _G.Font = Font
@@ -856,6 +956,9 @@ _G.SphereBufferObject = SphereBufferObject
 _G.BoundingBox = BoundingBox
 _G.Object = Object
 _G.Template = Template
+_G.Emscripten = Emscripten
+_G.PLATFORM = PLATFORM
+_G.Scene = Scene
 _G.ECS_MESH_COMPONENT = ECS_MESH_COMPONENT
 _G.ECS_MESH_TEXTURE_COMPONENT = ECS_MESH_TEXTURE_COMPONENT
 _G.ECS_PHYSICS_COMPONENT = ECS_PHYSICS_COMPONENT

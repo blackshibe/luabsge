@@ -12,16 +12,15 @@ camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
-local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
-
 local boxes = {}
 local next_spawn_time = now()
 
 local box_mesh = Mesh.new(COMMON_PATH .. "mesh/box.obj")
+local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 
 local floor_object = Object.new()
 floor_object.transform = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
-floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh })
+floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh, color = Vec4.new(1, 1, 1, 1) })
 floor_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 floor_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box_mesh, is_dynamic = false })
 
@@ -61,7 +60,7 @@ local function spawn_one()
 		:scale(Vec3.new(0.5, 0.5, 0.5))
 		:translate(Vec3.new(math.random(-100, 100) / 10, 15, math.random(-100, 100) / 10))
 
-	box_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh })
+	box_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh, color = Vec4.new(1, 1, 1, 0.5) })
 	box_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 	box_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box_mesh, is_dynamic = true })
 
@@ -91,20 +90,19 @@ return function(delta_time)
 		accum_frames = 0
 	end
 
-	-- TODO camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
-	-- it would make sense to have a primary window framebuffer object that's assigned in World instead
+	--  it would make sense to have a primary window framebuffer object that's assigned in World instead
 	camera.transform = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -16))
 		:rotate(camera_inputs.r_y, Vec3.new(1, 0, 0))
 		:rotate(camera_inputs.r_x, Vec3.new(0, 1, 0))
 
-	raytracer_framebuffer:clear()
+	-- todo doesn't work idk why
+	-- raytracer_framebuffer:clear()
 
-	-- TODO bind(function() end) instead
-	raytracer_framebuffer:bind()
-	render_pass()
-	raytracer_framebuffer:unbind()
-	render_pass()
+	-- raytracer_framebuffer:bind()
+	-- render_pass()
+	-- raytracer_framebuffer:unbind()
+	-- render_pass()
 
 	if ImGui.Begin("LuaBSGE ImGui Demo") then
 		ImGui.Image(raytracer_framebuffer.texture_id, Vec2.new(256, 256), false)

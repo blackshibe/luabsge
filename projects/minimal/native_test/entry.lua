@@ -6,7 +6,6 @@ font:load(COMMON_PATH .. "font/FiraCode-Regular.ttf")
 local display_label = Textlabel.new()
 display_label.font = font
 
--- TODO: can't use separate cameras for separate buffers(?)
 local camera = Camera.new()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
@@ -18,19 +17,19 @@ local box = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 
 local box_object = Object.new()
 box_object.transform = Mat4.new(1):translate(Vec3.new(0, 4, 0))
-box_object:add_component(ECS_MESH_COMPONENT, { mesh = box })
+box_object:add_component(ECS_MESH_COMPONENT, { mesh = box, color = Vec4.new(1, 1, 1, 1) })
 box_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 box_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box, is_dynamic = true })
 
 local top_object = Object.new()
 top_object.transform = Mat4.new(1):translate(Vec3.new(1, 6, 0.25))
-top_object:add_component(ECS_MESH_COMPONENT, { mesh = box })
+top_object:add_component(ECS_MESH_COMPONENT, { mesh = box, color = Vec4.new(1, 1, 1, 0.5) })
 top_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 top_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box, is_dynamic = true })
 
 local floor_object = Object.new()
 floor_object.transform = Mat4.new(1):scale(Vec3.new(4, 0.1, 4))
-floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box })
+floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box, color = Vec4.new(1, 1, 1, 1) })
 floor_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture_grid })
 floor_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box, is_dynamic = false })
 
@@ -62,8 +61,6 @@ World.rendering.step:connect(function(delta_time)
 	display_label.scale = 0.5 + alpha
 	display_label.color = Vec3.new(1, alpha, math.abs(math.sin(now() / 5000)))
 
-	-- TODO camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
-	-- it would make sense to have a primary window framebuffer object that's assigned in World instead
 	camera.transform = Mat4.new(1)
 		:translate(Vec3.new(0, 0, -10))
 		:rotate(0.25, Vec3.new(1, 0, 0))

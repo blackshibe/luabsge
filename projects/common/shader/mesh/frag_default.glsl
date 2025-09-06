@@ -7,9 +7,9 @@ in vec2 tex_coord;
 
 uniform float time;
 uniform sampler2D img_texture;
+uniform vec4 img_color;
 
 void main()
 {
-    // FragColor = vec4(color.rgb, 1.0f); //  + vec4(time, 0.0f, 0.0f, 0.0f);
-    FragColor = texture(img_texture, tex_coord);
+    FragColor = texture(img_texture, tex_coord) * img_color;
 } 

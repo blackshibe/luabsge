@@ -38,30 +38,14 @@ function render_pass()
 	World.rendering.render_pass()
 end
 
--- TODO: buffers don't work in librewolf, so images are at 1k res rn (<1k max texture res)
--- TODO: blackshibe.net interactivity (listening to hover events and stuff)
--- TODO: correct aspect ratio of image
+-- TODO mouse position becomes nan
 
 local use_shader = true
 local last_mouse_position = World.input.get_mouse_position()
 local next_update = (1 / 30) * 1000
 local start = now()
-
 local render_other_scene = false
 World.rendering.step:connect(function(delta_time)
-	if render_other_scene then
-		COMMON_PATH = ""
-		require("other-scene")(delta_time)
-
-		return
-	end
-
-	display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
-	display_label.anchor = Vec2.new(0, 1)
-	display_label.scale = 1.0
-	display_label.text = message:sub(1, math.floor(now() / 200) % (#message + 1))
-
-	-- TODO mouse position doesn't match up with real position
 	local mouse_position = World.input.get_mouse_position()
 	local mouse_delta = mouse_position - last_mouse_position
 	last_mouse_position = mouse_position
@@ -73,7 +57,17 @@ World.rendering.step:connect(function(delta_time)
 	local camera_x = camera_x_spring:update(delta_time)
 	local camera_y = camera_y_spring:update(delta_time)
 
-	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+	if render_other_scene then
+		COMMON_PATH = ""
+		require("other-scene")(delta_time)
+	else
+		camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+	end
+
+	display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
+	display_label.anchor = Vec2.new(0, 1)
+	display_label.scale = 1.0
+	display_label.text = message:sub(1, math.floor(now() / 200) % (#message + 1))
 
 	local glitch_factor = 0.01 + (mouse_delta.x + mouse_delta.y) / 500
 	if use_shader and glitch_effect.is_valid then

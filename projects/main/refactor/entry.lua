@@ -5,7 +5,6 @@ camera.fov = 70
 camera.near_clip = 0.1
 camera.far_clip = 100
 
--- TODO: these should be userdatas that store information only
 local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 local mesh = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 mesh.texture = texture -- legacy

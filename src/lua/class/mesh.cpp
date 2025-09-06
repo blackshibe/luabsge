@@ -118,10 +118,10 @@ int mesh_load(bsgeMesh *bsgemesh, const char *path)
 }
 
 int mesh_render(sol::state &lua, glm::mat4 matrix, bsgeMesh &bsgemesh) {
-	glEnable(GL_DEPTH_TEST);
 	glUseProgram(context_window->default_shader);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bsgemesh.ebo);
 	glBindVertexArray(bsgemesh.vao);
+	glUniform4f(glGetUniformLocation(context_window->default_shader, "img_color"), bsgemesh.color.x, bsgemesh.color.y, bsgemesh.color.z, bsgemesh.color.w);
 
 	camera_set_shader_projection_matrix(lua, context_window);
 

@@ -6,6 +6,8 @@
 #include "../lua/class/input.h"
 #include "../lua/module/lua_rendering.h"
 #include "../lua/ecs/static_registry.h"
+#include <algorithm>
+#include <vector>
 
 #if USE_EMSCRIPTEN
 #include <emscripten.h>
@@ -98,9 +100,6 @@ void BSGEWindow::render_loop_init() {
 	};
 
 	this->default_shader = default_shader;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	// probably disables vsync
 	// glfwSwapInterval(0);
@@ -268,11 +267,23 @@ bool BSGEWindow::render_loop() {
 }
 
 void BSGEWindow::render_pass() {
+	// Get camera position for transparency sorting
+	sol::table world = (*lua)["World"];
+	sol::table rendering = world["rendering"];
+	sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
+	glm::vec3 camera_position = glm::vec3(0.0f);
+	
+	if (camera_opt) {
+		BSGECameraMetadata* camera = camera_opt.value();
+		camera_position = glm::vec3(camera->transform[3]);
+	}
 
 	// https://skypjack.github.io/2019-08-20-ecs-baf-part-4-insights
 	// TODO: only sort objects updated this frame
 	std::unordered_map<entt::entity, int> depths;
 	std::unordered_map<entt::entity, glm::mat4> transforms;
+	std::unordered_map<entt::entity, float> distances;
+	
 	auto calculate_depth = [this, &depths](const entt::entity entity, auto&& self) -> int {
 		if (depths.find(entity) != depths.end()) {
 			return depths[entity];
@@ -298,15 +309,17 @@ void BSGEWindow::render_pass() {
 		return depths[lhs] < depths[rhs];
 	});
 
+	// Calculate transforms and distances for all entities first
     auto view = registry.view<EcsObjectComponent>();
-	view.each([this, &transforms, &depths](entt::entity entity, EcsObjectComponent &object_component) {
-
+	std::vector<entt::entity> opaque_entities;
+	std::vector<entt::entity> transparent_entities;
+	
+	view.each([this, &transforms, &depths, &distances, &camera_position, &opaque_entities, &transparent_entities](entt::entity entity, EcsObjectComponent &object_component) {
 		// handle hierarchy
 		glm::mat4 final_transform;
 
 		if (object_component.parent != entt::null) {
 			EcsObjectComponent* parent_object = registry.try_get<EcsObjectComponent>(object_component.parent);
-
 			final_transform = transforms[object_component.parent] * object_component.transform;
 		} else {
 			final_transform = object_component.transform;
@@ -330,6 +343,37 @@ void BSGEWindow::render_pass() {
 			return; // some things aren't renderable
 		}
 
+		// Calculate distance from camera for transparency sorting
+		glm::vec3 object_position = glm::vec3(final_transform[3]);
+		distances[entity] = glm::distance(camera_position, object_position);
+
+		// Separate transparent and opaque objects
+		bool is_transparent = mesh_component->mesh.color.w < 1.0f;
+		if (is_transparent) {
+			transparent_entities.push_back(entity);
+		} else {
+			opaque_entities.push_back(entity);
+		}
+	});
+
+	// Sort opaque objects by hierarchy depth (front to back for depth testing efficiency)
+	std::sort(opaque_entities.begin(), opaque_entities.end(), [&depths](const entt::entity lhs, const entt::entity rhs) {
+		return depths[lhs] < depths[rhs];
+	});
+
+	// Sort transparent objects by distance from camera (back to front for proper alpha blending)
+	std::sort(transparent_entities.begin(), transparent_entities.end(), [&distances](const entt::entity lhs, const entt::entity rhs) {
+		return distances[lhs] > distances[rhs];
+	});
+
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
+
+	// Render opaque objects first
+	for (entt::entity entity : opaque_entities) {
+		EcsMeshComponent mesh_component = registry.get<EcsMeshComponent>(entity);
+		glm::mat4 final_transform = transforms[entity];
+
 		glBindVertexArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -338,13 +382,43 @@ void BSGEWindow::render_pass() {
 		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
 
 		if (texture_component) {
-			mesh_component->mesh.texture = texture_component->texture.id;
-			mesh_render(*lua, final_transform, mesh_component->mesh);
+			mesh_component.mesh.texture = texture_component->texture.id;
+			mesh_component.color = mesh_component.mesh.color;
 		} else {
-			mesh_component->mesh.texture = 0;
-			mesh_render(*lua, final_transform, mesh_component->mesh);
+			mesh_component.mesh.texture = 0;
 		}
-	});
+
+		mesh_render(*lua, final_transform, mesh_component.mesh);
+	}
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(GL_FALSE);
+
+	// Render transparent objects last
+	for (entt::entity entity : transparent_entities) {
+		EcsMeshComponent mesh_component = registry.get<EcsMeshComponent>(entity);
+		glm::mat4 final_transform = transforms[entity];
+
+		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		
+		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
+
+		if (texture_component) {
+			mesh_component.mesh.texture = texture_component->texture.id;
+			mesh_component.color = mesh_component.mesh.color;
+		} else {
+			mesh_component.mesh.texture = 0;
+		}
+
+		mesh_render(*lua, final_transform, mesh_component.mesh);
+	}
+
+	// reset opengl state
+	glDisable(GL_BLEND);
+	glDepthMask(GL_TRUE);
 }
 
 void main_render_loop() {

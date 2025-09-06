@@ -24,10 +24,6 @@ BSGEWindow::BSGEWindow() {
 	this->window = glfwCreateWindow(width, height, name, NULL, NULL);
 }
 
-// Forward declaration for Emscripten main loop callback
-void main_render_loop();
-static BSGEWindow* g_window = nullptr;
-
 void BSGEWindow::init() {
 	if (this->window == NULL) {
 		printf("[window.cpp] exit: failed to create GLFW window\n");
@@ -100,10 +96,7 @@ void BSGEWindow::render_loop_init() {
 	};
 
 	this->default_shader = default_shader;
-
-	// camera projection
 	this->last_frame = glfwGetTime();
-	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
 	bool show_demo_window = true;
 	bool show_another_window = false;
@@ -111,37 +104,31 @@ void BSGEWindow::render_loop_init() {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
-	ImGuiIO &io = ImGui::GetIO();
-	(void)io;
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-
-	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	// ImGui::StyleColorsLight();
-	// physics - remove duplicate init, already initialized in main.cpp
-	// BSGE::Physics::init();
 
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	// Lua render pass function
-	sol::table world = (*lua)["World"];
-	sol::table rendering = world["rendering"];
-	rendering["render_pass"] = [this]() {
+	// Explose Lua render_pass
+	(*lua)["World"]["rendering"]["render_pass"] = [this]() {
 		this->render_pass();
 	};
 
-	g_window = this;
+	auto render_loop = [this]() {
+		this->render_loop();
+	};
+
 
 	#if USE_EMSCRIPTEN
+	
 	emscripten_glfw_make_canvas_resizable(window, "#bsge-canvas-container", nullptr);
-	emscripten_set_main_loop(main_render_loop, 0, 1);
+	emscripten_set_main_loop(render_loop, 0, 1);
+	
 	#else
-		while (!should_break && !glfwWindowShouldClose(g_window->window)) {
-			main_render_loop();
-		}
+
+	while (!should_break && !glfwWindowShouldClose(this->window)) render_loop();
+	
 	#endif	
 }
 
@@ -198,7 +185,6 @@ bool BSGEWindow::render_loop() {
 
 	BSGECameraMetadata* camera = camera_opt.value();
 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
-
 
 	// WebGL: Ensure attribute locations are bound correctly
 	// TODO better code
@@ -415,8 +401,3 @@ void BSGEWindow::render_pass() {
 	glDepthMask(GL_TRUE);
 }
 
-void main_render_loop() {
-	if (g_window) {
-		g_window->render_loop();
-	}
-}

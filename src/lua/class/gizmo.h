@@ -5,6 +5,8 @@
 #include "../../glad/glad.h"
 #include "../../opengl/freetype.h"
 #include "../luax.h"
+#include <map>
+#include <vector>
 
 struct GizmoVertex {
     alignas(4) glm::vec3 position;

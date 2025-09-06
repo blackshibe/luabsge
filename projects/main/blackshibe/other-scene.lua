@@ -20,7 +20,7 @@ local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
 
 local floor_object = Object.new()
 floor_object.transform = Mat4.new(1):scale(Vec3.new(10, 0.1, 10))
-floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh, color = Vec4.new(1, 1, 1, 1) })
+floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box_mesh })
 floor_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 floor_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box_mesh, is_dynamic = false })
 

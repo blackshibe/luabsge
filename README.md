@@ -45,23 +45,25 @@ Everything is compiled from source.
 
     -   The various TODOs
 
-        -   Throw error when setting no mesh
-        -   Make mesh color optional
-        -   Patching ECS entities at runtime (mesh.color?)
-        -   Queried mouse position doesn't match up with window position
-        -   Camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
-            -   Fixed?
-        -   Remove all remaining functionality from Image and Texture besides loading them
-        -   Entire engine breaks if BSGE isn't declared
-        -   Can't use separate cameras for separate buffers(?)
-        -   Buffer:bind(function() end)
-        -   mesh_render is a mess
-        -   VSync controls (ai generated mess)
-        -   text is stretched
-        -   window controls (ai generated mess)
+        -   [x] Throw error when setting no mesh
+        -   [x] Make mesh color optional
+        -   [ ] Patching ECS entities at runtime (mesh.color?)
+        -   [ ] Queried mouse position doesn't match up with window position
+        -   [x] Camera matrix is only sent to the shader once per frame, and afaik right here it's already out of date by 1 frame
+        -   [ ] Remove all remaining functionality from Image and Texture besides loading them
+        -   [ ] Entire engine breaks if BSGE isn't declared
+        -   [ ] Can't use separate cameras for separate buffers(?)
+        -   [ ] Buffer:bind(function() end)
+        -   [ ] mesh_render is a mess
+        -   [ ] VSync controls (ai generated mess)
+        -   [ ] text is stretched
+        -   [ ] window controls (ai generated mess)
+        -   [ ] Don't hardcode js identifiers for bsge canvas and container
+        -   [ ] Gizmo drawing to secondary framebuffers
 
     -   Datamodel format
         -   Scene explorer
+            -   Child traversal
     -   Editor
         -   Scene creation format for a datamodel
     -   Clean the engine up

@@ -37,6 +37,20 @@ struct framebuffer {
     }
 };
 
+void framebuffer_bind(framebuffer& framebuffer) {
+    glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.FBO);
+    glViewport(0, 0, framebuffer.width, framebuffer.height);
+    set_current_buffer_dimensions(glm::vec2(framebuffer.width, framebuffer.height));
+}
+
+void framebuffer_unbind(framebuffer& framebuffer) {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glm::vec2 window_dims = get_window_dimensions();
+    glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
+    set_current_buffer_dimensions(glm::vec2(window_dims.x, window_dims.y));
+}
+
+
 void lua_bsge_init_framebuffer(sol::state &lua) {
     lua.new_usertype<framebuffer>("Framebuffer",
         sol::constructors<framebuffer(float, float)>(),
@@ -48,34 +62,22 @@ void lua_bsge_init_framebuffer(sol::state &lua) {
 
         "bind", sol::overload(
             [](framebuffer& effect) {
-                glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
-                glViewport(0, 0, effect.width, effect.height);
-                set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
+                framebuffer_bind(effect);
             },
             [](framebuffer& effect, sol::function callback) {
                 // Bind framebuffer
-                glBindFramebuffer(GL_FRAMEBUFFER, effect.FBO);
-                glViewport(0, 0, effect.width, effect.height);
-                set_current_buffer_dimensions(glm::vec2(effect.width, effect.height));
-                
+                framebuffer_bind(effect);
+
                 // Execute callback
                 callback();
                 
                 // Unbind framebuffer
-                glBindFramebuffer(GL_FRAMEBUFFER, 0);
-                glm::vec2 window_dims = get_window_dimensions();
-                glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
-                set_current_buffer_dimensions(glm::vec2(window_dims.x, window_dims.y));
+                framebuffer_unbind(effect);
             }
         ),
 
         "unbind", [](framebuffer& effect) {
-            glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-            // reset viewport size
-            glm::vec2 window_dims = get_window_dimensions();
-            glViewport(0, 0, (int)window_dims.x, (int)window_dims.y);
-            set_current_buffer_dimensions(glm::vec2(window_dims.x, window_dims.y));
+            framebuffer_unbind(effect);
         },
 
         "clear", [](framebuffer& effect) {

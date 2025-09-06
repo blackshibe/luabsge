@@ -1,11 +1,8 @@
 #include "mesh.h"
 
-
 #include "../lua.h"
 
-
-meshGeometry mesh_load_geometry(const char *path)
-{
+meshGeometry mesh_load_geometry(const char *path) {
 	printf("[mesh.cpp] loading mesh from %s\n", path);
 	meshGeometry geometry;
 	Assimp::Importer importer;

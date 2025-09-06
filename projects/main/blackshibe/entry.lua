@@ -12,6 +12,7 @@ local camera = Camera.new()
 camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
+camera.transform = Mat4.new(1)
 
 local targetSceneBufferSize = Vec2.new(2000, 1333)
 local scene_buffer = Framebuffer.new(targetSceneBufferSize.x, targetSceneBufferSize.y)
@@ -25,13 +26,6 @@ display_label.font = font
 
 local camera_x_spring = spring.new(0.5, 100, 50)
 local camera_y_spring = spring.new(0.5, 100, 50)
-local base_matrix = Mat4.new(1)
-
--- you must create a central camera yourself to define the default position of it
-World.rendering.camera = camera
-camera.transform = base_matrix
-
-print(texture)
 
 function render_pass()
 	display_label:render()
@@ -39,6 +33,7 @@ function render_pass()
 end
 
 -- TODO mouse position becomes nan
+-- TODO clean up code
 
 local use_shader = true
 local last_mouse_position = World.input.get_mouse_position()
@@ -49,6 +44,7 @@ local render_other_scene = false
 Window.set_vsync(false)
 Window.maximize()
 
+World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)
 	local mouse_position = World.input.get_mouse_position()
 	local mouse_delta = mouse_position - last_mouse_position

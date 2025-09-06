@@ -15,7 +15,6 @@ void err(int error_code, const char *description) {
 
 int main(int argc, char *argv[]) {
 	printf("[main.cpp] running %s\n", LUA_VERSION);
-		printf("1");
 
 	glfwInit();
 	glfwSetErrorCallback(err);

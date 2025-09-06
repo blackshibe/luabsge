@@ -1,6 +1,4 @@
 #include "gizmo.h"
-#include <map>
-#include <vector>
 
 bool initialized = false;
 GLuint shader_program = 0;

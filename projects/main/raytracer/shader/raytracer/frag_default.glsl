@@ -1,4 +1,4 @@
-#version 330
+#version 330 core
 
 in vec2 uv;
 out vec4 FragColor;
@@ -267,7 +267,8 @@ vec3 mul_mat4_vec3(mat4 m, vec3 v, float s) {
     return (m * vec4(v, s)).xyz;
 }
 
-RayPixelData TraceRay(Ray ray, inout int tests) {
+// , inout int tests
+RayPixelData TraceRay(Ray ray) {
     RayPixelData data;
     data.hit = false;
     data.color = vec3(0.1, 0.1, 0.1);
@@ -276,7 +277,7 @@ RayPixelData TraceRay(Ray ray, inout int tests) {
     for (int i = 0; i < sphere_texture_count; i++) {
         Sphere sphere = getSphereAtIndex(i);
         TracerRayHitInfo test = RaySphereIntersect(sphere.center, sphere.radius, ray); 
-        tests += 1;
+        // tests += 1;
         
         if (test.hit && min_distance > test.intersect_distance) {
             min_distance = test.intersect_distance;
@@ -306,7 +307,7 @@ RayPixelData TraceRay(Ray ray, inout int tests) {
         for (int t = 0; mesh.triangles > t; t++) {
             MeshTriangle triangle = get_mesh_triangle(global_mesh_triangle_index);
             global_mesh_triangle_index += 1;
-            tests += 1;
+            // tests += 1;
 
             // transform triangles to world space
             TracerRayHitInfo ray_test = ray_intersects_triangle(origin, direction, triangle.p1, triangle.p2, triangle.p3);
@@ -344,7 +345,7 @@ void main() {
     vec3 SKY_COLOR = vec3(0.0, 0.0, 0.0);
     vec3 incoming_light = vec3(0, 0, 0);
 
-    float tests = 0;
+    // float tests = 0;
     bool hit_sky = false;
 
     for (int i = 0; i < sample_count; i++) {
@@ -356,7 +357,7 @@ void main() {
         uint random_seed = uint(blue_noise * 4294967295.0) + uint(i * 12345); 
 
         for (int j = 0; j < bounce_count; j++) {
-            RayPixelData test = TraceRay(ray, tests);
+            RayPixelData test = TraceRay(ray);
 
             if (test.hit) {
                 ray.origin = test.position + normalize(test.normal) * 0.0001;            
@@ -385,15 +386,15 @@ void main() {
     final_color = (final_color * (2.51 * final_color + 0.03)) / 
                   (final_color * (2.43 * final_color + 0.59) + 0.14);
 
-    tests /= 2000.0;
-
-    if (use_debug == 1) {
-        final_color = vec3(tests, tests, tests);
-
-        if (tests > 1.0) {
-            final_color = vec3(1, 0, 0);
-        }
-    }
+//   tests /= 2000.0;
+//
+//    if (use_debug == 1) {
+//        final_color = vec3(tests, tests, tests);
+//
+//        if (tests > 1.0) {
+//            final_color = vec3(1, 0, 0);
+//        }
+//    }
 
 
     // Frame accumulation - blend current frame with accumulated previous frames

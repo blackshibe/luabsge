@@ -19,7 +19,7 @@ int64_t get_time() {
 
 // TODO load from project files
 const char* VFXEffectStruct::default_vertex_shader = R"(
-#version 100
+#version 330 core
 precision mediump float;
 
 attribute vec2 position;
@@ -249,13 +249,13 @@ void VFXEffectStruct::set_uniform_texture(const char* name, GLuint texture_id, i
     }
 }
 
-void VFXEffectStruct::set_uniform_mat4(const char* name, const float* matrix) {
+void VFXEffectStruct::set_uniform_mat4(const char* name, const glm::mat4& matrix) {
     if (!is_valid) return;
     
     GLint location = get_uniform_location(name);
     if (location != -1) {
         bind();
-        glUniformMatrix4fv(location, 1, GL_FALSE, matrix);
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 }
 

@@ -45,7 +45,6 @@ Everything is compiled from source.
 -   Showstoppers
 
     -   The various TODOs
-
         -   [x] Throw error when setting no mesh
         -   [x] Make mesh color optional
         -   [ ] Patching ECS entities at runtime (mesh.color?)

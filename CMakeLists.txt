@@ -37,11 +37,10 @@ if(USE_EMSCRIPTEN)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/public")
         add_executable(${PROJECT_NAME} ${SOURCES})
 
-
         message(STATUS "Setting compilation target to WASM")
         set(CMAKE_EXECUTABLE_SUFFIX ".wasm.js")
 
-        set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE\_DUPLICATE\_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
+        set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE_DUPLICATE_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' --preload-file ${CMAKE_SOURCE_DIR}/projects/${PROJ}@/ -s USE_WEBGL2=1 -s FULL_ES3=1")
 
         FetchContent_Declare(
                 glfw3

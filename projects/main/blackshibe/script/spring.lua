@@ -15,7 +15,7 @@ end
 
 function Spring:update(dt)
 	-- substep simulation to prevent the spring exploding
-	dt = math.min(dt, 1)
+	dt = math.min(dt, 1 / 60)
 	local iterations = math.min(math.max((1 / dt) * 60, 1), 10)
 
 	for _ = 1, iterations do

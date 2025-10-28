@@ -147,6 +147,15 @@ int lua_bsge_init_glm_bindings(sol::state &lua) {
 									[](const glm::mat4& m, const glm::vec3& v) { return glm::scale(m, v); },
 									[](const glm::mat4& m, float s) { return glm::scale(m, glm::vec3(s)); }
 								),
+
+								"lerp", sol::overload(
+									[](const glm::mat4& m, const glm::mat4& v, float a) { 
+										glm::quat firstQuat = glm::quat_cast(m);	
+										glm::quat otherQuat = glm::quat_cast(v);	
+										
+										return glm::mat4_cast(glm::lerp(firstQuat, otherQuat, a)); 
+									}
+								),
 								
 								// Matrix multiplication
 								sol::meta_function::multiplication, [](const glm::mat4& a, const glm::mat4& b) { 

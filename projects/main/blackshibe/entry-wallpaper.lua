@@ -1,4 +1,5 @@
 ---@diagnostic disable: undefined-global
+-- OLD 2025/10/28
 
 -- TODO mouse position becomes nan
 -- TODO clean up code
@@ -15,7 +16,7 @@ glitch_effect:load_fragment_shader("shader/glitch_frag.glsl")
 local scene_buffer = Framebuffer.new(MAX_BUFFER_RESOLUTION.x, MAX_BUFFER_RESOLUTION.y)
 
 local camera = Camera.new()
-camera.fov = 70
+camera.fov = 70 -- degrees
 camera.near_clip = 0.1
 camera.far_clip = 100
 
@@ -35,27 +36,69 @@ local start = now()
 
 local last_browser_text = 0
 local last_browser_text_expiry = now()
-local view_box_factor = math.random(0, 1)
-
-local motive_text_index = math.random(1, #MOTIVE_TEXTS)
 local render_other_scene = false
 
-Window.set_vsync(false)
-Window.maximize()
+local browser_texts = {
+	"email",
+	"discord",
+	"github",
+	"bandcamp",
+	"soundcloud",
+	"youtube",
+	"music",
+	"photos",
+	"friendly websites",
+	"neofetch",
+}
 
-camera.transform = Mat4.new(1)
-World.rendering.camera = camera
+local motive_texts = {
+	"blackshibe.net",
+	"though the stars may shine",
+	"we always think there is going to be more time",
+	"watching the happiest days end",
+}
+
+local motive_text_index = math.random(1, #motive_texts)
+local render_other_scene = false
 
 function render_pass()
 	display_label:render()
 	World.rendering.render_pass()
 end
 
+Window.set_vsync(false)
+Window.maximize()
+
+camera.transform = Mat4.new(1)
+World.rendering.camera = camera
 World.rendering.step:connect(function(delta_time)
 	if render_other_scene then
 		COMMON_PATH = ""
 		require("other-scene")(delta_time)
 	end
+
+	local default = motive_texts[motive_text_index]
+	local cur_message = browser_texts[last_browser_text + 1] or default
+	local completion_factor = 0
+	display_label.scale = 0.6
+
+	if now() > last_browser_text_expiry then
+		display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
+		display_label.anchor = Vec2.new(0, 1)
+
+		cur_message = default
+		completion_factor = math.floor(now() / 200) % ((#default + 1) * 3)
+	else
+		display_label.position = Vec2.new(
+			Window.get_window_dimensions().x - 100,
+			(0.2 + last_browser_text * 0.07) * Window.get_window_dimensions().y
+		)
+		display_label.anchor = Vec2.new(1, 0.5)
+
+		completion_factor = #cur_message
+	end
+
+	display_label.text = cur_message:sub(1, completion_factor)
 
 	-- TODO mouse position doesn't match up with real position
 	local mouse_position = World.input.get_mouse_position()
@@ -71,53 +114,9 @@ World.rendering.step:connect(function(delta_time)
 
 	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
 
-	-- update browser text
-	do
-		local default = MOTIVE_TEXTS[motive_text_index]
-		local cur_message = BROWSER_TEXTS[last_browser_text + 1] or default
-		local completion_factor = 0
-		display_label.scale = 0.6
+	-- Mat4.new(1):translate(Vec3.new(0, 0, -10)):rotate(0.1, Vec3.new(0, 1, 0)):rotate(0.1, Vec3.new(1, 0, 0))
+	-- :translate(Vec3.new(camera_y / 1000, camera_y / 1000, -5))
 
-		if now() > last_browser_text_expiry then
-			display_label.position = Vec2.new(100, Window.get_window_dimensions().y - 100)
-			display_label.anchor = Vec2.new(0, 1)
-
-			cur_message = default
-			completion_factor = math.floor(now() / 200) % ((#default + 1) * 3)
-		else
-			display_label.position = Vec2.new(
-				Window.get_window_dimensions().x - 100,
-				(0.2 + last_browser_text * 0.07) * Window.get_window_dimensions().y
-			)
-			display_label.anchor = Vec2.new(1, 0.5)
-
-			completion_factor = #cur_message
-		end
-
-		display_label.text = cur_message:sub(1, completion_factor)
-
-		if Emscripten.get_int("selected") ~= last_browser_text then
-			last_browser_text = Emscripten.get_int("selected")
-			last_browser_text_expiry = now() + 6000
-		end
-	end
-
-	-- update box
-	do
-		local spin_factor = (1 - view_box_factor)
-		local pos_active = Mat4.new(1):rotate((now() * 0.0005) % math.pi * 2 * spin_factor, Vec3.new(1, 0.5, 0))
-
-		local texture = spin_factor == 1 and SCENE_TEXTURES.fox or SCENE_TEXTURES.active_image
-		SCENE_OBJECTS.main_box.transform = Mat4.new(1)
-			:scale(Vec3.new(texture.width / texture.height, 1, 1))
-			:translate(Vec3.new(0, 0, -1 - spin_factor * 3)) * pos_active
-		SCENE_OBJECTS.main_box:patch_component(
-			ECS_MESH_TEXTURE_COMPONENT,
-			{ texture = spin_factor == 1 and SCENE_TEXTURES.fox or SCENE_TEXTURES.active_image }
-		)
-	end
-
-	-- update shader
 	local glitch_factor = 0.01 + (mouse_delta.x + mouse_delta.y) / 500
 	local framerate = render_other_scene and 60 or 15
 	if use_shader and glitch_effect.is_valid then
@@ -145,25 +144,24 @@ World.rendering.step:connect(function(delta_time)
 		render_pass()
 	end
 
+	if Emscripten.get_int("selected") ~= last_browser_text then
+		last_browser_text = Emscripten.get_int("selected")
+		last_browser_text_expiry = now() + 6000
+	end
+
 	if ImGui.Begin("Look at me I'm a fucking C++ application") then
 		ImGui.Text(string.format("Mouse position: %.1f, %.1f", camera_x, camera_y))
 		ImGui.Text(string.format("Delta: %.2f", glitch_factor))
 		ImGui.Text(string.format("Emscripten test int: %i", Emscripten.get_int("selected")))
 		ImGui.Text(string.format("FPS: %.2f", 1 / delta_time))
-		ImGui.Text(string.format("Viewing: %s", view_box_factor == 1 and "true" or "false"))
 
 		ImGui.Spacing()
 		ImGui.Separator()
 
 		_, use_shader = ImGui.Checkbox("Use shader?", use_shader)
 
-		local pressed = ImGui.Button(view_box_factor == 1 and "Show box" or "View photo")
+		local pressed = ImGui.Button("Switch scene")
 		if pressed then
-			view_box_factor = 1 - view_box_factor
-		end
-
-		local pressed_scene = ImGui.Button("Switch scene")
-		if pressed_scene then
 			render_other_scene = true
 		end
 

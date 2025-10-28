@@ -18,8 +18,8 @@ int64_t get_time() {
 }
 
 // TODO load from project files
+// TODO #version 330 doesn't work natively on one linux build but works on another
 const char* VFXEffectStruct::default_vertex_shader = R"(
-#version 330 core
 precision mediump float;
 
 attribute vec2 position;

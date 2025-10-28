@@ -393,8 +393,6 @@ JPH::BodyID create_body(bsgeMesh mesh, bool is_dynamic) {
 	// // (note that if we had used CreateBody then we could have set the velocity straight on the body before adding it to the physics system)
 	// body_interface.SetLinearVelocity(sphere_id, Vec3(0.0f, -5.0f, 0.0f));
 
-	printf("done\n");
-
     return rigid_body->GetID();
 }
 

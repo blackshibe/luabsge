@@ -40,8 +40,10 @@ local view_box_factor = math.random(0, 1)
 local motive_text_index = math.random(1, #MOTIVE_TEXTS)
 local render_other_scene = false
 
-Window.set_vsync(false)
-Window.maximize()
+if PLATFORM == "NATIVE" then
+	Window.set_vsync(false)
+	Window.maximize()
+end
 
 camera.transform = Mat4.new(1)
 World.rendering.camera = camera
@@ -149,22 +151,27 @@ World.rendering.step:connect(function(delta_time)
 		ImGui.Text(string.format("Mouse position: %.1f, %.1f", camera_x, camera_y))
 		ImGui.Text(string.format("Delta: %.2f", glitch_factor))
 		ImGui.Text(string.format("Emscripten test int: %i", Emscripten.get_int("selected")))
-		ImGui.Text(string.format("FPS: %.2f", 1 / delta_time))
+		-- doesn't work lmao
+		if PLATFORM ~= "WEB" then
+			ImGui.Text(string.format("FPS: %.2f", 1 / delta_time))
+		end
 		ImGui.Text(string.format("Viewing: %s", view_box_factor == 1 and "true" or "false"))
 
-		ImGui.Spacing()
-		ImGui.Separator()
+		if not render_other_scene then
+			ImGui.Spacing()
+			ImGui.Separator()
 
-		_, use_shader = ImGui.Checkbox("Use shader?", use_shader)
+			_, use_shader = ImGui.Checkbox("Use shader?", use_shader)
 
-		local pressed = ImGui.Button(view_box_factor == 1 and "Show box" or "View photo")
-		if pressed then
-			view_box_factor = 1 - view_box_factor
-		end
+			local pressed = ImGui.Button(view_box_factor == 1 and "Show box" or "View photo")
+			if pressed then
+				view_box_factor = 1 - view_box_factor
+			end
 
-		local pressed_scene = ImGui.Button("Switch scene")
-		if pressed_scene then
-			render_other_scene = true
+			local pressed_scene = ImGui.Button("Switch scene")
+			if pressed_scene then
+				render_other_scene = true
+			end
 		end
 
 		ImGui.End()

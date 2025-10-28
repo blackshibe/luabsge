@@ -1,4 +1,4 @@
-# ./setup_web.sh blackshibe /home/blackshibe/Downloads/blackshibe.github.io
+# ./setup_web.sh main/blackshibe /home/blackshibe/Downloads/blackshibe.github.io
 
 # run make and don't run program if it errors
 # https://gist.github.com/ericoporto/8ce679ecb862a12795156d31f3ecac49

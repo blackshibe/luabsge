@@ -1,4 +1,4 @@
-local scene = require("scene-box")
+local scene = require("scene-spheres")
 
 -- Create VFX effect for raytracing
 local raytracer_effect = VFXEffect.new()

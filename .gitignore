@@ -6,9 +6,11 @@ build
 build-web
 public/luabsge.wasm.js
 public/luabsge.wasm.wasm
+public/luabsge.wasm.data
 projects/**/luabsge.wasm.js
 projects/**/luabsge.wasm.wasm
 projects/**/luabsge.wasm.data
+projects/**/luabsge.wasm.data.js
 
 # Cmake
 CMakeLists.txt.user
@@ -23,6 +25,9 @@ compile_commands.json
 CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
+
+# node
+package-lock.json
 
 # exporter folder
 projects/other/export/.cookie

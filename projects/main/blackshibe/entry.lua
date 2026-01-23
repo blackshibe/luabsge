@@ -4,6 +4,7 @@
 -- TODO clean up code
 
 require("assets")
+
 MAX_BUFFER_RESOLUTION = Vec2.new(2000, 1333)
 
 local spring = require("script.spring")
@@ -17,7 +18,7 @@ local scene_buffer = Framebuffer.new(MAX_BUFFER_RESOLUTION.x, MAX_BUFFER_RESOLUT
 local camera = Camera.new()
 camera.fov = 70
 camera.near_clip = 0.1
-camera.far_clip = 100
+camera.far_clip = 60
 
 local font = Font.new()
 font:load("font/arial.ttf")
@@ -25,8 +26,8 @@ font:load("font/arial.ttf")
 local display_label = Textlabel.new()
 display_label.font = font
 
-local camera_x_spring = spring.new(0.5, 100, 50)
-local camera_y_spring = spring.new(0.5, 100, 50)
+local camera_x_spring = spring.new(0.5, 100, 15)
+local camera_y_spring = spring.new(0.5, 100, 15)
 
 local use_shader = true
 local last_mouse_position = World.input.get_mouse_position()
@@ -56,6 +57,8 @@ end
 World.rendering.step:connect(function(delta_time)
 	if render_other_scene then
 		COMMON_PATH = ""
+		SCENE_OBJECTS.guitar_object.transform = Mat4.new(1):translate(Vec3.new(0, -100, 0))
+
 		require("other-scene")(delta_time)
 	end
 
@@ -71,7 +74,14 @@ World.rendering.step:connect(function(delta_time)
 	local camera_x = math.max(math.min(camera_x_spring:update(delta_time), 1), -1)
 	local camera_y = math.max(math.min(camera_y_spring:update(delta_time), 1), -1)
 
-	camera.transform = Mat4.new(1):translate(Vec3.new(-camera_x + 0.5, camera_y - 0.5, -4) * 0.25)
+	-- update box
+	local spin_factor = (1 - view_box_factor)
+	local rotation_strength = (spin_factor * 0.25) + 0.1
+
+	camera.transform = Mat4.new(1)
+		:translate(Vec3.new(-camera_x + rotation_strength * 2, camera_y - rotation_strength * 2, -4) * 0.5)
+		:rotate((0.5 - camera_y) * rotation_strength, Vec3.new(1, 0, 0))
+		:rotate((0.5 - camera_x) * rotation_strength, Vec3.new(0, 1, 0))
 
 	-- update browser text
 	do
@@ -104,19 +114,30 @@ World.rendering.step:connect(function(delta_time)
 		end
 	end
 
-	-- update box
+
 	do
-		local spin_factor = (1 - view_box_factor)
-		local pos_active = Mat4.new(1):rotate((now() * 0.0005) % math.pi * 2 * spin_factor, Vec3.new(1, 0.5, 0))
+		local pos_active = Mat4.new(1):rotate((now() * 0.0005) % math.pi * 2 * spin_factor, Vec3.new(1, 0.5, 1)):scale(0.2)
 
 		local texture = spin_factor == 1 and SCENE_TEXTURES.fox or SCENE_TEXTURES.active_image
 		SCENE_OBJECTS.main_box.transform = Mat4.new(1)
 			:scale(Vec3.new(texture.width / texture.height, 1, 1))
-			:translate(Vec3.new(0, 0, -1 - spin_factor * 3)) * pos_active
-		SCENE_OBJECTS.main_box:patch_component(
+			:translate(Vec3.new(0, -spin_factor * 1, -1 - spin_factor * 3)) * pos_active
+			:scale(5 * (1 - spin_factor))
+
+			SCENE_OBJECTS.main_box:patch_component(
 			ECS_MESH_TEXTURE_COMPONENT,
 			{ texture = spin_factor == 1 and SCENE_TEXTURES.fox or SCENE_TEXTURES.active_image }
 		)
+
+		-- i dont remember if hiding objects even works
+		if spin_factor == 1 then
+			SCENE_OBJECTS.guitar_object.transform = Mat4.new(1):translate(Vec3.new(1.5, -2, -10)):rotate(0.15, Vec3.new(1, 0, 0)):rotate(-0.5, Vec3.new(0, 1, 0)):scale(5)
+			camera.fov = 40
+		else
+			-- hide this away
+			SCENE_OBJECTS.guitar_object.transform = Mat4.new(1):translate(Vec3.new(0, -10, 0))
+			camera.fov = 70
+		end
 	end
 
 	-- update shader
@@ -150,7 +171,9 @@ World.rendering.step:connect(function(delta_time)
 	if ImGui.Begin("Look at me I'm a fucking C++ application") then
 		ImGui.Text(string.format("Mouse position: %.1f, %.1f", camera_x, camera_y))
 		ImGui.Text(string.format("Delta: %.2f", glitch_factor))
-		ImGui.Text(string.format("Emscripten test int: %i", Emscripten.get_int("selected")))
+		ImGui.Text(string.format("Emscripten.get_int('selected') =  %i", Emscripten.get_int("selected")))
+		ImGui.Text(string.format("spin_factor = %f", spin_factor))
+		
 		-- doesn't work lmao
 		if PLATFORM ~= "WEB" then
 			ImGui.Text(string.format("FPS: %.2f", 1 / delta_time))
@@ -163,7 +186,7 @@ World.rendering.step:connect(function(delta_time)
 
 			_, use_shader = ImGui.Checkbox("Use shader?", use_shader)
 
-			local pressed = ImGui.Button(view_box_factor == 1 and "Show box" or "View photo")
+			local pressed = ImGui.Button(view_box_factor == 1 and "Show scene" or "View photo")
 			if pressed then
 				view_box_factor = 1 - view_box_factor
 			end

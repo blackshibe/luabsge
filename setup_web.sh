@@ -3,14 +3,13 @@
 # run make and don't run program if it errors
 # https://gist.github.com/ericoporto/8ce679ecb862a12795156d31f3ecac49
 echo "-- Running emsdk activate"
-emsdk activate latest
+$HOME/.emsdk/emsdk activate latest
 
-rm -f $2/luabsge.wasm.js
-rm -f $2/luabsge.wasm.wasm
 rm -f $2/luabsge.wasm.data
+rm -f $2/luabsge.wasm.data.js
 
 echo "-- Running emsdk_env.sh"
-source $HOME/emsdk/emsdk_env.sh
+source $HOME/.emsdk/emsdk_env.sh
 
 echo "-- Running cmake"
 cmake -B build-web \

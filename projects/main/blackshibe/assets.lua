@@ -14,14 +14,22 @@ SCENE_TEXTURES = {
 	-- main_box = PLATFORM == "NATIVE" and Image.new(string.format("image/active-%s.jpg", math.random(1, 5)))
 	-- 	or Emscripten.download_image("image.jpg"),
 	fox = Image.new("image/fox.jpg"),
-	active_image = Image.new(string.format("image/active-%s.jpg", math.random(1, 5))),
+	active_image = Image.new(string.format("image/active-%s.jpg", math.random(1, 4))),
 	frame = Image.new("image/ui/black.png"),
+	guitar_texture = Image.new("image/guitar.jpg")
 }
 
 SCENE_OBJECTS = {
+	guitar_object = Object.new(),
 	main_box = loadImageAsMesh(SCENE_TEXTURES.active_image, 1),
 	frame = loadImageAsMesh(SCENE_TEXTURES.frame, 1),
 }
+
+local guitar_mesh = Mesh.new("mesh/guitar.obj")
+SCENE_OBJECTS.guitar_object.transform = Mat4.new(1):scale(Vec3.new(4, 4, 4))
+SCENE_OBJECTS.guitar_object:add_component(ECS_MESH_COMPONENT, { mesh = guitar_mesh })
+SCENE_OBJECTS.guitar_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = SCENE_TEXTURES.guitar_texture })
+SCENE_OBJECTS.guitar_object.transform = SCENE_OBJECTS.main_box.transform:translate(Vec3.new(0, -0.5, 0))
 
 SCENE_OBJECTS.main_box.transform = SCENE_OBJECTS.main_box.transform:rotate(math.pi / 2, Vec3.new(1, 0, 0))
 SCENE_OBJECTS.frame.transform =

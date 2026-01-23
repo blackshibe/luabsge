@@ -237,7 +237,10 @@ bool BSGEWindow::render_loop() {
 	last_frame = current_frame;
 
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+#ifndef USE_EMSCRIPTEN // web doesn't implement this
 	glfwSwapBuffers(window);
+#endif
 	glfwPollEvents();
 
 	const GLenum err = glGetError();

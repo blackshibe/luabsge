@@ -9,10 +9,14 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     // Window functions
     imgui_namespace["Begin"] = sol::overload(
         [](const char* name) { return ImGui::Begin(name); },
+        [](const char* name, int flags) { return ImGui::Begin(name, nullptr, flags); },
         [](const char* name, bool* p_open) { return ImGui::Begin(name, p_open); },
         [](const char* name, bool* p_open, int flags) { return ImGui::Begin(name, p_open, flags); }
     );
     imgui_namespace["End"] = &ImGui::End;
+
+    imgui_namespace["SetNextWindowPos"] = [](float x, float y) { ImGui::SetNextWindowPos(ImVec2(x, y)); };
+    imgui_namespace["SetNextWindowSize"] = [](float x, float y) { ImGui::SetNextWindowSize(ImVec2(x, y)); };
 
     // TODO: expose ImGuiCol_Text and shit and write a universal function
     imgui_namespace["PushTextColor"] =  [](glm::vec4 color) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color.r, color.g, color.b, color.w)); };

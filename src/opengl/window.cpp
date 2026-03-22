@@ -114,6 +114,7 @@ void BSGEWindow::render_loop_init() {
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
+	ImPlot::CreateContext();
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends

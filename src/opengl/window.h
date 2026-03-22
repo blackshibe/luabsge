@@ -19,6 +19,8 @@
 #include "../include/imgui/imgui_impl_glfw.h"
 #include "../include/imgui/imgui_impl_opengl3.h"
 
+#include "../include/implot/implot.h"
+
 #include "../physics/jolt.h"
 
 class BSGEWindow {

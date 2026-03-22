@@ -85,6 +85,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_gizmo(lua);
 	lua_bsge_init_framebuffer(lua);
 	lua_bsge_init_physics(lua);
+	lua_bsge_init_neuron(lua);
 
 	// ECS
 	lua_bsge_init_object(lua);
@@ -96,6 +97,7 @@ int bsge_lua_init_state(BSGEWindow *window, sol::state &lua) {
 	lua_bsge_init_rendering(lua);
 	lua_bsge_init_glm_bindings(lua);
 	lua_bsge_init_imgui_bindings(lua);
+	lua_bsge_init_implot_bindings(lua);
 	lua_bsge_init_opengl_constants(lua);
 
 	// World = {...}

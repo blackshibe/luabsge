@@ -8,6 +8,7 @@
 #include "../opengl/window.h"
 
 #include "module/lua_imgui_bindings.h"
+#include "module/lua_implot_bindings.h"
 #include "module/lua_opengl_constants.h"
 #include "module/lua_rendering.h"
 #include "module/lua_window.h"
@@ -29,6 +30,8 @@
 #include "class/rt/tbo.h"
 #include "class/rt/sphere_tbo.h"
 #include "class/rt/mesh_tbo.h"
+
+#include "class/neural/neuron.h"
 
 #include "ecs/object.h"
 

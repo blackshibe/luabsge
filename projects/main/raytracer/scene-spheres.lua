@@ -28,7 +28,7 @@ for i = 1, 12 do
 	obj2:register()
 end
 
-local mesh = MeshBufferObject.new()
+local mesh = MeshBufferObject.new(COMMON_PATH .. "mesh/suzanne.obj")
 mesh.matrix = Mat4.new(1)
 	:rotate(math.pi + 1, Vec3.new(0, 1, 0))
 	:translate(Vec3.new(0, 0, -0.5))
@@ -37,7 +37,6 @@ mesh.matrix = Mat4.new(1)
 
 mesh.color = Vec3.new(1, 0, 0)
 mesh.emissive = 0
-mesh.mesh = create_mesh(COMMON_PATH .. "mesh/suzanne.obj")
 mesh:register()
 
 return {

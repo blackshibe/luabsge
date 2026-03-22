@@ -14,6 +14,9 @@ int fuck(lua_State *L) {
 
 	luaL_traceback(L, L, NULL, 2);
 	printf("%s%s\n", lua_tostring(L, -1), ANSI_NC);
+
+	throw "Fucked";
+
 	return 0;
 }
 

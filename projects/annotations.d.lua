@@ -343,6 +343,14 @@ function ImGui.Begin(name) end
 
 function ImGui.End() end
 
+---@param x number X position in pixels
+---@param y number Y position in pixels
+function ImGui.SetNextWindowPos(x, y) end
+
+---@param x number Width in pixels
+---@param y number Height in pixels
+function ImGui.SetNextWindowSize(x, y) end
+
 -- Styling
 ---@param color Vec4 Text color
 function ImGui.PushTextColor(color) end
@@ -533,36 +541,163 @@ function ImGui.BeginChild(str_id) end
 
 function ImGui.EndChild() end
 
--- ImGui Window Flags Constants
-ImGuiWindowFlags_None = 0
-ImGuiWindowFlags_NoTitleBar = 1
-ImGuiWindowFlags_NoResize = 2
-ImGuiWindowFlags_NoMove = 4
-ImGuiWindowFlags_NoScrollbar = 8
-ImGuiWindowFlags_NoScrollWithMouse = 16
-ImGuiWindowFlags_NoCollapse = 32
-ImGuiWindowFlags_AlwaysAutoResize = 64
-ImGuiWindowFlags_NoBackground = 128
-ImGuiWindowFlags_NoSavedSettings = 256
-ImGuiWindowFlags_NoMouseInputs = 512
-ImGuiWindowFlags_MenuBar = 1024
-ImGuiWindowFlags_HorizontalScrollbar = 2048
-ImGuiWindowFlags_NoFocusOnAppearing = 4096
-ImGuiWindowFlags_NoBringToFrontOnFocus = 8192
+---@param label string Selectable label
+---@return boolean Selectable was clicked
+---@overload fun(label: string, selected: boolean): boolean, boolean
+function ImGui.Selectable(label) end
 
--- ImGui Tree Node Flags Constants
-ImGuiTreeNodeFlags_None = 0
-ImGuiTreeNodeFlags_Selected = 1
-ImGuiTreeNodeFlags_Framed = 2
-ImGuiTreeNodeFlags_AllowItemOverlap = 4
-ImGuiTreeNodeFlags_NoTreePushOnOpen = 8
-ImGuiTreeNodeFlags_NoAutoOpenOnLog = 16
-ImGuiTreeNodeFlags_DefaultOpen = 32
-ImGuiTreeNodeFlags_OpenOnDoubleClick = 64
-ImGuiTreeNodeFlags_OpenOnArrow = 128
-ImGuiTreeNodeFlags_Leaf = 256
-ImGuiTreeNodeFlags_Bullet = 512
-ImGuiTreeNodeFlags_FramePadding = 1024
+---@param id string Invisible button ID
+---@param size_x number Width
+---@param size_y number Height
+---@return boolean Button was clicked
+function ImGui.InvisibleButton(id, size_x, size_y) end
+
+---@param str_id string Arrow button ID
+---@param dir number Direction
+---@return boolean Button was clicked
+function ImGui.ArrowButton(str_id, dir) end
+
+---@param user_texture number Texture ID
+---@param pos Vec2 Image size
+---@param invert? boolean Invert UV (default: false)
+function ImGui.Image(user_texture, pos, invert) end
+
+-- Cursor/Layout
+---@return number x, number y Cursor position
+function ImGui.GetCursorPos() end
+
+---@param x number X position
+---@param y number Y position
+function ImGui.SetCursorPos(x, y) end
+
+---@return number X position
+function ImGui.GetCursorPosX() end
+
+---@return number Y position
+function ImGui.GetCursorPosY() end
+
+---@param x number X position
+function ImGui.SetCursorPosX(x) end
+
+---@param y number Y position
+function ImGui.SetCursorPosY(y) end
+
+-- Scrolling
+---@return number Scroll X
+function ImGui.GetScrollX() end
+
+---@return number Scroll Y
+function ImGui.GetScrollY() end
+
+---@param scroll_x number Scroll X
+function ImGui.SetScrollX(scroll_x) end
+
+---@param scroll_y number Scroll Y
+function ImGui.SetScrollY(scroll_y) end
+
+---@return number Max scroll X
+function ImGui.GetScrollMaxX() end
+
+---@return number Max scroll Y
+function ImGui.GetScrollMaxY() end
+
+---@param center_x_ratio? number Center ratio (default: 0.5)
+function ImGui.SetScrollHereX(center_x_ratio) end
+
+---@param center_y_ratio? number Center ratio (default: 0.5)
+function ImGui.SetScrollHereY(center_y_ratio) end
+
+-- Additional item state queries
+---@return boolean
+function ImGui.IsItemActivated() end
+
+---@return boolean
+function ImGui.IsItemDeactivated() end
+
+---@return boolean
+function ImGui.IsItemDeactivatedAfterEdit() end
+
+---@return boolean
+function ImGui.IsItemToggledOpen() end
+
+---@return boolean
+function ImGui.IsAnyItemHovered() end
+
+---@return boolean
+function ImGui.IsAnyItemActive() end
+
+---@return boolean
+function ImGui.IsAnyItemFocused() end
+
+-- Window Flags (accessed as ImGui.WindowFlags_*)
+---@type number
+ImGui.WindowFlags_None = 0
+---@type number
+ImGui.WindowFlags_NoTitleBar = 0
+---@type number
+ImGui.WindowFlags_NoResize = 0
+---@type number
+ImGui.WindowFlags_NoMove = 0
+---@type number
+ImGui.WindowFlags_NoScrollbar = 0
+---@type number
+ImGui.WindowFlags_NoScrollWithMouse = 0
+---@type number
+ImGui.WindowFlags_NoCollapse = 0
+---@type number
+ImGui.WindowFlags_AlwaysAutoResize = 0
+---@type number
+ImGui.WindowFlags_NoBackground = 0
+---@type number
+ImGui.WindowFlags_NoSavedSettings = 0
+---@type number
+ImGui.WindowFlags_NoMouseInputs = 0
+---@type number
+ImGui.WindowFlags_MenuBar = 0
+---@type number
+ImGui.WindowFlags_HorizontalScrollbar = 0
+---@type number
+ImGui.WindowFlags_NoFocusOnAppearing = 0
+---@type number
+ImGui.WindowFlags_NoBringToFrontOnFocus = 0
+---@type number
+ImGui.WindowFlags_AlwaysVerticalScrollbar = 0
+---@type number
+ImGui.WindowFlags_AlwaysHorizontalScrollbar = 0
+---@type number
+ImGui.WindowFlags_AlwaysUseWindowPadding = 0
+
+-- Tree Node Flags (accessed as ImGui.TreeNodeFlags_*)
+---@type number
+ImGui.TreeNodeFlags_None = 0
+---@type number
+ImGui.TreeNodeFlags_Selected = 0
+---@type number
+ImGui.TreeNodeFlags_Framed = 0
+---@type number
+ImGui.TreeNodeFlags_AllowItemOverlap = 0
+---@type number
+ImGui.TreeNodeFlags_NoTreePushOnOpen = 0
+---@type number
+ImGui.TreeNodeFlags_NoAutoOpenOnLog = 0
+---@type number
+ImGui.TreeNodeFlags_DefaultOpen = 0
+---@type number
+ImGui.TreeNodeFlags_OpenOnDoubleClick = 0
+---@type number
+ImGui.TreeNodeFlags_OpenOnArrow = 0
+---@type number
+ImGui.TreeNodeFlags_Leaf = 0
+---@type number
+ImGui.TreeNodeFlags_Bullet = 0
+---@type number
+ImGui.TreeNodeFlags_FramePadding = 0
+---@type number
+ImGui.TreeNodeFlags_SpanAvailWidth = 0
+---@type number
+ImGui.TreeNodeFlags_SpanFullWidth = 0
+---@type number
+ImGui.TreeNodeFlags_NavLeftJumpsBackHere = 0
 
 -- Input system (World.input)
 ---@class InputSystem
@@ -1032,6 +1167,684 @@ PLATFORM = "NATIVE"
 ---```
 Scene = {}
 
+-- ScrollingBuffer - circular buffer for realtime scrolling plots
+---@class ScrollingBuffer
+---@field MaxSize number Maximum number of points
+---@field Offset number Current write offset in circular buffer
+ScrollingBuffer = {}
+
+---@param max_size? number Maximum buffer size (default: 2000)
+---@return ScrollingBuffer
+function ScrollingBuffer.new(max_size) end
+
+---@param x number X value
+---@param y number Y value
+function ScrollingBuffer:AddPoint(x, y) end
+
+function ScrollingBuffer:Erase() end
+
+---@return number count Number of points in buffer
+function ScrollingBuffer:Size() end
+
+-- RollingBuffer - rolling buffer that wraps around a time span
+---@class RollingBuffer
+---@field Span number Time span before wrapping
+RollingBuffer = {}
+
+---@param span? number Time span (default: 10.0)
+---@return RollingBuffer
+function RollingBuffer.new(span) end
+
+---@param x number X value
+---@param y number Y value
+function RollingBuffer:AddPoint(x, y) end
+
+function RollingBuffer:Erase() end
+
+---@return number count Number of points in buffer
+function RollingBuffer:Size() end
+
+-- ImPlot
+---@class ImPlot
+ImPlot = {}
+
+-- Begin/End Plot
+---@param title_id string Plot title (use ## prefix to hide)
+---@return boolean should_render True if plot is visible
+---@overload fun(title_id: string, w: number, h: number): boolean
+---@overload fun(title_id: string, w: number, h: number, flags: number): boolean
+function ImPlot.BeginPlot(title_id) end
+
+function ImPlot.EndPlot() end
+
+-- Begin/End Subplots
+---@param title_id string Subplot title
+---@param rows number Number of rows
+---@param cols number Number of columns
+---@param w number Width
+---@param h number Height
+---@return boolean should_render
+---@overload fun(title_id: string, rows: number, cols: number, w: number, h: number, flags: number): boolean
+function ImPlot.BeginSubplots(title_id, rows, cols, w, h) end
+
+function ImPlot.EndSubplots() end
+
+-- Setup (call after BeginPlot, before plotting)
+---@param axis number Axis index (ImPlot.Axis_X1, etc.)
+---@param label? string Axis label
+---@param flags? number ImPlotAxisFlags
+function ImPlot.SetupAxis(axis, label, flags) end
+
+---@param axis number Axis index
+---@param v_min number Minimum value
+---@param v_max number Maximum value
+---@param cond? number ImPlotCond (default: Cond_Once)
+function ImPlot.SetupAxisLimits(axis, v_min, v_max, cond) end
+
+---@param axis number Axis index
+---@param fmt string Format string (e.g. "%g")
+function ImPlot.SetupAxisFormat(axis, fmt) end
+
+---@param axis number Axis index
+---@param scale number ImPlotScale value
+function ImPlot.SetupAxisScale(axis, scale) end
+
+---@param axis number Axis index
+---@param v_min number Minimum constraint
+---@param v_max number Maximum constraint
+function ImPlot.SetupAxisLimitsConstraints(axis, v_min, v_max) end
+
+---@param axis number Axis index
+---@param z_min number Minimum zoom
+---@param z_max number Maximum zoom
+function ImPlot.SetupAxisZoomConstraints(axis, z_min, z_max) end
+
+---@param x_label string X axis label
+---@param y_label string Y axis label
+---@param x_flags? number X axis flags
+---@param y_flags? number Y axis flags
+function ImPlot.SetupAxes(x_label, y_label, x_flags, y_flags) end
+
+---@param x_min number
+---@param x_max number
+---@param y_min number
+---@param y_max number
+---@param cond? number ImPlotCond
+function ImPlot.SetupAxesLimits(x_min, x_max, y_min, y_max, cond) end
+
+---@param location number ImPlotLocation
+---@param flags? number ImPlotLegendFlags
+function ImPlot.SetupLegend(location, flags) end
+
+---@param location number ImPlotLocation
+---@param flags? number ImPlotMouseTextFlags
+function ImPlot.SetupMouseText(location, flags) end
+
+function ImPlot.SetupFinish() end
+
+-- SetNext (call before BeginPlot)
+---@param axis number Axis index
+---@param v_min number Minimum value
+---@param v_max number Maximum value
+---@param cond? number ImPlotCond
+function ImPlot.SetNextAxisLimits(axis, v_min, v_max, cond) end
+
+---@param axis number Axis index
+function ImPlot.SetNextAxisToFit(axis) end
+
+---@param x_min number
+---@param x_max number
+---@param y_min number
+---@param y_max number
+---@param cond? number ImPlotCond
+function ImPlot.SetNextAxesLimits(x_min, x_max, y_min, y_max, cond) end
+
+function ImPlot.SetNextAxesToFit() end
+
+-- Plot Items (table-based)
+---@param label_id string Legend label
+---@param values number[] Y values (auto X from 0..n)
+---@overload fun(label_id: string, values: number[], xscale: number, xstart: number)
+---@overload fun(label_id: string, xs: number[], ys: number[])
+function ImPlot.PlotLine(label_id, values) end
+
+---@param label_id string Legend label
+---@param values number[] Y values
+---@overload fun(label_id: string, values: number[], xscale: number, xstart: number)
+---@overload fun(label_id: string, xs: number[], ys: number[])
+function ImPlot.PlotScatter(label_id, values) end
+
+---@param label_id string Legend label
+---@param values number[] Y values
+---@overload fun(label_id: string, xs: number[], ys: number[])
+function ImPlot.PlotStairs(label_id, values) end
+
+---@param label_id string Legend label
+---@param values number[] Y values (shaded to y=0)
+---@overload fun(label_id: string, values: number[], yref: number)
+---@overload fun(label_id: string, xs: number[], ys: number[])
+function ImPlot.PlotShaded(label_id, values) end
+
+---@param label_id string Legend label
+---@param values number[] Bar values
+---@overload fun(label_id: string, values: number[], bar_size: number)
+---@overload fun(label_id: string, xs: number[], ys: number[], bar_size: number)
+function ImPlot.PlotBars(label_id, values) end
+
+---@param label_id string Legend label
+---@param xs number[] X positions
+---@param ys number[] Y values
+---@param err number[] Symmetric error values
+---@overload fun(label_id: string, xs: number[], ys: number[], neg: number[], pos: number[])
+function ImPlot.PlotErrorBars(label_id, xs, ys, err) end
+
+---@param label_id string Legend label
+---@param values number[] Stem values
+---@overload fun(label_id: string, xs: number[], ys: number[])
+function ImPlot.PlotStems(label_id, values) end
+
+---@param label_id string Legend label
+---@param values number[] Line positions
+function ImPlot.PlotInfLines(label_id, values) end
+
+---@param label_ids string[] Slice labels
+---@param values number[] Slice values
+---@param x number Center X
+---@param y number Center Y
+---@param radius number Pie radius
+---@param label_fmt? string Label format (default: "%.1f")
+function ImPlot.PlotPieChart(label_ids, values, x, y, radius, label_fmt) end
+
+---@param label_id string Legend label
+---@param values number[] Flat row-major data
+---@param rows number Number of rows
+---@param cols number Number of columns
+---@param scale_min? number Min color scale (0 = auto)
+---@param scale_max? number Max color scale (0 = auto)
+---@param label_fmt? string Cell label format
+function ImPlot.PlotHeatmap(label_id, values, rows, cols, scale_min, scale_max, label_fmt) end
+
+---@param label_id string Legend label
+---@param values number[] Data values
+---@param bins? number Bin count or ImPlotBin method
+---@return number max_count Largest bin count
+function ImPlot.PlotHistogram(label_id, values, bins) end
+
+---@param label_id string Legend label
+---@param xs number[] X values
+---@param ys number[] Y values (0 or 1)
+function ImPlot.PlotDigital(label_id, xs, ys) end
+
+---@param text string Text to display
+---@param x number X position
+---@param y number Y position
+---@overload fun(text: string, x: number, y: number, pix_offset_x: number, pix_offset_y: number)
+function ImPlot.PlotText(text, x, y) end
+
+---@param label_id string Legend label
+function ImPlot.PlotDummy(label_id) end
+
+-- Buffer-based plot functions (zero-copy, handles circular offset)
+---@param label_id string Legend label
+---@param buf ScrollingBuffer|RollingBuffer Data buffer
+function ImPlot.PlotLineBuffer(label_id, buf) end
+
+---@param label_id string Legend label
+---@param buf ScrollingBuffer|RollingBuffer Data buffer
+---@overload fun(label_id: string, buf: ScrollingBuffer, yref: number)
+function ImPlot.PlotShadedBuffer(label_id, buf) end
+
+---@param label_id string Legend label
+---@param buf ScrollingBuffer|RollingBuffer Data buffer
+function ImPlot.PlotScatterBuffer(label_id, buf) end
+
+-- Plot Tools
+---@param id number Unique drag line ID
+---@param x number X position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@return boolean changed, number x
+function ImPlot.DragLineX(id, x, r, g, b, a) end
+
+---@param id number Unique drag line ID
+---@param y number Y position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@return boolean changed, number y
+function ImPlot.DragLineY(id, y, r, g, b, a) end
+
+---@param id number Unique drag point ID
+---@param x number X position
+---@param y number Y position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@return boolean changed, number x, number y
+function ImPlot.DragPoint(id, x, y, r, g, b, a) end
+
+---@param x number X position
+---@param y number Y position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@param pix_x number Pixel offset X
+---@param pix_y number Pixel offset Y
+---@param clamp boolean Clamp to plot area
+---@param fmt? string Text format string
+function ImPlot.Annotation(x, y, r, g, b, a, pix_x, pix_y, clamp, fmt) end
+
+---@param x number X position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@param fmt? string Tag text
+function ImPlot.TagX(x, r, g, b, a, fmt) end
+
+---@param y number Y position
+---@param r number Color red
+---@param g number Color green
+---@param b number Color blue
+---@param a number Color alpha
+---@param fmt? string Tag text
+function ImPlot.TagY(y, r, g, b, a, fmt) end
+
+-- Plot Utils
+---@param axis number Axis index
+function ImPlot.SetAxis(axis) end
+
+---@param x_axis number X axis index
+---@param y_axis number Y axis index
+function ImPlot.SetAxes(x_axis, y_axis) end
+
+---@param x number Pixel X
+---@param y number Pixel Y
+---@return number plot_x, number plot_y
+function ImPlot.PixelsToPlot(x, y) end
+
+---@param x number Plot X
+---@param y number Plot Y
+---@return number pixel_x, number pixel_y
+function ImPlot.PlotToPixels(x, y) end
+
+---@return number x, number y Plot position (top-left) in pixels
+function ImPlot.GetPlotPos() end
+
+---@return number w, number h Plot size in pixels
+function ImPlot.GetPlotSize() end
+
+---@return number x, number y Mouse position in plot coordinates
+function ImPlot.GetPlotMousePos() end
+
+---@return boolean
+function ImPlot.IsPlotHovered() end
+
+---@param axis number Axis index
+---@return boolean
+function ImPlot.IsAxisHovered(axis) end
+
+---@return boolean
+function ImPlot.IsSubplotsHovered() end
+
+---@return boolean
+function ImPlot.IsPlotSelected() end
+
+function ImPlot.CancelPlotSelection() end
+
+---@param hidden? boolean
+---@param cond? number ImPlotCond
+function ImPlot.HideNextItem(hidden, cond) end
+
+-- Legend Utils
+---@param label_id string Legend entry label
+---@param mouse_button? number Mouse button (default: 1/right)
+---@return boolean
+function ImPlot.BeginLegendPopup(label_id, mouse_button) end
+
+function ImPlot.EndLegendPopup() end
+
+---@param label_id string Legend entry label
+---@return boolean
+function ImPlot.IsLegendEntryHovered(label_id) end
+
+-- Styling
+function ImPlot.StyleColorsAuto() end
+function ImPlot.StyleColorsClassic() end
+function ImPlot.StyleColorsDark() end
+function ImPlot.StyleColorsLight() end
+
+---@param idx number ImPlotCol index
+---@param r number Red
+---@param g number Green
+---@param b number Blue
+---@param a number Alpha
+function ImPlot.PushStyleColor(idx, r, g, b, a) end
+
+---@param count? number Number of colors to pop (default: 1)
+function ImPlot.PopStyleColor(count) end
+
+---@param idx number ImPlotStyleVar index
+---@param val number Float value
+function ImPlot.PushStyleVarFloat(idx, val) end
+
+---@param idx number ImPlotStyleVar index
+---@param val number Int value
+function ImPlot.PushStyleVarInt(idx, val) end
+
+---@param idx number ImPlotStyleVar index
+---@param x number X value
+---@param y number Y value
+function ImPlot.PushStyleVarVec2(idx, x, y) end
+
+---@param count? number Number of vars to pop (default: 1)
+function ImPlot.PopStyleVar(count) end
+
+---@return number r, number g, number b, number a
+function ImPlot.GetLastItemColor() end
+
+-- Colormaps
+---@param cmap number|string Colormap index or name
+function ImPlot.PushColormap(cmap) end
+
+---@param count? number Number to pop (default: 1)
+function ImPlot.PopColormap(count) end
+
+---@return number r, number g, number b, number a
+function ImPlot.NextColormapColor() end
+
+---@return number
+function ImPlot.GetColormapCount() end
+
+---@param cmap number Colormap index
+---@return string
+function ImPlot.GetColormapName(cmap) end
+
+---@param name string Colormap name
+---@return number index (-1 if invalid)
+function ImPlot.GetColormapIndex(name) end
+
+---@param cmap? number Colormap index (default: current)
+---@return number
+function ImPlot.GetColormapSize(cmap) end
+
+---@param idx number Color index
+---@param cmap? number Colormap index
+---@return number r, number g, number b, number a
+function ImPlot.GetColormapColor(idx, cmap) end
+
+---@param t number Value in [0, 1]
+---@param cmap? number Colormap index
+---@return number r, number g, number b, number a
+function ImPlot.SampleColormap(t, cmap) end
+
+---@param label string Scale label
+---@param scale_min number Min scale value
+---@param scale_max number Max scale value
+---@param w? number Width
+---@param h? number Height
+function ImPlot.ColormapScale(label, scale_min, scale_max, w, h) end
+
+---@param label string Button label
+---@param w? number Width
+---@param h? number Height
+---@return boolean
+function ImPlot.ColormapButton(label, w, h) end
+
+---@param plot_title_id? string Plot to bust (nil = all)
+function ImPlot.BustColorCache(plot_title_id) end
+
+function ImPlot.ShowDemoWindow() end
+
+-- Axis constants
+---@type number
+ImPlot.Axis_X1 = 0
+---@type number
+ImPlot.Axis_X2 = 1
+---@type number
+ImPlot.Axis_X3 = 2
+---@type number
+ImPlot.Axis_Y1 = 3
+---@type number
+ImPlot.Axis_Y2 = 4
+---@type number
+ImPlot.Axis_Y3 = 5
+
+-- Plot flags
+---@type number
+ImPlot.Flags_None = 0
+---@type number
+ImPlot.Flags_NoTitle = 0
+---@type number
+ImPlot.Flags_NoLegend = 0
+---@type number
+ImPlot.Flags_NoMouseText = 0
+---@type number
+ImPlot.Flags_NoInputs = 0
+---@type number
+ImPlot.Flags_NoMenus = 0
+---@type number
+ImPlot.Flags_NoBoxSelect = 0
+---@type number
+ImPlot.Flags_NoFrame = 0
+---@type number
+ImPlot.Flags_Equal = 0
+---@type number
+ImPlot.Flags_Crosshairs = 0
+---@type number
+ImPlot.Flags_CanvasOnly = 0
+
+-- Axis flags
+---@type number
+ImPlot.AxisFlags_None = 0
+---@type number
+ImPlot.AxisFlags_NoLabel = 0
+---@type number
+ImPlot.AxisFlags_NoGridLines = 0
+---@type number
+ImPlot.AxisFlags_NoTickMarks = 0
+---@type number
+ImPlot.AxisFlags_NoTickLabels = 0
+---@type number
+ImPlot.AxisFlags_NoInitialFit = 0
+---@type number
+ImPlot.AxisFlags_NoMenus = 0
+---@type number
+ImPlot.AxisFlags_Opposite = 0
+---@type number
+ImPlot.AxisFlags_Invert = 0
+---@type number
+ImPlot.AxisFlags_AutoFit = 0
+---@type number
+ImPlot.AxisFlags_RangeFit = 0
+---@type number
+ImPlot.AxisFlags_LockMin = 0
+---@type number
+ImPlot.AxisFlags_LockMax = 0
+---@type number
+ImPlot.AxisFlags_Lock = 0
+---@type number
+ImPlot.AxisFlags_NoDecorations = 0
+---@type number
+ImPlot.AxisFlags_AuxDefault = 0
+
+-- Legend flags
+---@type number
+ImPlot.LegendFlags_None = 0
+---@type number
+ImPlot.LegendFlags_NoButtons = 0
+---@type number
+ImPlot.LegendFlags_Outside = 0
+---@type number
+ImPlot.LegendFlags_Horizontal = 0
+---@type number
+ImPlot.LegendFlags_Sort = 0
+
+-- Line flags
+---@type number
+ImPlot.LineFlags_None = 0
+---@type number
+ImPlot.LineFlags_Segments = 0
+---@type number
+ImPlot.LineFlags_Loop = 0
+---@type number
+ImPlot.LineFlags_SkipNaN = 0
+---@type number
+ImPlot.LineFlags_Shaded = 0
+
+-- Bars flags
+---@type number
+ImPlot.BarsFlags_None = 0
+---@type number
+ImPlot.BarsFlags_Horizontal = 0
+
+-- Location constants
+---@type number
+ImPlot.Location_Center = 0
+---@type number
+ImPlot.Location_North = 0
+---@type number
+ImPlot.Location_South = 0
+---@type number
+ImPlot.Location_West = 0
+---@type number
+ImPlot.Location_East = 0
+---@type number
+ImPlot.Location_NorthWest = 0
+---@type number
+ImPlot.Location_NorthEast = 0
+---@type number
+ImPlot.Location_SouthWest = 0
+---@type number
+ImPlot.Location_SouthEast = 0
+
+-- Condition constants
+---@type number
+ImPlot.Cond_None = 0
+---@type number
+ImPlot.Cond_Always = 0
+---@type number
+ImPlot.Cond_Once = 0
+
+-- Marker constants
+---@type number
+ImPlot.Marker_None = 0
+---@type number
+ImPlot.Marker_Auto = 0
+---@type number
+ImPlot.Marker_Circle = 0
+---@type number
+ImPlot.Marker_Square = 0
+---@type number
+ImPlot.Marker_Diamond = 0
+---@type number
+ImPlot.Marker_Up = 0
+---@type number
+ImPlot.Marker_Down = 0
+---@type number
+ImPlot.Marker_Left = 0
+---@type number
+ImPlot.Marker_Right = 0
+---@type number
+ImPlot.Marker_Cross = 0
+---@type number
+ImPlot.Marker_Plus = 0
+---@type number
+ImPlot.Marker_Asterisk = 0
+
+-- Scale constants
+---@type number
+ImPlot.Scale_Linear = 0
+---@type number
+ImPlot.Scale_Time = 0
+---@type number
+ImPlot.Scale_Log10 = 0
+---@type number
+ImPlot.Scale_SymLog = 0
+
+-- Colormap constants
+---@type number
+ImPlot.Colormap_Deep = 0
+---@type number
+ImPlot.Colormap_Dark = 0
+---@type number
+ImPlot.Colormap_Pastel = 0
+---@type number
+ImPlot.Colormap_Paired = 0
+---@type number
+ImPlot.Colormap_Viridis = 0
+---@type number
+ImPlot.Colormap_Plasma = 0
+---@type number
+ImPlot.Colormap_Hot = 0
+---@type number
+ImPlot.Colormap_Cool = 0
+---@type number
+ImPlot.Colormap_Pink = 0
+---@type number
+ImPlot.Colormap_Jet = 0
+---@type number
+ImPlot.Colormap_Twilight = 0
+---@type number
+ImPlot.Colormap_RdBu = 0
+---@type number
+ImPlot.Colormap_BrBG = 0
+---@type number
+ImPlot.Colormap_PiYG = 0
+---@type number
+ImPlot.Colormap_Spectral = 0
+---@type number
+ImPlot.Colormap_Greys = 0
+
+-- Style color constants
+---@type number
+ImPlot.Col_FrameBg = 0
+---@type number
+ImPlot.Col_PlotBg = 0
+---@type number
+ImPlot.Col_PlotBorder = 0
+---@type number
+ImPlot.Col_LegendBg = 0
+---@type number
+ImPlot.Col_LegendBorder = 0
+---@type number
+ImPlot.Col_LegendText = 0
+---@type number
+ImPlot.Col_TitleText = 0
+---@type number
+ImPlot.Col_InlayText = 0
+---@type number
+ImPlot.Col_AxisText = 0
+---@type number
+ImPlot.Col_AxisGrid = 0
+---@type number
+ImPlot.Col_AxisTick = 0
+---@type number
+ImPlot.Col_AxisBg = 0
+---@type number
+ImPlot.Col_AxisBgHovered = 0
+---@type number
+ImPlot.Col_AxisBgActive = 0
+---@type number
+ImPlot.Col_Selection = 0
+---@type number
+ImPlot.Col_Crosshairs = 0
+
+-- Histogram bin method constants
+---@type number
+ImPlot.Bin_Sqrt = 0
+---@type number
+ImPlot.Bin_Sturges = 0
+---@type number
+ImPlot.Bin_Rice = 0
+---@type number
+ImPlot.Bin_Scott = 0
+
 -- Global variables
 _G.Camera = Camera
 _G.Font = Font
@@ -1062,4 +1875,7 @@ _G.Scene = Scene
 _G.ECS_MESH_COMPONENT = ECS_MESH_COMPONENT
 _G.ECS_MESH_TEXTURE_COMPONENT = ECS_MESH_TEXTURE_COMPONENT
 _G.ECS_PHYSICS_COMPONENT = ECS_PHYSICS_COMPONENT
+_G.ImPlot = ImPlot
+_G.ScrollingBuffer = ScrollingBuffer
+_G.RollingBuffer = RollingBuffer
 _G.now = now

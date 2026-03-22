@@ -43,6 +43,7 @@ int main(int argc, char *argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	srand (static_cast<unsigned>(time(0)));
 	freetype_init(lua);
 	BSGE::Physics::init();
 	

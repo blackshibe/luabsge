@@ -24,7 +24,11 @@ Everything is compiled from source.
 ./setup.sh
 ./run.sh minimal/native_test
 
-# Web
+# Windows with MSVC, using command prompt
+setup_win.bat
+run_win.bat minimal/native_test
+
+# Web (Linux only)
 ./setup_web.sh minimal/web_test minimal/web_test
 ./run_web.sh minimal/web_test minimal/web_test # Path to a folder that will host the wasm files
 ```
@@ -39,6 +43,8 @@ Everything is compiled from source.
 -   Ray tracing TBO support
 -   ImGUI support
 -   ECS-based mesh rendering
+-   ImPlot support
+    -   https://pthom.github.io/imgui_explorer/?lib=implot
 
 ## TODO
 

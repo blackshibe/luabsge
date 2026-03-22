@@ -3,7 +3,7 @@ if(USE_EMSCRIPTEN)
         set(CMAKE_TOOLCHAIN_FILE "~/.emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
 endif()
 
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 project(luabsge CXX)
 
 # Extensions
@@ -24,6 +24,15 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
 set(CMAKE_COLOR_DIAGNOSTICS ON)
 
+# MSVC settings
+if(MSVC)
+        cmake_policy(SET CMP0091 NEW)
+        add_compile_options(/EHsc)
+
+        # Use static CRT to match dependencies (Assimp, Jolt)
+        set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
+
 # WASM Build option
 if(USE_EMSCRIPTEN)
 
@@ -42,7 +51,7 @@ if(USE_EMSCRIPTEN)
 
         set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-s ELIMINATE_DUPLICATE_FUNCTIONS=1 --closure 1 -s ALLOW_MEMORY_GROWTH=1 -s ASYNCIFY=1 -O3 -s WASM=1 -s EXPORTED_FUNCTIONS='[_main,_js_set_int,_js_get_int]' -s EXPORTED_RUNTIME_METHODS='[ccall,cwrap]' -s FORCE_FILESYSTEM=1 -s USE_WEBGL2=1 -s FULL_ES3=1")
 
-        FetchContent_Declare(
+        fetchcontent_declare(
                 glfw3
                 GIT_REPOSITORY https://github.com/pongasoft/emscripten-glfw
         )
@@ -68,13 +77,13 @@ else()
         set_target_properties(${PROJECT_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
         # GLFW build
-        FetchContent_Declare(
+        fetchcontent_declare(
                 glfw
                 GIT_REPOSITORY https://github.com/glfw/glfw
                 GIT_TAG 3.4
         )
 
-        FetchContent_MakeAvailable(glfw)
+        fetchcontent_makeavailable(glfw)
         target_include_directories(${PROJECT_NAME} PRIVATE ${glfw_SOURCE_DIR}/include)
         target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 endif()
@@ -84,45 +93,45 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
 # Native Lua
-FetchContent_Declare(
+fetchcontent_declare(
     lua_static
     GIT_REPOSITORY https://github.com/walterschell/Lua
 )
 
-FetchContent_MakeAvailable(lua_static)
+fetchcontent_makeavailable(lua_static)
 target_include_directories(${PROJECT_NAME} PRIVATE ${lua_static_SOURCE_DIR}/src)
 target_link_libraries(${PROJECT_NAME} PRIVATE lua_static)
 
 # FreeType from source
-FetchContent_Declare(
+fetchcontent_declare(
     freetype
     GIT_REPOSITORY https://github.com/aseprite/freetype2.git
     GIT_TAG master
 )
 
-FetchContent_MakeAvailable(freetype)
+fetchcontent_makeavailable(freetype)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${freetype_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
 
 # Assimp
-FetchContent_Declare(
+fetchcontent_declare(
     assimp
     URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
 )
 
-FetchContent_MakeAvailable(assimp)
+fetchcontent_makeavailable(assimp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${assimp_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp)
 
 # sol2
-FetchContent_Declare(
+fetchcontent_declare(
     sol2
     GIT_REPOSITORY https://github.com/ThePhD/sol2.git
     GIT_TAG v3.5.0
 )
 
-FetchContent_MakeAvailable(sol2)
+fetchcontent_makeavailable(sol2)
 add_definitions(-DSOL_ALL_SAFETIES_ON=1)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${sol2_SOURCE_DIR}/include)
@@ -132,12 +141,12 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
 )
 
 # glm
-FetchContent_Declare(
+fetchcontent_declare(
     glm
     GIT_REPOSITORY https://github.com/g-truc/glm.git
 )
 
-FetchContent_MakeAvailable(glm)
+fetchcontent_makeavailable(glm)
 
 # GLM is header-only, just need to include directories
 target_include_directories(${PROJECT_NAME} PRIVATE ${glm_SOURCE_DIR})
@@ -146,24 +155,24 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${glm_SOURCE_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1)
 
 # Jolt physics
-FetchContent_Declare(
+fetchcontent_declare(
         JoltPhysics
         GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
         GIT_TAG "v5.3.0"
         SOURCE_SUBDIR "Build"
 )
-FetchContent_MakeAvailable(JoltPhysics)
+fetchcontent_makeavailable(JoltPhysics)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${JoltPhysics_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} PRIVATE Jolt)
 
 # Entt
-FetchContent_Declare(
+fetchcontent_declare(
         EnTT
         GIT_REPOSITORY "https://github.com/skypjack/entt"
         GIT_TAG "v3.15.0"
 )
-FetchContent_MakeAvailable(EnTT)
+fetchcontent_makeavailable(EnTT)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${EnTT_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} PRIVATE EnTT)

@@ -2,8 +2,7 @@ local buffers = {}
 
 local WIDTH = 600
 
-local function update_neuron(i)
-	local input = SNN_Get(i)
+local function update_neuron(i, input)
 	buffers[i] = buffers[i]
 		or {
 			output = ScrollingBuffer.new(),

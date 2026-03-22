@@ -23,10 +23,29 @@ end
 
 function reset_sums()
 	for i, v in pairs(SNN_PROGRAM.outputs) do
-		local output = SNN_Get(SNN_NUM_NEURONS() - i)
 		v.sum = 0
 	end
 end
+
+SNN_NETWORK = NeuronNetworkConfiguration.new()
+local input_layer = NeuronLayerConfiguration.new(5)
+local hidden_layer = NeuronLayerConfiguration.new(64)
+local memory_layer = NeuronLayerConfiguration.new(64)
+local output_layer = NeuronLayerConfiguration.new(4)
+
+SNN_NETWORK:add_group(input_layer)
+SNN_NETWORK:add_group(hidden_layer)
+SNN_NETWORK:add_group(memory_layer)
+SNN_NETWORK:add_group(output_layer)
+
+SNN_NETWORK:set_weight_config(input_layer.index, hidden_layer.index, 1)
+SNN_NETWORK:set_weight_config(input_layer.index, input_layer.index, 0)
+SNN_NETWORK:set_weight_config(hidden_layer.index, memory_layer.index, 1)
+SNN_NETWORK:set_weight_config(hidden_layer.index, output_layer.index, 1)
+SNN_NETWORK:set_weight_config(memory_layer.index, output_layer.index, 1)
+SNN_NETWORK:set_weight_config(output_layer.index, output_layer.index, 0)
+
+SNN_NETWORK:build()
 
 local time_to_compute = 0
 local FIXED_DT = 1 / 100
@@ -39,7 +58,7 @@ World.rendering.step:connect(function(delta_time)
 	while time_to_compute > FIXED_DT do
 		time_to_compute = time_to_compute - FIXED_DT
 		fixed_update(FIXED_DT)
-		SNN_Update(FIXED_DT)
+		SNN_NETWORK:update(FIXED_DT)
 
 		if os.clock() > cutoff then
 			break
@@ -69,12 +88,9 @@ World.rendering.step:connect(function(delta_time)
 		plot_inputs_for_program(SNN_PROGRAM)
 		ImGui.Separator()
 
-		plot_neuron(0)
-
 		ImPlot.PushColormap(ImPlot.Colormap_Pastel)
 		for i, v in pairs(SNN_PROGRAM.outputs) do
-			local index_of = SNN_NUM_NEURONS() - i
-			plot_neuron(index_of, v.label, i ~= 3)
+			plot_neuron(output_layer.index * 100 + i, v.label, i ~= 3)
 		end
 	end
 	ImGui.End()
@@ -86,7 +102,7 @@ function fixed_update(delta_time)
 	SNN_PROGRAM.update()
 
 	for i, v in pairs(SNN_PROGRAM.inputs) do
-		local input = SNN_Get(i - 1)
+		local input = SNN_NETWORK:get_in_layer(input_layer, i - 1)
 		input.is_input = true
 
 		---@diagnostic disable-next-line: unnecessary-if
@@ -96,7 +112,7 @@ function fixed_update(delta_time)
 	end
 
 	for i, v in pairs(SNN_PROGRAM.outputs) do
-		local output = SNN_Get(SNN_NUM_NEURONS() - i)
+		local output = SNN_NETWORK:get_in_layer(output_layer, i - 1)
 
 		v.current = output.output
 		v.sum = v.sum + output.output
@@ -104,7 +120,7 @@ function fixed_update(delta_time)
 
 	update_inputs_for_program(SNN_PROGRAM)
 	for i, v in pairs(SNN_PROGRAM.outputs) do
-		local index_of = SNN_NUM_NEURONS() - i
-		update_neuron(index_of)
+		local neuron = SNN_NETWORK:get_in_layer(output_layer, i - 1)
+		update_neuron(output_layer.index * 100 + i, neuron)
 	end
 end

@@ -2,7 +2,6 @@ local showing_sequence = true
 local sequence
 local sequence_index = 0
 local answered_correctly = -1
-local retries_left = 20
 
 local SEQUENCE_LENGTH = 1
 local PULSES_TO_ANSWER = 5
@@ -93,7 +92,7 @@ SimonSays = {
 				sequence = {}
 				sequence_index = 0
 				for i = 1, SEQUENCE_LENGTH do
-					sequence[i] = 4 --
+					sequence[i] = math.random(1, 4)
 
 					print("\t", index_to_input(sequence[i]))
 				end
@@ -116,6 +115,7 @@ SimonSays = {
 			set_input(SimonSays, "IN_BLUE", false)
 			set_input(SimonSays, "IN_GREEN", false)
 			set_input(SimonSays, "IN_YELLOW", false)
+			set_input(SimonSays, index_to_input(sequence[sequence_index]), true)
 
 			-- small delays
 			pulses_to_answer_left = 1
@@ -148,7 +148,7 @@ SimonSays = {
 			sequence_index = 0
 
 			-- no chosen output, punish all outputs
-			SNN_Punish()
+			SNN_NETWORK:punish()
 			reset_sums()
 
 			return
@@ -162,7 +162,7 @@ SimonSays = {
 			sequence_index = sequence_index + 1
 			answered_correctly = true
 			pulses_to_answer_left = PULSES_TO_ANSWER
-			SNN_Reward()
+			SNN_NETWORK:reward()
 			reset_sums()
 
 			if sequence_index > #sequence then
@@ -183,7 +183,7 @@ SimonSays = {
 			showing_sequence = true
 			sequence_index = 0
 
-			SNN_Punish()
+			SNN_NETWORK:punish()
 			reset_sums()
 			LOSSES = LOSSES + 1
 

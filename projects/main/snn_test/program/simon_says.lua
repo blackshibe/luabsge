@@ -181,6 +181,7 @@ SimonSays = {
 			answered_correctly = false
 			pulses_to_answer_left = PULSES_TO_ANSWER
 			showing_sequence = true
+			sequence = nil
 			sequence_index = 0
 
 			SNN_NETWORK:punish()

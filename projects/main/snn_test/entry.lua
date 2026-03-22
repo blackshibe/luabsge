@@ -28,9 +28,9 @@ function reset_sums()
 end
 
 SNN_NETWORK = NeuronNetworkConfiguration.new()
-local input_layer = NeuronLayerConfiguration.new(5)
-local hidden_layer = NeuronLayerConfiguration.new(64)
-local memory_layer = NeuronLayerConfiguration.new(64)
+local input_layer = NeuronLayerConfiguration.new(8)
+local hidden_layer = NeuronLayerConfiguration.new(48)
+local memory_layer = NeuronLayerConfiguration.new(48)
 local output_layer = NeuronLayerConfiguration.new(4)
 
 SNN_NETWORK:add_group(input_layer)
@@ -41,11 +41,12 @@ SNN_NETWORK:add_group(output_layer)
 SNN_NETWORK:set_weight_config(input_layer.index, hidden_layer.index, 1)
 SNN_NETWORK:set_weight_config(input_layer.index, input_layer.index, 0)
 SNN_NETWORK:set_weight_config(hidden_layer.index, memory_layer.index, 1)
-SNN_NETWORK:set_weight_config(hidden_layer.index, output_layer.index, 1)
-SNN_NETWORK:set_weight_config(memory_layer.index, output_layer.index, 1)
-SNN_NETWORK:set_weight_config(output_layer.index, output_layer.index, 0)
+SNN_NETWORK:set_weight_config(hidden_layer.index, output_layer.index, 0.5)
+SNN_NETWORK:set_weight_config(memory_layer.index, output_layer.index, 0.5)
+SNN_NETWORK:set_weight_config(memory_layer.index, memory_layer.index, 1)
 
 SNN_NETWORK:build()
+SNN_NETWORK:set_fixed_weight(output_layer.index, output_layer.index, -1.0)
 
 local time_to_compute = 0
 local FIXED_DT = 1 / 100
@@ -115,7 +116,7 @@ function fixed_update(delta_time)
 		local output = SNN_NETWORK:get_in_layer(output_layer, i - 1)
 
 		v.current = output.output
-		v.sum = v.sum + output.output
+		v.sum = v.sum + output.stored + output.output
 	end
 
 	update_inputs_for_program(SNN_PROGRAM)

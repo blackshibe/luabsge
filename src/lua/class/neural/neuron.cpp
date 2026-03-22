@@ -13,12 +13,12 @@ float trace[NUM_NEURONS]; // R-STDP learning, eligibility to strengthening value
 struct NeuronStruct {
     bool is_input = false;
     int network_index = 0;
+    int group_id = -1;
     float loss = 0.0001f;
     float stored = 0.0f;
     float output = 0.0f;
 
     float threshold = SPIKE_POTENTIAL;
-    float target_threshold = SPIKE_POTENTIAL;
     
     NeuronStruct() {
         threshold = SPIKE_POTENTIAL;
@@ -43,22 +43,22 @@ struct NeuronStruct {
             stored = 0.0f;
             trace[network_index] = 1.0f;
             
-            threshold += 0.05f;
-            // target_threshold = SPIKE_POTENTIAL;
-
             for (int j = 0; j < network_size; j++) {
                 if (j == network_index) continue;
                 eligibility_to[network_index][j] += trace[j];
             }
-        } else {
-            // target_threshold -= timescale;
 
+            // anti-eligibility: when I fire, weaken eligibility for peers in my group
+            for (int k = 0; k < network_size; k++) {
+                if (k == network_index || network[k].group_id != group_id) continue;
+                for (int j = 0; j < network_size; j++) {
+                    eligibility_to[k][j] -= trace[j] * 0.5f;
+                }
+            }
+        } else {
             output = 0.0f;
             trace[network_index] *= pow(0.99f, timescale * 60.0f);
         }
-
-        // threshold decays back to baseline (continuous)
-        threshold += (target_threshold - threshold) * 0.1f * timescale;
 
         // after the spike/else block, decay eligibility
         for (int j = 0; j < network_size; j++) {
@@ -111,6 +111,22 @@ struct NeuronNetworkConfiguration {
         });
     }
 
+    // set a fixed uniform weight between all neurons in two layers (e.g. lateral inhibition)
+    void set_fixed_weight(int from, int to, float weight) {
+        // applied after build(), directly sets weights without randomization
+        int from_start = layer_start(from);
+        int from_count = layers[from].count;
+        int to_start = layer_start(to);
+        int to_count = layers[to].count;
+
+        for (int i = 0; i < to_count; i++) {
+            for (int j = 0; j < from_count; j++) {
+                if (to_start + i == from_start + j) continue; // no self-connection
+                weights_to[to_start + i][from_start + j] = weight;
+            }
+        }
+    }
+
     // get the starting index of a layer in the flat network array
     int layer_start(int layer_index) {
         int start = 0;
@@ -140,6 +156,14 @@ struct NeuronNetworkConfiguration {
             }
             trace[i] = 0.0f;
             network[i].network_index = i;
+        }
+
+        // assign group_id to each neuron
+        for (int g = 0; g < (int)layers.size(); g++) {
+            int start = layer_start(g);
+            for (int i = 0; i < layers[g].count; i++) {
+                network[start + i].group_id = g;
+            }
         }
 
         // initialize weights based on connection configuration
@@ -207,6 +231,7 @@ void lua_bsge_init_neuron(sol::state &lua) {
 		sol::constructors<NeuronNetworkConfiguration()>(),
         "add_group", &NeuronNetworkConfiguration::add_group,
         "set_weight_config", &NeuronNetworkConfiguration::set_weight_config,
+        "set_fixed_weight", &NeuronNetworkConfiguration::set_fixed_weight,
         "build", &NeuronNetworkConfiguration::build,
         "update", &NeuronNetworkConfiguration::update,
         "get_in_layer", &NeuronNetworkConfiguration::get_in_layer,
@@ -229,16 +254,4 @@ void lua_bsge_init_neuron(sol::state &lua) {
 		"threshold", &NeuronStruct::threshold,
 		"is_input", &NeuronStruct::is_input
     );
-
-
-    lua.set_function("SNN_get_weights_to", [](int i, int j)  {
-        return weights_to[i][j];
-    });
-
-    lua.set_function("SNN_get_eligibility_to", [](int i, int j)  {
-        return trace[i];
-    });
-
-
-    
 }

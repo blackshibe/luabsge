@@ -11,5 +11,11 @@ Spiking Neural Network architecture test.
 - STDP Learning
     - Potentiation, Depression
 - Inhibition + Excitation
-
+- refractory period
 - Actually useful accuracy
+
+## Problems
+
+- Neurons fire in unison, which makes memory impossible
+- Connection sparsity to force specialization
+- Connection locality

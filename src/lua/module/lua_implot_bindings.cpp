@@ -188,6 +188,16 @@ void lua_bsge_init_implot_bindings(sol::state &lua) {
         }
     );
 
+    // PlotLineStyled(label, xs, ys, r, g, b, a) - explicit x/y with color
+    implot["PlotLineStyled"] = [](const char* label_id, sol::table xs, sol::table ys, float r, float g, float b, float a) {
+        std::vector<double> xv, yv;
+        for (size_t i = 1; i <= xs.size(); i++) xv.push_back(xs[i]);
+        for (size_t i = 1; i <= ys.size(); i++) yv.push_back(ys[i]);
+        int count = (int)std::min(xv.size(), yv.size());
+        ImPlotSpec spec(ImPlotProp_LineColor, ImVec4(r, g, b, a));
+        ImPlot::PlotLine(label_id, xv.data(), yv.data(), count, spec);
+    };
+
     implot["PlotScatter"] = sol::overload(
         [](const char* label_id, sol::table values) {
             std::vector<double> v;
@@ -207,6 +217,16 @@ void lua_bsge_init_implot_bindings(sol::state &lua) {
             ImPlot::PlotScatter(label_id, xv.data(), yv.data(), count);
         }
     );
+
+    // PlotScatterStyled(label, xs, ys, marker, size, r, g, b, a) - scatter with marker style
+    implot["PlotScatterStyled"] = [](const char* label_id, sol::table xs, sol::table ys, int marker, float size, float r, float g, float b, float a) {
+        std::vector<double> xv, yv;
+        for (size_t i = 1; i <= xs.size(); i++) xv.push_back(xs[i]);
+        for (size_t i = 1; i <= ys.size(); i++) yv.push_back(ys[i]);
+        int count = (int)std::min(xv.size(), yv.size());
+        ImPlotSpec spec(ImPlotProp_Marker, (double)marker, ImPlotProp_MarkerSize, (double)size, ImPlotProp_MarkerFillColor, ImVec4(r, g, b, a));
+        ImPlot::PlotScatter(label_id, xv.data(), yv.data(), count, spec);
+    };
 
     implot["PlotStairs"] = sol::overload(
         [](const char* label_id, sol::table values) {

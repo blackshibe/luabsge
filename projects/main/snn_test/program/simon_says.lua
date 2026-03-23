@@ -4,7 +4,7 @@ local sequence_index = 0
 local answered_correctly = -1
 
 local SEQUENCE_LENGTH = 1
-local PULSES_TO_ANSWER = 5
+local PULSES_TO_ANSWER = 25
 
 WINS = 0
 LOSSES = 0
@@ -63,10 +63,10 @@ SimonSays = {
 	update = function()
 		local is_next_spike = NETWORK_RUNTIME_SECONDS > timer
 		if is_next_spike then
-			set_input(SimonSays, "TIME", true)
+			-- set_input(SimonSays, "TIME", true)
 			timer = NETWORK_RUNTIME_SECONDS + 0.1
 		else
-			set_input(SimonSays, "TIME", false)
+			-- set_input(SimonSays, "TIME", false)
 		end
 
 		set_input(SimonSays, "REWARD", false)
@@ -84,7 +84,7 @@ SimonSays = {
 		end
 
 		-- encode simon says sequence, then wait for network to play it back
-		set_input(SimonSays, "IN_SELECTING", showing_sequence)
+		set_input(SimonSays, "IN_SELECTING", not showing_sequence)
 		if showing_sequence then
 			-- generate sequence
 			if not sequence then

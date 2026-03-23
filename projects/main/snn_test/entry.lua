@@ -13,6 +13,8 @@ local plot_inputs_for_program = plot_inputs_mod.plot_inputs_for_program
 local plot_mod = require("ui.plot")
 local update_neuron = plot_mod.update_neuron
 local plot_neuron = plot_mod.plot_neuron
+local network_mod = require("ui.network")
+local plot_network = network_mod.plot_network
 
 SNN_PROGRAM = SimonSays
 
@@ -29,24 +31,47 @@ end
 
 SNN_NETWORK = NeuronNetworkConfiguration.new()
 local input_layer = NeuronLayerConfiguration.new(8)
-local hidden_layer = NeuronLayerConfiguration.new(48)
-local memory_layer = NeuronLayerConfiguration.new(48)
+-- local hidden_layer = NeuronLayerConfiguration.new(24)
+local memory_layer = NeuronLayerConfiguration.new(36)
 local output_layer = NeuronLayerConfiguration.new(4)
 
 SNN_NETWORK:add_group(input_layer)
-SNN_NETWORK:add_group(hidden_layer)
+-- SNN_NETWORK:add_group(hidden_layer)
 SNN_NETWORK:add_group(memory_layer)
 SNN_NETWORK:add_group(output_layer)
 
-SNN_NETWORK:set_weight_config(input_layer.index, hidden_layer.index, 1)
-SNN_NETWORK:set_weight_config(input_layer.index, input_layer.index, 0)
-SNN_NETWORK:set_weight_config(hidden_layer.index, memory_layer.index, 1)
-SNN_NETWORK:set_weight_config(hidden_layer.index, output_layer.index, 0.5)
-SNN_NETWORK:set_weight_config(memory_layer.index, output_layer.index, 0.5)
-SNN_NETWORK:set_weight_config(memory_layer.index, memory_layer.index, 1)
+SNN_NETWORK:set_weight_config_positive(input_layer.index, memory_layer.index, 3)
+-- SNN_NETWORK:set_weight_config(memory_layer.index, hidden_layer.index, 2)
+SNN_NETWORK:set_weight_config(memory_layer.index, memory_layer.index, 2)
+SNN_NETWORK:set_weight_config(memory_layer.index, output_layer.index, 2)
+SNN_NETWORK:set_weight_config(input_layer.index, output_layer.index, 0)
+-- SNN_NETWORK:set_weight_config(hidden_layer.index, output_layer.index, 1)
 
 SNN_NETWORK:build()
+SNN_NETWORK:set_fixed_weight(input_layer.index, input_layer.index, 0.0)
 SNN_NETWORK:set_fixed_weight(output_layer.index, output_layer.index, -1.0)
+SNN_NETWORK:set_layer_loss(memory_layer.index, 0.0001) -- memory neurons retain charge much longer
+
+SNN_LAYERS = {
+	{
+		name = "Input",
+		config = input_layer,
+		labels = { "TIME", "IN_SEL", "REWARD", "PUNISH", "RED", "BLUE", "GREEN", "YELLOW" },
+		layout = "line",
+		x = 0,
+		y = 0,
+	},
+	-- { name = "Hidden", config = hidden_layer, x = 2, y = -0.5 },
+	{ name = "Memory", config = memory_layer, x = 2, y = 0.5 },
+	{
+		name = "Output",
+		config = output_layer,
+		labels = { "RED", "BLUE", "GREEN", "YELLOW" },
+		layout = "line",
+		x = 3.5,
+		y = 0,
+	},
+}
 
 local time_to_compute = 0
 local FIXED_DT = 1 / 100
@@ -93,6 +118,11 @@ World.rendering.step:connect(function(delta_time)
 		for i, v in pairs(SNN_PROGRAM.outputs) do
 			plot_neuron(output_layer.index * 100 + i, v.label, i ~= 3)
 		end
+		ImPlot.PopColormap()
+		ImGui.Separator()
+
+		ImGui.Text("Network Visualization")
+		plot_network()
 	end
 	ImGui.End()
 end)

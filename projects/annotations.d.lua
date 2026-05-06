@@ -699,6 +699,58 @@ ImGui.TreeNodeFlags_SpanFullWidth = 0
 ---@type number
 ImGui.TreeNodeFlags_NavLeftJumpsBackHere = 0
 
+-- Menu functions
+---@return boolean Menu bar is active
+function ImGui.BeginMenuBar() end
+
+function ImGui.EndMenuBar() end
+
+---@return boolean Main menu bar is active
+function ImGui.BeginMainMenuBar() end
+
+function ImGui.EndMainMenuBar() end
+
+---@param label string Menu label
+---@return boolean Menu is open
+---@overload fun(label: string, enabled: boolean): boolean
+function ImGui.BeginMenu(label) end
+
+function ImGui.EndMenu() end
+
+---@param label string Menu item label
+---@return boolean Item was clicked
+---@overload fun(label: string, shortcut: string): boolean
+---@overload fun(label: string, shortcut: string, selected: boolean): boolean
+---@overload fun(label: string, shortcut: string, selected: boolean, enabled: boolean): boolean
+function ImGui.MenuItem(label) end
+
+-- Text utilities
+---@param text string Text to measure
+---@return number Width in pixels
+function ImGui.CalcTextSize(text) end
+
+---@return number Available width in pixels
+function ImGui.GetContentRegionAvail() end
+
+-- Style variables
+---@param idx number Style variable index (e.g., ImGui.StyleVar_WindowPadding)
+---@param val number Single float value
+---@overload fun(idx: number, x: number, y: number): nil
+function ImGui.PushStyleVar(idx, val) end
+
+---@param count? number Number of style vars to pop (default: 1)
+function ImGui.PopStyleVar(count) end
+
+-- Style variable constants
+---@type number
+ImGui.StyleVar_WindowPadding = 0
+---@type number
+ImGui.StyleVar_FramePadding = 0
+---@type number
+ImGui.StyleVar_ItemSpacing = 0
+---@type number
+ImGui.StyleVar_ItemInnerSpacing = 0
+
 -- Input system (World.input)
 ---@class InputSystem
 ---@field get_mouse_position fun(): Vec2

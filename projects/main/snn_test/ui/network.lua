@@ -66,7 +66,7 @@ local function plot_graph()
 	end
 
 	local plot_flags = ImPlot.Flags_NoLegend + ImPlot.Flags_Equal + ImPlot.Flags_NoMouseText
-	if ImPlot.BeginPlot("##network_graph", -1, 600, plot_flags) then
+	if ImPlot.BeginPlot("##network_graph", -1, -1, plot_flags) then
 		local axis_flags = ImPlot.AxisFlags_NoDecorations
 		ImPlot.SetupAxes("", "", axis_flags, axis_flags)
 		ImPlot.SetupAxisLimits(ImPlot.Axis_X1, min_x - 0.5, max_x + 0.5, ImPlot.Cond_Once)
@@ -144,14 +144,14 @@ local function plot_graph()
 end
 
 function M.plot_network()
-	local _, new_weights = ImGui.Checkbox("Show Connections", show_weights)
-	show_weights = new_weights
+	-- local _, new_weights = ImGui.Checkbox("Show Connections", show_weights)
+	-- show_weights = new_weights
 
-	if show_weights then
-		ImGui.SameLine()
-		local _, new_thresh = ImGui.SliderFloat("Min Weight", weight_threshold, 0.0, 1.0)
-		weight_threshold = new_thresh
-	end
+	-- if show_weights then
+	-- 	ImGui.SameLine()
+	-- 	local _, new_thresh = ImGui.SliderFloat("Min Weight", weight_threshold, 0.0, 1.0)
+	-- 	weight_threshold = new_thresh
+	-- end
 
 	plot_graph()
 end

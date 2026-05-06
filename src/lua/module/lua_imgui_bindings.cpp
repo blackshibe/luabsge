@@ -275,4 +275,30 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
             return ImGui::MenuItem(label, shortcut, selected, enabled);
         }
     );
+
+    // Text utilities
+    imgui_namespace["CalcTextSize"] = [](const char* text) {
+        ImVec2 size = ImGui::CalcTextSize(text);
+        return size.x;
+    };
+    imgui_namespace["GetContentRegionAvail"] = []() {
+        ImVec2 size = ImGui::GetContentRegionAvail();
+        return size.x;
+    };
+
+    // Style variables
+    imgui_namespace["PushStyleVar"] = sol::overload(
+        [](int idx, float val) { ImGui::PushStyleVar(idx, val); },
+        [](int idx, float x, float y) { ImGui::PushStyleVar(idx, ImVec2(x, y)); }
+    );
+    imgui_namespace["PopStyleVar"] = sol::overload(
+        []() { ImGui::PopStyleVar(); },
+        [](int count) { ImGui::PopStyleVar(count); }
+    );
+
+    // Style variable constants
+    imgui_namespace["StyleVar_WindowPadding"] = ImGuiStyleVar_WindowPadding;
+    imgui_namespace["StyleVar_FramePadding"] = ImGuiStyleVar_FramePadding;
+    imgui_namespace["StyleVar_ItemSpacing"] = ImGuiStyleVar_ItemSpacing;
+    imgui_namespace["StyleVar_ItemInnerSpacing"] = ImGuiStyleVar_ItemInnerSpacing;
 }

@@ -94,35 +94,19 @@ World.rendering.step:connect(function(delta_time)
 	-- Main menu bar
 	if ImGui.BeginMainMenuBar() then
 		if ImGui.BeginMenu("File") then
-			if ImGui.MenuItem("Reset Network") then
-				print("Reset network")
-			end
-			ImGui.Separator()
+			-- ImGui.Separator()
 			if ImGui.MenuItem("Exit") then
 				os.exit()
 			end
 			ImGui.EndMenu()
 		end
 
-		if ImGui.BeginMenu("View") then
-			if ImGui.MenuItem("Stats") then
-				print("Toggle Stats window")
-			end
-			if ImGui.MenuItem("SNN State") then
-				print("Toggle SNN State window")
-			end
-			if ImGui.MenuItem("Network Visualization") then
-				print("Toggle Network Visualization window")
-			end
-			ImGui.EndMenu()
-		end
-
-		if ImGui.BeginMenu("Help") then
-			if ImGui.MenuItem("About") then
-				print("SNN Test - Neural Network Simulator")
-			end
-			ImGui.EndMenu()
-		end
+		-- Push text to the right side
+		local text = "SNN Test - 2026/05/06"
+		local text_width = ImGui.CalcTextSize(text)
+		local available_width = ImGui.GetContentRegionAvail()
+		ImGui.SetCursorPosX(ImGui.GetCursorPosX() + available_width - text_width)
+		ImGui.Text(text)
 
 		ImGui.EndMainMenuBar()
 	end
@@ -149,11 +133,13 @@ World.rendering.step:connect(function(delta_time)
 	end
 	ImGui.End()
 
-	-- Dockable window: Network Visualization
+	-- Dockable window: Network Visualization (no padding)
+	ImGui.PushStyleVar(ImGui.StyleVar_WindowPadding, 0, 0)
 	if ImGui.Begin("Network Visualization") then
 		plot_network()
 	end
 	ImGui.End()
+	ImGui.PopStyleVar()
 
 	-- Dockable window: Test Window
 	if ImGui.Begin("Test Window") then

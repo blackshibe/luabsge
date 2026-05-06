@@ -148,7 +148,7 @@ SimonSays = {
 			sequence_index = 0
 
 			-- no chosen output, punish all outputs
-			SNN_NETWORK:punish()
+			SNN_NETWORK_CONFIG:punish()
 			reset_sums()
 
 			return
@@ -162,7 +162,7 @@ SimonSays = {
 			sequence_index = sequence_index + 1
 			answered_correctly = true
 			pulses_to_answer_left = PULSES_TO_ANSWER
-			SNN_NETWORK:reward()
+			SNN_NETWORK_CONFIG:reward()
 			reset_sums()
 
 			if sequence_index > #sequence then
@@ -184,7 +184,7 @@ SimonSays = {
 			sequence = nil
 			sequence_index = 0
 
-			SNN_NETWORK:punish()
+			SNN_NETWORK_CONFIG:punish()
 			reset_sums()
 			LOSSES = LOSSES + 1
 

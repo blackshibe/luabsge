@@ -26,7 +26,7 @@
 class BSGEWindow {
 public:
 	int status = 0;
-	int width = 800;
+	int width = 1400;
 	int height = 600;
 	bool focused = true;
 	unsigned int default_shader;

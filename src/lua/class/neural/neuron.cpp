@@ -10,64 +10,64 @@ float weights_to[NUM_NEURONS][NUM_NEURONS];
 float eligibility_to[NUM_NEURONS][NUM_NEURONS];
 float trace[NUM_NEURONS]; // R-STDP learning, eligibility to strengthening value per connection
 
-struct NeuronStruct {
-    bool is_input = false;
-    int network_index = 0;
-    float loss = 0.0001f;
-    float stored = 0.0f;
-    float output = 0.0f;
+enum NeuronRole {
+    Input = 0,
+    Neuron = 1,
+    Output = 2,
+};
 
-    float threshold = SPIKE_POTENTIAL;
-    float target_threshold = SPIKE_POTENTIAL;
+
+struct NeuronStruct {
+    // neuron role in network
+    NeuronRole role = NeuronRole::Neuron;
+    int network_index = 0;
+
+    // output
+    float output = 0.0f;
     
-    NeuronStruct() {
-        threshold = SPIKE_POTENTIAL;
+    NeuronStruct() {};
+
+    virtual void step(NeuronStruct* network, int network_size, float timescale) {};
+    virtual void spike() {}
+};
+
+
+struct NeuronStructLIF : public NeuronStruct {
+    // neuron role in network
+    NeuronRole role = NeuronRole::Neuron;
+    int network_index = 0;
+
+    // neuron parameters
+    float membrane_resistance_R = 1.0f;
+    float threshold_potential_Vth = 1.0f;
+    float resting_potential_Vrest = 0.0f;
+    float membrane_time_constant_Trc = 0.02f;
+    float refractory_period_Tref = 0.002f;
+
+    float output = 0.0f;
+    
+    NeuronStructLIF() {
+        membrane_resistance_R = SPIKE_POTENTIAL;
     };
 
     void step(NeuronStruct* network, int network_size, float timescale) {
         // only non-input neurons take inputs from the other neurons
         float input = 0.0f;
 
-        if (!is_input) {
+        if (role != NeuronRole::Input) {
             for (int j = 0; j < network_size; j++) {
                 if (j == network_index) continue;
                 input += network[j].output * weights_to[network_index][j];
             }   
-
-            stored += input;
         }
 
-        // spike behavior
-        if (stored > threshold) {
-            output = 1.0f;
-            stored = 0.0f;
-            trace[network_index] = 1.0f;
-            threshold += 0.05f;
-
-            for (int j = 0; j < network_size; j++) {
-                if (j == network_index) continue;
-                eligibility_to[network_index][j] += trace[j];
-            }
-        } else {
-            output = 0.0f;
-            trace[network_index] *= pow(0.99f, timescale * 60.0f);
-        }
-
-        // threshold decays back to baseline (continuous)
-        threshold += (SPIKE_POTENTIAL - threshold) * 0.1f * timescale;
-
-        // after the spike/else block, decay eligibility
-        for (int j = 0; j < network_size; j++) {
-            eligibility_to[network_index][j] *= pow(0.99f, timescale * 60.0f);
-        }
-
-        // leak behavior, bounce down then rebounce
-        if (stored > 0.0f) stored *= pow(1 - loss, timescale * 60.0f);
-        if (stored < 0.0f) stored = 0.0f; // -stored * 0.1f; // neurons really like going insane
+        float slope = float((input - threshold_potential_Vth)) / membrane_time_constant_Trc;
+        output = threshold_potential_Vth + timescale * slope;
     };
 
     void spike() {
-        stored = threshold + 0.01f;
+        // stored = membrane_resistance_R + 0.01f;
+        // TODO
     }
 };
 
@@ -76,9 +76,10 @@ struct NeuronStruct {
 // There should be a way to define groups of neurons to structure the brain around inputs and outputs, as well as different types (memory neurons have low loss?)
 struct NeuronLayerConfiguration {
     int count;
+    NeuronRole role;
     int index = -1;
 
-    NeuronLayerConfiguration(int count): count(count) {};
+    NeuronLayerConfiguration(NeuronRole role, int count): count(count), role(role) {};
 };
 
 struct NeuronConnectionConfiguration {
@@ -156,6 +157,15 @@ struct NeuronNetworkConfiguration {
             }
             trace[i] = 0.0f;
             network[i].network_index = i;
+        }
+
+        // assign role to each neuron from its layer
+        int cursor = 0;
+        for (auto& layer : layers) {
+            for (int i = 0; i < layer.count; i++) {
+                network[cursor + i].role = layer.role;
+            }
+            cursor += layer.count;
         }
 
         float scale = 1.0f / sqrt((float)network_size);
@@ -244,10 +254,17 @@ void lua_bsge_init_neuron(sol::state &lua) {
         "punish", &NeuronNetworkConfiguration::punish
     );
 
+    lua["NeuronRole"] = lua.create_table_with( 
+     "Input", NeuronRole::Input, 
+        "Neuron", NeuronRole::Neuron, 
+        "Output", NeuronRole::Output
+    );
+
 	lua.new_usertype<NeuronLayerConfiguration>("NeuronLayerConfiguration",
-		sol::constructors<NeuronLayerConfiguration(int)>(),
+		sol::constructors<NeuronLayerConfiguration(NeuronRole, int)>(),
         "index", &NeuronLayerConfiguration::index,
-        "count", &NeuronLayerConfiguration::count
+        "count", &NeuronLayerConfiguration::count,
+        "role", &NeuronLayerConfiguration::role
     );
 
 	lua.new_usertype<NeuronStruct>("Neuron",
@@ -256,8 +273,8 @@ void lua_bsge_init_neuron(sol::state &lua) {
 		"step", &NeuronStruct::step,
 		"stored", &NeuronStruct::stored,
 		"output", &NeuronStruct::output,
-		"threshold", &NeuronStruct::threshold,
-		"is_input", &NeuronStruct::is_input
+		"threshold", &NeuronStruct::membrane_resistance_R,
+		"role", &NeuronStruct::role
     );
 
 

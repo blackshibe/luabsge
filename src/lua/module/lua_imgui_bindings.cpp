@@ -286,6 +286,28 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
         return size.x;
     };
 
+    // Popups
+    imgui_namespace["OpenPopup"] = sol::overload(
+        [](const char* str_id) { ImGui::OpenPopup(str_id); },
+        [](const char* str_id, int flags) { ImGui::OpenPopup(str_id, flags); }
+    );
+    imgui_namespace["BeginPopup"] = sol::overload(
+        [](const char* str_id) { return ImGui::BeginPopup(str_id); },
+        [](const char* str_id, int flags) { return ImGui::BeginPopup(str_id, flags); }
+    );
+    imgui_namespace["EndPopup"] = &ImGui::EndPopup;
+    imgui_namespace["CloseCurrentPopup"] = &ImGui::CloseCurrentPopup;
+    imgui_namespace["IsPopupOpen"] = [](const char* str_id) { return ImGui::IsPopupOpen(str_id); };
+
+    // Mouse input
+    imgui_namespace["IsMouseClicked"] = sol::overload(
+        [](int button) { return ImGui::IsMouseClicked(button); },
+        [](int button, bool repeat) { return ImGui::IsMouseClicked(button, repeat); }
+    );
+    imgui_namespace["IsMouseReleased"] = [](int button) { return ImGui::IsMouseReleased(button); };
+    imgui_namespace["IsMouseDown"] = [](int button) { return ImGui::IsMouseDown(button); };
+    imgui_namespace["IsMouseDoubleClicked"] = [](int button) { return ImGui::IsMouseDoubleClicked(button); };
+
     // Style variables
     imgui_namespace["PushStyleVar"] = sol::overload(
         [](int idx, float val) { ImGui::PushStyleVar(idx, val); },

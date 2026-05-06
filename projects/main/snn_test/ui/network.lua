@@ -1,8 +1,8 @@
-local M = {}
-
 local layer_info = nil
 local show_weights = true
 local weight_threshold = 0.1
+local context_target = nil
+local PICK_RADIUS = 0.05
 
 local function get_layer_info()
 	if layer_info then
@@ -10,25 +10,25 @@ local function get_layer_info()
 	end
 
 	layer_info = {}
-	local offset = 0
+	local total = 0
 	for i, layer in ipairs(SNN_LAYERS) do
 		layer_info[i] = {
 			name = layer.name,
 			config = layer.config,
 			count = layer.config.count,
-			start = offset,
+			start = snn_layer_start(layer.config),
 			labels = layer.labels,
 			x = layer.x or (i - 1),
 			y = layer.y or 0,
 			layout = layer.layout or "grid",
 		}
-		offset = offset + layer.config.count
+		total = total + layer.config.count
 	end
-	layer_info.total = offset
+	layer_info.total = total
 	return layer_info
 end
 
-local function neuron_pos(j, count, layer_x, layer_y, layout)
+local function neuron_position(j, count, layer_x, layer_y, layout)
 	if count == 1 then
 		return layer_x, layer_y
 	end
@@ -57,12 +57,20 @@ local function plot_graph()
 
 	-- find bounds from layer positions
 	local min_x, max_x, min_y, max_y = 0, 0, 0, 0
-	for li = 1, num_layers do
-		local layer = info[li]
-		if layer.x < min_x then min_x = layer.x end
-		if layer.x > max_x then max_x = layer.x end
-		if layer.y - 1.2 < min_y then min_y = layer.y - 1.2 end
-		if layer.y + 1.2 > max_y then max_y = layer.y + 1.2 end
+	for layer_index = 1, num_layers do
+		local layer = info[layer_index]
+		if layer.x < min_x then
+			min_x = layer.x
+		end
+		if layer.x > max_x then
+			max_x = layer.x
+		end
+		if layer.y - 1.2 < min_y then
+			min_y = layer.y - 1.2
+		end
+		if layer.y + 1.2 > max_y then
+			max_y = layer.y + 1.2
+		end
 	end
 
 	local plot_flags = ImPlot.Flags_NoLegend + ImPlot.Flags_Equal + ImPlot.Flags_NoMouseText
@@ -90,8 +98,8 @@ local function plot_graph()
 								if w < 0 then
 									r, g, b = 1.0, 0.3, 0.3
 								end
-								local fx, fy = neuron_pos(j, from.count, from.x, from.y, from.layout)
-								local tx, ty = neuron_pos(i, to.count, to.x, to.y, to.layout)
+								local fx, fy = neuron_position(j, from.count, from.x, from.y, from.layout)
+								local tx, ty = neuron_position(i, to.count, to.x, to.y, to.layout)
 								local xs = { fx, tx }
 								local ys = { fy, ty }
 								ImPlot.PlotLineStyled(("##c%d"):format(conn_id), xs, ys, r, g, b, alpha)
@@ -102,21 +110,47 @@ local function plot_graph()
 			end
 		end
 
+		-- right-click hit-test against neurons (only when plot is hovered)
+		local hit_neuron = nil
+		local plot_hovered = ImPlot.IsPlotHovered()
+		local right_clicked = plot_hovered and ImGui.IsMouseClicked(1)
+		local mx, my
+		if plot_hovered then
+			mx, my = ImPlot.GetPlotMousePos()
+		end
+
 		-- draw neuron points per layer, colored by stored charge
 		local dot_id = 0
 		for li = 1, num_layers do
 			local layer = info[li]
 
 			for j = 0, layer.count - 1 do
-				local neuron = SNN_NETWORK:get_in_layer(layer.config, j)
-				local nx, ny = neuron_pos(j, layer.count, layer.x, layer.y, layer.layout)
+				local neuron = SNN_NETWORK_CONFIG:get_in_layer(layer.config, j)
+				local nx, ny = neuron_position(j, layer.count, layer.x, layer.y, layer.layout)
+
+				if right_clicked and not hit_neuron then
+					local dx, dy = mx - nx, my - ny
+					if dx * dx + dy * dy <= PICK_RADIUS then
+						hit_neuron = { layer = layer, j = j, name = layer.name, global = layer.start + j }
+					end
+				end
 
 				dot_id = dot_id + 1
 				local xs = { nx }
 				local ys = { ny }
 
 				if neuron.output > 0.5 then
-					ImPlot.PlotScatterStyled(("##n%d"):format(dot_id), xs, ys, ImPlot.Marker_Circle, 8, 1.0, 1.0, 0.2, 1.0)
+					ImPlot.PlotScatterStyled(
+						("##n%d"):format(dot_id),
+						xs,
+						ys,
+						ImPlot.Marker_Circle,
+						8,
+						1.0,
+						1.0,
+						0.2,
+						1.0
+					)
 				else
 					-- lerp blue -> orange by stored/threshold
 					local t = math.min(neuron.stored / neuron.threshold, 1.0)
@@ -124,6 +158,13 @@ local function plot_graph()
 					local g = 0.3 + t * 0.4
 					local b = 0.8 - t * 0.6
 					local size = 4 + t * 3
+
+					if neuron.role == NeuronRole.Input then
+						r = 0
+						g = 0.5 + 5 * 0.5
+						b = 0
+					end
+
 					ImPlot.PlotScatterStyled(("##n%d"):format(dot_id), xs, ys, ImPlot.Marker_Circle, size, r, g, b, 1.0)
 				end
 
@@ -140,20 +181,45 @@ local function plot_graph()
 		end
 
 		ImPlot.EndPlot()
+
+		if hit_neuron then
+			context_target = hit_neuron
+			ImGui.OpenPopup("##neuron_ctx")
+		end
+	end
+
+	if ImGui.BeginPopup("##neuron_ctx") then
+		if context_target then
+			local n = SNN_NETWORK_CONFIG:get_in_layer(context_target.layer.config, context_target.j)
+			ImGui.Text(
+				("%s neuron #%d (global %d)"):format(context_target.name, context_target.j, context_target.global)
+			)
+			ImGui.Text(("stored: %.3f  threshold: %.3f"):format(n.stored, n.threshold))
+			ImGui.Separator()
+			if ImGui.MenuItem("Force spike") then
+				n:spike()
+			end
+			if ImGui.MenuItem("Reset stored") then
+				n.stored = 0
+			end
+		end
+		ImGui.EndPopup()
 	end
 end
 
-function M.plot_network()
-	-- local _, new_weights = ImGui.Checkbox("Show Connections", show_weights)
-	-- show_weights = new_weights
+function plot_network()
+	local _, new_weights = ImGui.Checkbox("Show Connections", show_weights)
+	show_weights = new_weights
 
-	-- if show_weights then
-	-- 	ImGui.SameLine()
-	-- 	local _, new_thresh = ImGui.SliderFloat("Min Weight", weight_threshold, 0.0, 1.0)
-	-- 	weight_threshold = new_thresh
-	-- end
+	if show_weights then
+		ImGui.SameLine()
+		local _, new_thresh = ImGui.SliderFloat("Min Weight", weight_threshold, 0.0, 1.0)
+		weight_threshold = new_thresh
+	end
 
 	plot_graph()
 end
 
-return M
+return {
+	plot_network = plot_network,
+}

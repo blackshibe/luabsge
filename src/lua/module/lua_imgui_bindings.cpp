@@ -126,7 +126,7 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     imgui_namespace["NewLine"] = &ImGui::NewLine;
     imgui_namespace["Spacing"] = &ImGui::Spacing;
     imgui_namespace["Image"] = [](int user_texture, glm::vec2 pos, bool invert = false) {
-        ImGui::Image((void *)user_texture, ImVec2(pos.x, pos.y), invert ? ImVec2(0, 0) : ImVec2(0, 1), invert ? ImVec2(1, 1) : ImVec2(1, 0));
+        ImGui::Image(ImTextureRef((ImTextureID)user_texture), ImVec2(pos.x, pos.y), invert ? ImVec2(0, 0) : ImVec2(0, 1), invert ? ImVec2(1, 1) : ImVec2(1, 0));
     };
 
     imgui_namespace["Dummy"] = [](float size_x, float size_y) { ImGui::Dummy(ImVec2(size_x, size_y)); };
@@ -158,7 +158,9 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     imgui_namespace["BeginChild"] = sol::overload(
         [](const char* str_id) { return ImGui::BeginChild(str_id); },
         [](const char* str_id, float size_x, float size_y) { return ImGui::BeginChild(str_id, ImVec2(size_x, size_y)); },
-        [](const char* str_id, float size_x, float size_y, bool border) { return ImGui::BeginChild(str_id, ImVec2(size_x, size_y), border); }
+        [](const char* str_id, float size_x, float size_y, bool border) {
+            return ImGui::BeginChild(str_id, ImVec2(size_x, size_y), border ? ImGuiChildFlags_Borders : ImGuiChildFlags_None);
+        }
     );
     imgui_namespace["EndChild"] = &ImGui::EndChild;
     
@@ -237,13 +239,13 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     imgui_namespace["WindowFlags_NoBringToFrontOnFocus"] = ImGuiWindowFlags_NoBringToFrontOnFocus;
     imgui_namespace["WindowFlags_AlwaysVerticalScrollbar"] = ImGuiWindowFlags_AlwaysVerticalScrollbar;
     imgui_namespace["WindowFlags_AlwaysHorizontalScrollbar"] = ImGuiWindowFlags_AlwaysHorizontalScrollbar;
-    imgui_namespace["WindowFlags_AlwaysUseWindowPadding"] = ImGuiWindowFlags_AlwaysUseWindowPadding;
+    imgui_namespace["ChildFlags_AlwaysUseWindowPadding"] = ImGuiChildFlags_AlwaysUseWindowPadding;
     
     // Tree flags
     imgui_namespace["TreeNodeFlags_None"] = ImGuiTreeNodeFlags_None;
     imgui_namespace["TreeNodeFlags_Selected"] = ImGuiTreeNodeFlags_Selected;
     imgui_namespace["TreeNodeFlags_Framed"] = ImGuiTreeNodeFlags_Framed;
-    imgui_namespace["TreeNodeFlags_AllowItemOverlap"] = ImGuiTreeNodeFlags_AllowItemOverlap;
+    imgui_namespace["TreeNodeFlags_AllowOverlap"] = ImGuiTreeNodeFlags_AllowOverlap;
     imgui_namespace["TreeNodeFlags_NoTreePushOnOpen"] = ImGuiTreeNodeFlags_NoTreePushOnOpen;
     imgui_namespace["TreeNodeFlags_NoAutoOpenOnLog"] = ImGuiTreeNodeFlags_NoAutoOpenOnLog;
     imgui_namespace["TreeNodeFlags_DefaultOpen"] = ImGuiTreeNodeFlags_DefaultOpen;
@@ -254,5 +256,23 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     imgui_namespace["TreeNodeFlags_FramePadding"] = ImGuiTreeNodeFlags_FramePadding;
     imgui_namespace["TreeNodeFlags_SpanAvailWidth"] = ImGuiTreeNodeFlags_SpanAvailWidth;
     imgui_namespace["TreeNodeFlags_SpanFullWidth"] = ImGuiTreeNodeFlags_SpanFullWidth;
-    imgui_namespace["TreeNodeFlags_NavLeftJumpsBackHere"] = ImGuiTreeNodeFlags_NavLeftJumpsBackHere;
+
+    // Menu bar
+    imgui_namespace["BeginMenuBar"] = &ImGui::BeginMenuBar;
+    imgui_namespace["EndMenuBar"] = &ImGui::EndMenuBar;
+    imgui_namespace["BeginMainMenuBar"] = &ImGui::BeginMainMenuBar;
+    imgui_namespace["EndMainMenuBar"] = &ImGui::EndMainMenuBar;
+    imgui_namespace["BeginMenu"] = sol::overload(
+        [](const char* label) { return ImGui::BeginMenu(label); },
+        [](const char* label, bool enabled) { return ImGui::BeginMenu(label, enabled); }
+    );
+    imgui_namespace["EndMenu"] = &ImGui::EndMenu;
+    imgui_namespace["MenuItem"] = sol::overload(
+        [](const char* label) { return ImGui::MenuItem(label); },
+        [](const char* label, const char* shortcut) { return ImGui::MenuItem(label, shortcut); },
+        [](const char* label, const char* shortcut, bool selected) { return ImGui::MenuItem(label, shortcut, selected); },
+        [](const char* label, const char* shortcut, bool selected, bool enabled) {
+            return ImGui::MenuItem(label, shortcut, selected, enabled);
+        }
+    );
 }

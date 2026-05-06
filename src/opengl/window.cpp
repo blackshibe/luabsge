@@ -115,6 +115,11 @@ void BSGEWindow::render_loop_init() {
 	IMGUI_CHECKVERSION();
 	ImGui::CreateContext();
 	ImPlot::CreateContext();
+
+	// Enable docking
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
 	ImGui::StyleColorsDark();
 
 	// Setup Platform/Renderer backends
@@ -212,7 +217,10 @@ bool BSGEWindow::render_loop() {
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
-	
+
+	// Create dockspace over the entire viewport (PassthruCentralNode allows 3D rendering to show through)
+	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+
 	// gizmo
 	lua_bsge_gizmo_begin_frame(camera_projection, camera->transform);
 

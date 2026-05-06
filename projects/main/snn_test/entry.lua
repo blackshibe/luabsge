@@ -91,26 +91,53 @@ World.rendering.step:connect(function(delta_time)
 		end
 	end
 
-	local dimensions = Window.get_window_dimensions()
-	ImGui.SetNextWindowPos(0, 0)
-	ImGui.SetNextWindowSize(dimensions.x, dimensions.y)
+	-- Main menu bar
+	if ImGui.BeginMainMenuBar() then
+		if ImGui.BeginMenu("File") then
+			if ImGui.MenuItem("Reset Network") then
+				print("Reset network")
+			end
+			ImGui.Separator()
+			if ImGui.MenuItem("Exit") then
+				os.exit()
+			end
+			ImGui.EndMenu()
+		end
 
-	local window_flags = ImGui.WindowFlags_NoTitleBar
-		+ ImGui.WindowFlags_NoResize
-		+ ImGui.WindowFlags_NoMove
-		+ ImGui.WindowFlags_NoCollapse
-		+ ImGui.WindowFlags_NoBringToFrontOnFocus
+		if ImGui.BeginMenu("View") then
+			if ImGui.MenuItem("Stats") then
+				print("Toggle Stats window")
+			end
+			if ImGui.MenuItem("SNN State") then
+				print("Toggle SNN State window")
+			end
+			if ImGui.MenuItem("Network Visualization") then
+				print("Toggle Network Visualization window")
+			end
+			ImGui.EndMenu()
+		end
 
-	if ImGui.Begin("WINDOW", window_flags) then
-		ImGui.Text("Stats")
+		if ImGui.BeginMenu("Help") then
+			if ImGui.MenuItem("About") then
+				print("SNN Test - Neural Network Simulator")
+			end
+			ImGui.EndMenu()
+		end
+
+		ImGui.EndMainMenuBar()
+	end
+
+	-- Dockable window: Stats
+	if ImGui.Begin("Stats") then
 		ImGui.Text(("Simulation time: %f seconds"):format(NETWORK_RUNTIME_SECONDS))
 		ImGui.Text(("Wins: %i, Losses: %i (%f%%)"):format(WINS, LOSSES, (WINS / (WINS + LOSSES)) * 100))
 		local _, new_speed = ImGui.SliderFloat("Speed", SPEED, 0.0, 100.0)
 		SPEED = new_speed
-		ImGui.Separator()
+	end
+	ImGui.End()
 
-		ImGui.Text("SNN State")
-
+	-- Dockable window: SNN State
+	if ImGui.Begin("SNN State") then
 		plot_inputs_for_program(SNN_PROGRAM)
 		ImGui.Separator()
 
@@ -119,10 +146,24 @@ World.rendering.step:connect(function(delta_time)
 			plot_neuron(output_layer.index * 100 + i, v.label, i ~= 3)
 		end
 		ImPlot.PopColormap()
-		ImGui.Separator()
+	end
+	ImGui.End()
 
-		ImGui.Text("Network Visualization")
+	-- Dockable window: Network Visualization
+	if ImGui.Begin("Network Visualization") then
 		plot_network()
+	end
+	ImGui.End()
+
+	-- Dockable window: Test Window
+	if ImGui.Begin("Test Window") then
+		ImGui.Text("This is a test dockable window!")
+		ImGui.Text("You can drag this window by its title bar")
+		ImGui.Text("to dock it anywhere in the viewport.")
+		ImGui.Separator()
+		if ImGui.Button("Click me!") then
+			print("Button clicked!")
+		end
 	end
 	ImGui.End()
 end)

@@ -1,0 +1,276 @@
+[run.sh] compiling
+[0/2] Re-checking globbed directories...
+[1/2] Linking CXX executable luabsge
+FAILED: [code=1] luabsge 
+: && /usr/bin/ccache /usr/bin/c++ -g -pthread -Wl,--dependency-file=CMakeFiles/luabsge.dir/link.d CMakeFiles/luabsge.dir/src/main.cpp.o CMakeFiles/luabsge.dir/src/glad/glad.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui_draw.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui_impl_glfw.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui_impl_opengl3.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui_tables.cpp.o CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o CMakeFiles/luabsge.dir/src/include/implot/implot.cpp.o CMakeFiles/luabsge.dir/src/include/implot/implot_items.cpp.o CMakeFiles/luabsge.dir/src/interop.cpp.o CMakeFiles/luabsge.dir/src/lua/class/camera.cpp.o CMakeFiles/luabsge.dir/src/lua/class/font.cpp.o CMakeFiles/luabsge.dir/src/lua/class/framebuffer.cpp.o CMakeFiles/luabsge.dir/src/lua/class/gizmo.cpp.o CMakeFiles/luabsge.dir/src/lua/class/image.cpp.o CMakeFiles/luabsge.dir/src/lua/class/input.cpp.o CMakeFiles/luabsge.dir/src/lua/class/mesh.cpp.o CMakeFiles/luabsge.dir/src/lua/class/neural/neuron.cpp.o CMakeFiles/luabsge.dir/src/lua/class/physics.cpp.o CMakeFiles/luabsge.dir/src/lua/class/rt/mesh_tbo.cpp.o CMakeFiles/luabsge.dir/src/lua/class/rt/sphere_tbo.cpp.o CMakeFiles/luabsge.dir/src/lua/class/rt/tbo.cpp.o CMakeFiles/luabsge.dir/src/lua/class/shader.cpp.o CMakeFiles/luabsge.dir/src/lua/class/signal.cpp.o CMakeFiles/luabsge.dir/src/lua/class/template.cpp.o CMakeFiles/luabsge.dir/src/lua/class/textlabel.cpp.o CMakeFiles/luabsge.dir/src/lua/class/vfx.cpp.o CMakeFiles/luabsge.dir/src/lua/config.cpp.o CMakeFiles/luabsge.dir/src/lua/ecs/mesh_component.cpp.o CMakeFiles/luabsge.dir/src/lua/ecs/object.cpp.o CMakeFiles/luabsge.dir/src/lua/ecs/static_registry.cpp.o CMakeFiles/luabsge.dir/src/lua/emscripten.cpp.o CMakeFiles/luabsge.dir/src/lua/lua.cpp.o CMakeFiles/luabsge.dir/src/lua/luax.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_glm_bindings.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_imgui_bindings.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_implot_bindings.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_opengl_constants.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_rendering.cpp.o CMakeFiles/luabsge.dir/src/lua/module/lua_window.cpp.o CMakeFiles/luabsge.dir/src/opengl/freetype.cpp.o CMakeFiles/luabsge.dir/src/opengl/shader.cpp.o CMakeFiles/luabsge.dir/src/opengl/vfx_effect.cpp.o CMakeFiles/luabsge.dir/src/opengl/window.cpp.o CMakeFiles/luabsge.dir/src/physics/jolt.cpp.o CMakeFiles/luabsge.dir/src/web/download_image.cpp.o -o luabsge  _deps/glfw-build/src/libglfw3d.a  _deps/lua_static-build/lua-5.4.7/liblua_staticd.a  _deps/freetype-build/libfreetyped.a  _deps/assimp-build/lib/libassimpd.a  _deps/joltphysics-build/libJoltd.a  /usr/lib/librt.a  -lm  -ldl  -lm  /usr/lib/libz.so  /usr/lib/libbz2.so  /usr/lib/libpng.so  /usr/lib/libz.so  /usr/lib/libbz2.so  /usr/lib/libpng.so  /usr/lib/libharfbuzz.so  /usr/lib/libbrotlidec.so  /usr/lib/libz.a  /usr/lib/libminizip.so  -lrt && :
+/usr/bin/ld: error in /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/Scrt1.o(.sframe); no .sframe will be created
+/usr/bin/ld: error in /usr/lib/libc_nonshared.a(atexit.oS)(.sframe); no .sframe will be created
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderText(ImVec2, char const*, char const*, bool)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:3924:(.text+0x9123): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderTextWrapped(ImVec2, char const*, char const*, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:3940:(.text+0x921b): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderTextClippedEx(ImDrawList*, ImVec2 const&, ImVec2 const&, char const*, char const*, ImVec2 const*, ImVec2 const&, ImRect const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:3971:(.text+0x951e): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:3975:(.text+0x9579): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderTextEllipsis(ImDrawList*, ImVec2 const&, ImVec2 const&, float, char const*, char const*, ImVec2 const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4020:(.text+0x97af): undefined reference to `ImFont::GetFontBaked(float, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4021:(.text+0x97cc): undefined reference to `ImFontBaked::GetCharAdvance(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4025:(.text+0x9862): undefined reference to `ImFont::CalcTextSizeA(float, float, float, char const*, char const*, char const**)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4031:(.text+0x9995): undefined reference to `ImFont::RenderChar(ImDrawList*, float, ImVec2 const&, unsigned int, unsigned short, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderColorComponentMarker(ImRect const&, unsigned int, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4074:(.text+0x9e5c): undefined reference to `ImGui::RenderRectFilledInRangeH(ImDrawList*, ImRect const&, unsigned int, float, float, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderMouseCursor(ImVec2, float, int, unsigned int, unsigned int, unsigned int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4124:(.text+0xa232): undefined reference to `ImFontAtlasGetMouseCursorTexData(ImFontAtlas*, int, ImVec2*, ImVec2*, ImVec2*, ImVec2*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4132:(.text+0xa3a6): undefined reference to `ImDrawList::PushTexture(ImTextureRef)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4133:(.text+0xa4d0): undefined reference to `ImDrawList::AddImage(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec2 const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4134:(.text+0xa5fe): undefined reference to `ImDrawList::AddImage(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec2 const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4135:(.text+0xa689): undefined reference to `ImDrawList::AddImage(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec2 const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4136:(.text+0xa710): undefined reference to `ImDrawList::AddImage(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec2 const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4144:(.text+0xa875): undefined reference to `ImDrawList::PopTexture()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGuiContext::ImGuiContext(ImFontAtlas*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4223:(.text+0xaef0): undefined reference to `ImGuiInputTextState::ImGuiInputTextState()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4223:(.text+0xaf26): undefined reference to `ImFontBaked::ImFontBaked()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4462:(.text+0xc248): undefined reference to `ImGuiInputTextState::~ImGuiInputTextState()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4462:(.text+0xc48f): undefined reference to `ImDrawListSharedData::~ImDrawListSharedData()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGuiContext::~ImGuiContext()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4467:(.text+0xc683): undefined reference to `ImGuiInputTextState::~ImGuiInputTextState()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4467:(.text+0xc8b1): undefined reference to `ImDrawListSharedData::~ImDrawListSharedData()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGuiWindow::ImGuiWindow(ImGuiContext*, char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4703:(.text+0xda83): undefined reference to `ImDrawList::_SetDrawListSharedData(ImDrawListSharedData*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4706:(.text+0xdb34): undefined reference to `ImDrawList::~ImDrawList()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGuiWindow::~ImGuiWindow()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4713:(.text+0xdc2d): undefined reference to `ImDrawList::~ImDrawList()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::GcCompactTransientMiscBuffers()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4746:(.text+0xde72): undefined reference to `ImFontAtlas::CompactCache()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::SetActiveID(unsigned int, ImGuiWindow*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:4794:(.text+0xe0d9): undefined reference to `ImGui::InputTextDeactivateHook(unsigned int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `GetViewportBgFgDrawList(ImGuiViewportP*, unsigned long, char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:5334:(.text+0xf74e): undefined reference to `ImDrawList::PushTexture(ImTextureRef)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `AddWindowToDrawData(ImGuiWindow*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:6021:(.text+0x11e44): undefined reference to `ImGui::AddDrawListToDrawDataEx(ImDrawData*, ImVector<ImDrawList*>*, ImDrawList*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::Render()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:6358:(.text+0x13450): undefined reference to `ImGui::AddDrawListToDrawDataEx(ImDrawData*, ImVector<ImDrawList*>*, ImDrawList*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:6390:(.text+0x13767): undefined reference to `ImGui::AddDrawListToDrawDataEx(ImDrawData*, ImVector<ImDrawList*>*, ImDrawList*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:6405:(.text+0x138cc): undefined reference to `ImFontAtlasDebugLogTextureRequests(ImFontAtlas*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::CalcTextSize(char const*, char const*, bool, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:6427:(.text+0x139e9): undefined reference to `ImFont::CalcTextSizeA(float, float, float, char const*, char const*, char const**)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderWindowOuterBorders(ImGuiWindow*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:7477:(.text+0x18273): undefined reference to `ImDrawList::AddLineH(float, float, float, unsigned int, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderWindowDecorations(ImGuiWindow*, ImRect const&, bool, bool, int, unsigned int const*, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:7555:(.text+0x187d0): undefined reference to `ImGui::CalcRoundingFlagsForRectInRect(ImRect const&, ImRect const&, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:7587:(.text+0x18b64): undefined reference to `ImDrawList::AddLineH(float, float, float, unsigned int, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RenderWindowTitleBarContents(ImGuiWindow*, ImRect const&, char const*, bool*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:7684:(.text+0x194f3): undefined reference to `ImGui::CollapseButton(unsigned int, ImVec2 const&, ImGuiDockNode*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::Begin(char const*, bool*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:8468:(.text+0x1d126): undefined reference to `ImDrawList::PushTexture(ImTextureRef)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::UpdateTexturesNewFrame()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9564:(.text+0x21182): undefined reference to `ImFontAtlasUpdateNewFrame(ImFontAtlas*, int, bool)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::GetDefaultFont()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9633:(.text+0x215e3): undefined reference to `ImFontAtlasBuildMain(ImFontAtlas*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::RegisterFontAtlas(ImFontAtlas*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9660:(.text+0x2176e): undefined reference to `ImFontAtlasAddDrawListSharedData(ImFontAtlas*, ImDrawListSharedData*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::UnregisterFontAtlas(ImFontAtlas*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9669:(.text+0x21832): undefined reference to `ImFontAtlasRemoveDrawListSharedData(ImFontAtlas*, ImDrawListSharedData*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::SetCurrentFont(ImFont*, float, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9700:(.text+0x21989): undefined reference to `ImFontAtlasUpdateDrawListsSharedData(ImFontAtlas*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9702:(.text+0x219c5): undefined reference to `ImDrawList::_SetTexture(ImTextureRef)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::UpdateCurrentFontSize(float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:9758:(.text+0x21bee): undefined reference to `ImFont::GetFontBaked(float, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::ErrorRecoveryTryToRecoverWindowState(ImGuiErrorRecoveryState const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:11725:(.text+0x28263): undefined reference to `ImGui::EndMultiSelect()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::ErrorCheckEndFrameFinalizeErrorTooltip()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:11863:(.text+0x28b06): undefined reference to `ImGui::TextLinkOpenURL(char const*, char const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::BeginErrorTooltip()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:11899:(.text+0x28d3b): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::NavRestoreLastChildNavWindow(ImGuiWindow*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:14309:(.text+0x309b9): undefined reference to `ImGui::TabBarFindMostRecentlySelectedTabForActiveWindow(ImGuiTabBar*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::NavUpdateWindowingOverlay()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:15489:(.text+0x35a9e): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockContextEndFrame(ImGuiContext*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:18024:(.text+0x3dc97): undefined reference to `ImGui::CalcRoundingFlagsForRectInRect(ImRect const&, ImRect const&, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockContextProcessDock(ImGuiContext*, ImGuiDockRequest*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:18370:(.text+0x3f321): undefined reference to `ImGui::TabBarAddTab(ImGuiTabBar*, int, ImGuiWindow*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockNodeAddWindow(ImGuiDockNode*, ImGuiWindow*, bool)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:18662:(.text+0x405e1): undefined reference to `ImGui::TabBarAddTab(ImGuiTabBar*, int, ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:18664:(.text+0x4060d): undefined reference to `ImGui::TabBarAddTab(ImGuiTabBar*, int, ImGuiWindow*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockNodeWindowMenuHandler_Default(ImGuiContext*, ImGuiDockNode*, ImGuiTabBar*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19371:(.text+0x432ae): undefined reference to `ImGui::TabBarGetTabName(ImGuiTabBar*, ImGuiTabItem*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19372:(.text+0x432db): undefined reference to `ImGui::TabBarQueueFocus(ImGuiTabBar*, ImGuiTabItem*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockNodeUpdateTabBar(ImGuiDockNode*, ImGuiWindow*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19524:(.text+0x43c4e): undefined reference to `ImGui::TabBarAddTab(ImGuiTabBar*, int, ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19531:(.text+0x43d21): undefined reference to `ImGui::CalcRoundingFlagsForRectInRect(ImRect const&, ImRect const&, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19537:(.text+0x43db7): undefined reference to `ImGui::CollapseButton(unsigned int, ImVec2 const&, ImGuiDockNode*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:19560:(.text+0x43ff0): undefined reference to `ImGui::TabBarGetTabName(ImGuiTabBar*, ImGuiTabItem*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DockNodePreviewDockRender(ImGuiWindow*, ImGuiDockNode*, ImGuiWindow*, ImGuiDockPreviewData const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:20025:(.text+0x465ec): undefined reference to `ImGui::CalcRoundingFlagsForRectInRect(ImRect const&, ImRect const&, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugRenderViewportThumbnail(ImDrawList*, ImGuiViewportP*, ImRect const&)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:21951:(.text+0x4ddd7): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugTextEncoding(char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22070:(.text+0x4ef02): undefined reference to `ImFont::IsGlyphInFont(unsigned short)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::ShowFontAtlas(ImFontAtlas*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22158:(.text+0x4f534): undefined reference to `ImGui::TextLinkOpenURL(char const*, char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22162:(.text+0x4f58c): undefined reference to `ImGui::TextLinkOpenURL(char const*, char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22164:(.text+0x4f5d0): undefined reference to `ImGui::TextLinkOpenURL(char const*, char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22167:(.text+0x4f5df): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22178:(.text+0x4f68f): undefined reference to `ImFontAtlasGetFontLoaderForStbTruetype()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22180:(.text+0x4f6cc): undefined reference to `ImFontAtlas::SetFontLoader(ImFontLoader const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22223:(.text+0x4f7a7): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22225:(.text+0x4f7ea): undefined reference to `ImFontAtlas::CompactCache()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22228:(.text+0x4f84e): undefined reference to `ImFontAtlasTextureGrow(ImFontAtlas*, int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22231:(.text+0x4f8a8): undefined reference to `ImFontAtlasBuildClear(ImFontAtlas*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22257:(.text+0x4fbb0): undefined reference to `ImFontAtlas::GetCustomRect(int, ImFontAtlasRect*) const'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22265:(.text+0x4fcd7): undefined reference to `ImGui::Image(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22277:(.text+0x4fd34): undefined reference to `ImFontAtlas::GetCustomRect(int, ImFontAtlasRect*) const'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugNodeTexture(ImTextureData*, int, ImFontAtlasRect const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22299:(.text+0x5005e): undefined reference to `ImGui::ImageWithBg(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec4 const&, ImVec4 const&)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22312:(.text+0x503c1): undefined reference to `ImTextureDataGetFormatName(ImTextureFormat)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22312:(.text+0x503e2): undefined reference to `ImTextureDataGetStatusName(ImTextureStatus)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::ShowMetricsWindow(bool*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22408:(.text+0x50f5c): undefined reference to `ImGui::SeparatorTextEx(unsigned int, char const*, char const*, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22415:(.text+0x50ffc): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22488:(.text+0x51a82): undefined reference to `ImGui::SeparatorText(char const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22660:(.text+0x528ac): undefined reference to `ImGui::DebugNodeTypingSelectState(ImGuiTypingSelectState*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22671:(.text+0x52984): undefined reference to `ImGui::DebugNodeMultiSelectState(ImGuiMultiSelectState*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:22995:(.text+0x55184): undefined reference to `ImDrawList::AddText(ImFont*, float, ImVec2 const&, unsigned int, char const*, char const*, float, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugNodeFont(ImFont*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23328:(.text+0x571e7): undefined reference to `ImFontAtlas::RemoveFont(ImFont*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23332:(.text+0x57231): undefined reference to `ImFontAtlasFontDiscardBakes(ImFontAtlas*, ImFont*, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23335:(.text+0x57276): undefined reference to `ImFontAtlasFontDiscardBakes(ImFontAtlas*, ImFont*, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23429:(.text+0x577c4): undefined reference to `ImFontBaked::FindGlyph(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23438:(.text+0x578e1): undefined reference to `ImFontAtlasBuildGetOversampleFactors(ImFontConfig*, ImFontBaked*, int*, int*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugNodeFontGlyphsForSrcMask(ImFont*, ImFontBaked*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23471:(.text+0x57ac6): undefined reference to `ImFontBaked::IsGlyphLoaded(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23471:(.text+0x57ae5): undefined reference to `ImFontBaked::FindGlyph(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23487:(.text+0x57c7a): undefined reference to `ImFontBaked::IsGlyphLoaded(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23487:(.text+0x57c99): undefined reference to `ImFontBaked::FindGlyph(unsigned short)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23491:(.text+0x57d49): undefined reference to `ImFont::RenderChar(ImDrawList*, float, ImVec2 const&, unsigned int, unsigned short, ImVec4 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugNodeFontGlyph(ImFont*, ImFontGlyph const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23513:(.text+0x57f96): undefined reference to `ImFontAtlasPackGetRect(ImFontAtlas*, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugNodeTabBar(ImGuiTabBar*, char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23544:(.text+0x58205): undefined reference to `ImGui::TabBarGetTabName(ImGuiTabBar*, ImGuiTabItem*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23554:(.text+0x58412): undefined reference to `ImDrawList::AddLineV(float, float, float, unsigned int, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23555:(.text+0x5845c): undefined reference to `ImDrawList::AddLineV(float, float, float, unsigned int, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23563:(.text+0x584da): undefined reference to `ImGui::TabBarQueueReorder(ImGuiTabBar*, ImGuiTabItem*, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23564:(.text+0x58522): undefined reference to `ImGui::TabBarQueueReorder(ImGuiTabBar*, ImGuiTabItem*, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23565:(.text+0x58597): undefined reference to `ImGui::TabBarGetTabName(ImGuiTabBar*, ImGuiTabItem*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugDrawCursorPos(unsigned int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23917:(.text+0x5a90a): undefined reference to `ImDrawList::AddLineV(float, float, float, unsigned int, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23918:(.text+0x5a95d): undefined reference to `ImDrawList::AddLineH(float, float, float, unsigned int, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImGui::DebugDrawLineExtents(unsigned int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23929:(.text+0x5aa53): undefined reference to `ImDrawList::AddLineH(float, float, float, unsigned int, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23930:(.text+0x5aa9e): undefined reference to `ImDrawList::AddLineV(float, float, float, unsigned int, float)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui.cpp:23931:(.text+0x5aaf5): undefined reference to `ImDrawList::AddLineH(float, float, float, unsigned int, float)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `ImDrawData::ImDrawData()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.h:3591:(.text._ZN10ImDrawDataC2Ev[_ZN10ImDrawDataC5Ev]+0x55): undefined reference to `ImDrawData::Clear()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui.cpp.o: in function `void IM_DELETE<ImDrawList>(ImDrawList*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui.h:2280:(.text._Z9IM_DELETEI10ImDrawListEvPT_[_Z9IM_DELETEI10ImDrawListEvPT_]+0x1b): undefined reference to `ImDrawList::~ImDrawList()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_draw.cpp.o: in function `ImGui::RenderColorRectWithAlphaCheckerboard(ImDrawList*, ImVec2, ImVec2, unsigned int, float, ImVec2, float, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_draw.cpp:3915:(.text+0x231ff): undefined reference to `ImGui::GetColorU32(unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_draw.cpp:3916:(.text+0x23218): undefined reference to `ImGui::GetColorU32(unsigned int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_tables.cpp.o: in function `ImGui::BeginTableEx(char const*, unsigned int, int, int, ImVec2 const&, float)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:392:(.text+0x88b): undefined reference to `ImGui::BeginChildEx(char const*, unsigned int, ImVec2 const&, bool, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_tables.cpp.o: in function `ImGui::TableUpdateLayout(ImGuiTable*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:959:(.text+0x2f5d): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_tables.cpp.o: in function `ImGui::TableHeader(char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:2951:(.text+0xa2a6): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:2964:(.text+0xa375): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:3019:(.text+0xa879): undefined reference to `ImGui::RenderTextEllipsis(ImDrawList*, ImVec2 const&, ImVec2 const&, float, float, char const*, char const*, ImVec2 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_tables.cpp.o: in function `ImGui::DebugNodeTable(ImGuiTable*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:3576:(.text+0xc677): undefined reference to `ImGui::GetForegroundDrawList()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:3578:(.text+0xc6e8): undefined reference to `ImGui::GetForegroundDrawList()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_tables.cpp:3619:(.text+0xcfba): undefined reference to `ImGui::GetForegroundDrawList()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::ButtonBehavior(ImRect const&, unsigned int, bool*, bool*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:516:(.text+0x1d4d): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:532:(.text+0x1e33): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:551:(.text+0x1f13): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:552:(.text+0x1f4e): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:553:(.text+0x1f89): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:564:(.text+0x203b): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:576:(.text+0x20cb): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:599:(.text+0x2258): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::ButtonEx(char const*, ImVec2 const&, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:712:(.text+0x28ad): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::ArrowButtonEx(char const*, int, ImVec2, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:792:(.text+0x2dd2): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::ImageButtonEx(unsigned int, void*, ImVec2 const&, ImVec2 const&, ImVec2 const&, ImVec4 const&, ImVec4 const&)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1059:(.text+0x4857): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::Checkbox(char const*, bool*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1134:(.text+0x4d0d): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::RadioButton(char const*, bool)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1239:(.text+0x53f6): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::SplitterBehavior(ImRect const&, unsigned int, ImGuiAxis, float*, float*, float, float, float, float, unsigned int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1491:(.text+0x6717): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::BeginCombo(char const*, char const*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1642:(.text+0x72f3): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::BeginComboPopup(unsigned int, ImRect const&, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:1721:(.text+0x7a01): undefined reference to `ImGui::FindBestWindowPosForPopupEx(ImVec2 const&, ImVec2 const&, int*, ImRect const&, ImRect const&, ImGuiPopupPositionPolicy)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::DragScalar(char const*, int, void*, float, void const*, void const*, char const*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2340:(.text+0x988e): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2346:(.text+0x9923): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2368:(.text+0x9b9e): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2382:(.text+0x9cda): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::SliderScalar(char const*, int, void*, void const*, void const*, char const*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2933:(.text+0xb143): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2939:(.text+0xb1d8): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2951:(.text+0xb30b): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:2965:(.text+0xb41b): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::VSliderScalar(char const*, ImVec2 const&, int, void*, void const*, void const*, char const*, int)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:3100:(.text+0xbe15): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:3101:(.text+0xbe3b): undefined reference to `ImGui::IsMouseClicked(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:3108:(.text+0xbee1): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:3114:(.text+0xbf64): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::InputTextEx(char const*, char const*, char*, int, ImVec2 const&, int, int (*)(ImGuiInputTextCallbackData*), void*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:3998:(.text+0x11aa2): undefined reference to `ImGui::BeginChildEx(char const*, unsigned int, ImVec2 const&, bool, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4021:(.text+0x11bf9): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4100:(.text+0x121b3): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4164:(.text+0x126e0): undefined reference to `ImGui::PushFont(ImFont*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4294:(.text+0x13089): undefined reference to `ImGui::Shortcut(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4294:(.text+0x130a4): undefined reference to `ImGui::Shortcut(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4295:(.text+0x1310e): undefined reference to `ImGui::Shortcut(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4295:(.text+0x13129): undefined reference to `ImGui::Shortcut(int, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4296:(.text+0x13185): undefined reference to `ImGui::Shortcut(int, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o:/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4296: more undefined references to `ImGui::Shortcut(int, unsigned int, int)' follow
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::InputTextEx(char const*, char const*, char*, int, ImVec2 const&, int, int (*)(ImGuiInputTextCallbackData*), void*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4605:(.text+0x1495f): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4680:(.text+0x14d53): undefined reference to `ImStrbolW(unsigned short const*, unsigned short const*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4684:(.text+0x14dcd): undefined reference to `ImStrbolW(unsigned short const*, unsigned short const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::DebugNodeInputTextState(ImGuiInputTextState*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:4863:(.text+0x15ef9): undefined reference to `ImGui::BeginChild(char const*, ImVec2 const&, bool, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::ColorButton(char const*, ImVec4 const&, int, ImVec2 const&)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:5618:(.text+0x1a995): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::TreeNodeBehavior(unsigned int, int, char const*, char const*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6079:(.text+0x1ca61): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6093:(.text+0x1cb4c): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6115:(.text+0x1cdca): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::Selectable(char const*, bool, int, ImVec2 const&)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6366:(.text+0x1dc18): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6380:(.text+0x1dd01): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::BeginListBox(char const*, ImVec2 const&)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6455:(.text+0x1e1b3): undefined reference to `ImGui::BeginChildFrame(unsigned int, ImVec2 const&, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::EndListBox()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6480:(.text+0x1e22e): undefined reference to `ImGui::EndChildFrame()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::PlotEx(ImGuiPlotType, char const*, float (*)(void*, int), void*, int, int, char const*, float, float, ImVec2)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6571:(.text+0x1e7c3): undefined reference to `ImGui::ItemHoverable(ImRect const&, unsigned int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::EndMenuBar()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6850:(.text+0x1fb81): undefined reference to `ImGui::FocusWindow(ImGuiWindow*)'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6854:(.text+0x1fc04): undefined reference to `ImGui::NavMoveRequestForward(int, int, int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::EndMainMenuBar()':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:6939:(.text+0x20100): undefined reference to `ImGui::FocusTopMostWindowUnderOne(ImGuiWindow*, ImGuiWindow*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::TabItemEx(ImGuiTabBar*, char const*, bool*, int, ImGuiWindow*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:8208:(.text+0x2512f): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: /home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:8241:(.text+0x25318): undefined reference to `ImGui::RenderNavHighlight(ImRect const&, unsigned int, int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/imgui/imgui_widgets.cpp.o: in function `ImGui::TabItemLabelAndCloseButton(ImDrawList*, ImRect const&, int, ImVec2, char const*, unsigned int, unsigned int, bool, bool*, bool*)':
+/home/blackshibe/Projects/luabsge/src/include/imgui/imgui_widgets.cpp:8422:(.text+0x26210): undefined reference to `ImGui::RenderTextEllipsis(ImDrawList*, ImVec2 const&, ImVec2 const&, float, float, char const*, char const*, ImVec2 const*)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/implot/implot.cpp.o: in function `ImPlot::ShowLegendEntries(ImPlotItemGroup&, ImRect const&, bool, ImVec2 const&, ImVec2 const&, bool, ImDrawList&)':
+/home/blackshibe/Projects/luabsge/src/include/implot/implot.cpp:733:(.text+0x3f73): undefined reference to `ImGui::GetColorU32(unsigned int)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/implot/implot.cpp.o: in function `ImPlot::UpdateInput(ImPlotPlot&)':
+/home/blackshibe/Projects/luabsge/src/include/implot/implot.cpp:1888:(.text+0x9906): undefined reference to `ImGui::SetItemAllowOverlap()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/include/implot/implot.cpp.o: in function `ImPlot::ShowMetricsWindow(bool*)':
+/home/blackshibe/Projects/luabsge/src/include/implot/implot.cpp:5312:(.text+0x1e85c): undefined reference to `ImGui::GetForegroundDrawList()'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/lua/module/lua_imgui_bindings.cpp.o: in function `lua_bsge_init_imgui_bindings(sol::state&)::{lambda(int, glm::vec<2, float, (glm::qualifier)0>, bool)#1}::operator()(int, glm::vec<2, float, (glm::qualifier)0>, bool) const':
+/home/blackshibe/Projects/luabsge/src/lua/module/lua_imgui_bindings.cpp:129:(.text+0x19e5): undefined reference to `ImGui::Image(ImTextureRef, ImVec2 const&, ImVec2 const&, ImVec2 const&)'
+/usr/bin/ld: CMakeFiles/luabsge.dir/src/lua/module/lua_imgui_bindings.cpp.o: in function `lua_bsge_init_imgui_bindings(sol::state&)':
+/home/blackshibe/Projects/luabsge/src/lua/module/lua_imgui_bindings.cpp:44:(.text+0x2918): undefined reference to `ImGui::ArrowButton(char const*, ImGuiDir)'
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.
+[run.sh] failed to compile

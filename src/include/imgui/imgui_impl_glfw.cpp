@@ -459,10 +459,6 @@ static bool ImGui_ImplGlfw_Init(GLFWwindow* window, bool install_callbacks, Glfw
     bd->Window = window;
     bd->Time = 0.0;
 
-    io.SetClipboardTextFn = ImGui_ImplGlfw_SetClipboardText;
-    io.GetClipboardTextFn = ImGui_ImplGlfw_GetClipboardText;
-    io.ClipboardUserData = bd->Window;
-
     // Set platform dependent data in viewport
 #if defined(_WIN32)
     ImGui::GetMainViewport()->PlatformHandleRaw = (void*)glfwGetWin32Window(bd->Window);

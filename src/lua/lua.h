@@ -31,7 +31,7 @@
 #include "class/rt/sphere_tbo.h"
 #include "class/rt/mesh_tbo.h"
 
-#include "class/neural/neuron.h"
+#include "class/neural/bindings.h"
 
 #include "ecs/object.h"
 

@@ -1,4 +1,4 @@
-SNN_NETWORK_CONFIG = NeuronNetworkConfiguration.new()
+SNN_NETWORK_CONFIG = NeuronNetworkConfigurationLIF.new()
 SNN_NETWORK_LAYERS = {
 	input = NeuronLayerConfiguration.new(NeuronRole.Input, 1),
 	memory = NeuronLayerConfiguration.new(NeuronRole.Neuron, 1),

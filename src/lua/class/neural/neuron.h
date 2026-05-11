@@ -20,8 +20,11 @@ struct NeuronStruct {
 
     // output
     float potential = 0.0f;
-    float threshold = 1.0f;
-    
+    float potential_threshold = 1.0f;
+
+    float input = 0.0f;
+    float output = 0.0f;
+
     NeuronStruct() {};
     virtual ~NeuronStruct() = default;
 
@@ -31,7 +34,7 @@ struct NeuronStruct {
 
 struct NeuronStructLIF : public NeuronStruct {
     // neuron parameters
-    float loss = 1.0f; // how quickly charge decays
+    float tau_rc = 0.5f; // how quickly charge decays
     
     NeuronStructLIF() {};
 

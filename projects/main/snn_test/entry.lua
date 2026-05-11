@@ -152,9 +152,7 @@ function FixedUpdate(delta_time)
 	for i, v in pairs(SNN_PROGRAM.inputs) do
 		local input = SNN_NETWORK_CONFIG:get_in_layer(SNN_NETWORK_LAYERS.input, i - 1)
 
-		if v.current > 0 then
-			input:spike()
-		end
+		input.input = v.current
 	end
 
 	for i, v in pairs(SNN_PROGRAM.outputs) do

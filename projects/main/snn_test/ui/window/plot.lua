@@ -13,8 +13,10 @@ function plot.always_update()
 				output = ScrollingBuffer.new(),
 				store = ScrollingBuffer.new(),
 				threshold = ScrollingBuffer.new(),
+				input = ScrollingBuffer.new(),
 			}
 			plot.buffers[i].store:AddPoint(NETWORK_RUNTIME_SECONDS, neuron.stored)
+			plot.buffers[i].input:AddPoint(NETWORK_RUNTIME_SECONDS, neuron.input)
 			plot.buffers[i].output:AddPoint(NETWORK_RUNTIME_SECONDS, neuron.output)
 			plot.buffers[i].threshold:AddPoint(NETWORK_RUNTIME_SECONDS, neuron.threshold)
 		end
@@ -41,8 +43,9 @@ function plot.plot_neuron(i, title, same_line, flags)
 			ImPlot.Cond_Always
 		)
 		ImPlot.SetupAxisLimits(ImPlot.Axis_Y1, -0.1, 1.1, ImPlot.Cond_Once)
+		ImPlot.PlotLineBuffer("Input", plot.buffers[i].input)
 		ImPlot.PlotLineBuffer("Output", plot.buffers[i].output)
-		ImPlot.PlotLineBuffer("Stored", plot.buffers[i].store)
+		ImPlot.PlotLineBuffer("Potential", plot.buffers[i].store)
 		ImPlot.PlotLineBuffer("Threshold", plot.buffers[i].threshold)
 		ImPlot.EndPlot()
 	end

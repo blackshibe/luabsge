@@ -33,9 +33,11 @@ void lua_bsge_init_neuron(sol::state &lua) {
         "spike", &NeuronStruct::spike,
 		"step", &NeuronStruct::step,
 
-		"output", &NeuronStructLIF::potential,
+		"output", &NeuronStructLIF::output,
+		"input", &NeuronStructLIF::input,
+
 		"stored", &NeuronStructLIF::potential, // todo remove
-		"threshold", &NeuronStructLIF::threshold,
+		"threshold", &NeuronStructLIF::potential_threshold,
 		"role", &NeuronStructLIF::role // todo rename to type
     );
 

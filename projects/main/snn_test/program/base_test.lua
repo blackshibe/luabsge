@@ -7,8 +7,8 @@ local function set_input(program, name, active)
 	end
 end
 
--- 100ms pulses that mean the game stepped forward
-local timer = NETWORK_RUNTIME_SECONDS + 0.1
+local timer = NETWORK_RUNTIME_SECONDS + 0.5
+local is_true = true
 
 local BaseTest
 BaseTest = {
@@ -24,11 +24,11 @@ BaseTest = {
 
 	update = function()
 		local is_next_spike = NETWORK_RUNTIME_SECONDS > timer
+		set_input(BaseTest, "INPUT", is_true)
+
 		if is_next_spike then
-			set_input(BaseTest, "INPUT", true)
+			is_true = not is_true
 			timer = NETWORK_RUNTIME_SECONDS + 1
-		else
-			set_input(BaseTest, "INPUT", false)
 		end
 	end,
 }

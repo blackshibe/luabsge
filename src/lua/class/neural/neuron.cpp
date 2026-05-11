@@ -5,6 +5,8 @@ float weights_to[NUM_NEURONS][NUM_NEURONS];
 float eligibility_to[NUM_NEURONS][NUM_NEURONS];
 float trace[NUM_NEURONS];
 
+#define REFRACTORY_TIME_PERIOD_S 0.002f
+
 void NeuronStructLIF::step(NeuronStruct* network, int network_size, float timestep) {
     // only non-input neurons take inputs from the other neurons
     // input = 0.0f;
@@ -16,8 +18,20 @@ void NeuronStructLIF::step(NeuronStruct* network, int network_size, float timest
     // }
 
 
-    float newPotential = potential * (1 - timestep/tau_rc) + (timestep/tau_rc * input);
-    potential = newPotential;
+    if (refractory_time <= 0.0f) {
+        float newPotential = potential * (1 - timestep/tau_rc) + (timestep/tau_rc * input);
+        potential = newPotential;
+    } else {
+        refractory_time -= timestep;
+    }
+
+    if (potential > potential_threshold) {
+        output = 1 * timestep;
+        potential = 0.0f;
+        refractory_time = REFRACTORY_TIME_PERIOD_S;
+    } else {
+        output = 0;
+    }
 
     // TODO refractory period
     // output = output * (1 - timestep / (loss * 0.1f));

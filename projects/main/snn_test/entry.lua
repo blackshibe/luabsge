@@ -30,6 +30,24 @@ function GetSnnLayerStartIndex(layer)
 	return start
 end
 
+function SetNeuronProgramInputFloat(name, value)
+	for i, v in pairs(SNN_PROGRAM.inputs) do
+		if v.label == name then
+			v.current = value
+			return
+		end
+	end
+end
+
+function SetNeuronProgramInputBool(name, value)
+	for i, v in pairs(SNN_PROGRAM.inputs) do
+		if v.label == name then
+			v.current = value and 1 or 0
+			return
+		end
+	end
+end
+
 UI_TABS = {
 	inputs = require("ui.window.inputs"),
 	stats = require("ui.window.stats"),

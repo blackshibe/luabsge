@@ -21,6 +21,8 @@ struct NeuronStruct {
     // output
     float potential = 0.0f;
     float potential_threshold = 1.0f;
+    
+    float refractory_time = 0.0f;
 
     float input = 0.0f;
     float output = 0.0f;
@@ -34,7 +36,7 @@ struct NeuronStruct {
 
 struct NeuronStructLIF : public NeuronStruct {
     // neuron parameters
-    float tau_rc = 0.5f; // how quickly charge decays
+    float tau_rc = 0.1f; // how quickly charge decays
     
     NeuronStructLIF() {};
 

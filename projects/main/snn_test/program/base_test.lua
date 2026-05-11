@@ -1,11 +1,3 @@
-local function set_input(program, name, active)
-	for i, v in pairs(program.inputs) do
-		if v.label == name then
-			v.current = active and 1 or 0
-			return
-		end
-	end
-end
 
 local timer = NETWORK_RUNTIME_SECONDS + 0.5
 local is_true = true
@@ -24,7 +16,7 @@ BaseTest = {
 
 	update = function()
 		local is_next_spike = NETWORK_RUNTIME_SECONDS > timer
-		set_input(BaseTest, "INPUT", is_true)
+		SetNeuronProgramInputFloat("INPUT", is_true and 1.1 or 0)
 
 		if is_next_spike then
 			is_true = not is_true

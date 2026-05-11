@@ -281,6 +281,108 @@ void lua_bsge_init_implot_bindings(sol::state &lua) {
         }
     );
 
+    // PlotLineBufferStyled - with color and alpha
+    implot["PlotLineBufferStyled"] = [](const char* label_id, LuaScrollingBuffer& buf, float r, float g, float b, float a) {
+        if (buf.Size() > 0) {
+            ImPlotSpec spec;
+            spec.Offset = buf.Offset;
+            spec.LineColor = ImVec4(r, g, b, a);
+            ImPlot::PlotLine(label_id, buf.Xs.data(), buf.Ys.data(), buf.Size(), spec);
+        }
+    };
+
+    // PlotLineBufferDashed - dashed line with color
+    implot["PlotLineBufferDashed"] = [](const char* label_id, LuaScrollingBuffer& buf, float r, float g, float b, float a, float dash_len, float gap_len) {
+        if (buf.Size() < 2) return;
+
+        // Plot invisible line to register in legend
+        ImPlotSpec spec;
+        spec.Offset = buf.Offset;
+        spec.LineColor = ImVec4(0, 0, 0, 0);
+        ImPlot::PlotLine(label_id, buf.Xs.data(), buf.Ys.data(), buf.Size(), spec);
+
+        ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a));
+        ImDrawList* dl = ImPlot::GetPlotDrawList();
+        int size = buf.Size();
+        int offset = buf.Offset;
+
+        // Clip to plot area
+        ImVec2 plot_pos = ImPlot::GetPlotPos();
+        ImVec2 plot_size = ImPlot::GetPlotSize();
+        dl->PushClipRect(plot_pos, ImVec2(plot_pos.x + plot_size.x, plot_pos.y + plot_size.y), true);
+
+        float accum = 0.0f;
+        bool drawing = true;
+
+        for (int i = 0; i < size - 1; i++) {
+            int i0 = (offset + i) % size;
+            int i1 = (offset + i + 1) % size;
+
+            ImVec2 p0 = ImPlot::PlotToPixels(buf.Xs[i0], buf.Ys[i0]);
+            ImVec2 p1 = ImPlot::PlotToPixels(buf.Xs[i1], buf.Ys[i1]);
+
+            float dx = p1.x - p0.x;
+            float dy = p1.y - p0.y;
+            float seg_len = sqrtf(dx * dx + dy * dy);
+            if (seg_len < 0.001f) continue;
+
+            float nx = dx / seg_len;
+            float ny = dy / seg_len;
+            float t = 0.0f;
+
+            while (t < seg_len) {
+                float pattern_remaining = drawing ? (dash_len - accum) : (gap_len - accum);
+                float step = fminf(pattern_remaining, seg_len - t);
+
+                if (drawing) {
+                    ImVec2 a = ImVec2(p0.x + nx * t, p0.y + ny * t);
+                    ImVec2 b = ImVec2(p0.x + nx * (t + step), p0.y + ny * (t + step));
+                    dl->AddLine(a, b, col, 1.5f);
+                }
+
+                t += step;
+                accum += step;
+
+                if (accum >= (drawing ? dash_len : gap_len)) {
+                    accum = 0.0f;
+                    drawing = !drawing;
+                }
+            }
+        }
+
+        dl->PopClipRect();
+    };
+
+    // PlotSpikes - vertical lines at spike times (where y > 0)
+    implot["PlotSpikes"] = [](const char* label_id, LuaScrollingBuffer& buf, float r, float g, float b, float a, double y_min, double y_max) {
+        if (buf.Size() < 1) return;
+
+        // Plot dummy to register in legend
+        ImPlot::PlotDummy(label_id);
+
+        ImU32 col = ImGui::ColorConvertFloat4ToU32(ImVec4(r, g, b, a));
+        ImDrawList* dl = ImPlot::GetPlotDrawList();
+        int size = buf.Size();
+        int offset = buf.Offset;
+
+        // Clip to plot area
+        ImVec2 plot_pos = ImPlot::GetPlotPos();
+        ImVec2 plot_size = ImPlot::GetPlotSize();
+        dl->PushClipRect(plot_pos, ImVec2(plot_pos.x + plot_size.x, plot_pos.y + plot_size.y), true);
+
+        for (int i = 0; i < size; i++) {
+            int idx = (offset + i) % size;
+            if (buf.Ys[idx] > 0.0) {
+                double x = buf.Xs[idx];
+                ImVec2 p0 = ImPlot::PlotToPixels(x, y_min);
+                ImVec2 p1 = ImPlot::PlotToPixels(x, y_max);
+                dl->AddLine(p0, p1, col, 1.5f);
+            }
+        }
+
+        dl->PopClipRect();
+    };
+
     implot["PlotShadedBuffer"] = sol::overload(
         [](const char* label_id, LuaScrollingBuffer& buf) {
             if (buf.Size() > 0) {

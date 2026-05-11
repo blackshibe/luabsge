@@ -12,6 +12,10 @@ projects/**/luabsge.wasm.wasm
 projects/**/luabsge.wasm.data
 projects/**/luabsge.wasm.data.js
 
+# project settings
+preferences.json
+imgui.ini
+
 # Cmake
 CMakeLists.txt.user
 CMakeCache.txt

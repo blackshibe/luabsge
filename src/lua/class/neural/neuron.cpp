@@ -8,14 +8,16 @@ float trace[NUM_NEURONS];
 #define REFRACTORY_TIME_PERIOD_S 0.002f
 
 void NeuronStructLIF::step(NeuronStruct* network, int network_size, float timestep) {
-    // only non-input neurons take inputs from the other neurons
-    // input = 0.0f;
-    // if (role != NeuronRole::Input) {
-    //     for (int j = 0; j < network_size; j++) {
-    //         if (j == network_index) continue;
-    //         input += network[j].output * weights_to[network_index][j] * timestep;
-    //     }   
-    // }
+
+    // synaptic input
+    // only active neurons use modelled synapses
+    if (role != NeuronRole::Input) {
+        input = 0.0f;
+        for (int j = 0; j < network_size; j++) {
+            if (j == network_index) continue;
+            input += network[j].output * weights_to[network_index][j];
+        }   
+    }
 
 
     if (refractory_time <= 0.0f) {

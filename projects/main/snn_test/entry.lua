@@ -53,6 +53,8 @@ UI_TABS = {
 	stats = require("ui.window.stats"),
 	state = require("ui.window.state"),
 	visualization = require("ui.window.visualization"),
+	speed = require("ui.window.speed"),
+	program = require("ui.window.program"),
 }
 
 

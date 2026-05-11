@@ -19,7 +19,8 @@ struct NeuronStruct {
     int network_index = 0;
 
     // output
-    float output = 0.0f;
+    float potential = 0.0f;
+    float threshold = 1.0f;
     
     NeuronStruct() {};
     virtual ~NeuronStruct() = default;
@@ -30,15 +31,9 @@ struct NeuronStruct {
 
 struct NeuronStructLIF : public NeuronStruct {
     // neuron parameters
-    float membrane_resistance_R = 1.0f;
-    float threshold_potential_Vth = 1.0f;
-    float resting_potential_Vrest = 0.0f;
-    float membrane_time_constant_Trc = 0.02f;
-    float refractory_period_Tref = 0.002f;
+    float loss = 1.0f; // how quickly charge decays
     
-    NeuronStructLIF() {
-        membrane_resistance_R = 1.0;
-    };
+    NeuronStructLIF() {};
 
     void step(NeuronStruct* network, int network_size, float timescale);
     void spike();

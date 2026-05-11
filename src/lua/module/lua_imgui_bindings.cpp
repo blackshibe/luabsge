@@ -10,13 +10,27 @@ void lua_bsge_init_imgui_bindings(sol::state &lua) {
     imgui_namespace["Begin"] = sol::overload(
         [](const char* name) { return ImGui::Begin(name); },
         [](const char* name, int flags) { return ImGui::Begin(name, nullptr, flags); },
-        [](const char* name, bool* p_open) { return ImGui::Begin(name, p_open); },
-        [](const char* name, bool* p_open, int flags) { return ImGui::Begin(name, p_open, flags); }
+        [](const char* name, bool p_open) -> std::tuple<bool, bool> {
+            bool open = p_open;
+            bool visible = ImGui::Begin(name, &open);
+            return std::make_tuple(open, visible);
+        },
+        [](const char* name, bool p_open, int flags) -> std::tuple<bool, bool> {
+            bool open = p_open;
+            bool visible = ImGui::Begin(name, &open, flags);
+            return std::make_tuple(open, visible);
+        }
     );
     imgui_namespace["End"] = &ImGui::End;
 
     imgui_namespace["SetNextWindowPos"] = [](float x, float y) { ImGui::SetNextWindowPos(ImVec2(x, y)); };
-    imgui_namespace["SetNextWindowSize"] = [](float x, float y) { ImGui::SetNextWindowSize(ImVec2(x, y)); };
+    imgui_namespace["SetNextWindowSize"] = sol::overload(
+        [](float x, float y) { ImGui::SetNextWindowSize(ImVec2(x, y)); },
+        [](float x, float y, int cond) { ImGui::SetNextWindowSize(ImVec2(x, y), cond); }
+    );
+    imgui_namespace["Cond_Once"] = ImGuiCond_Once;
+    imgui_namespace["Cond_FirstUseEver"] = ImGuiCond_FirstUseEver;
+    imgui_namespace["Cond_Always"] = ImGuiCond_Always;
 
     // TODO: expose ImGuiCol_Text and shit and write a universal function
     imgui_namespace["PushTextColor"] =  [](glm::vec4 color) { ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(color.r, color.g, color.b, color.w)); };

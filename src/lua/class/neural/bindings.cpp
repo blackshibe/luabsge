@@ -29,11 +29,14 @@ void lua_bsge_init_neuron(sol::state &lua) {
 
 	lua.new_usertype<NeuronStructLIF>("NeuronLIF",
 		sol::constructors<NeuronStructLIF>(),
-		"spike", &NeuronStruct::spike,
+		
+        "spike", &NeuronStruct::spike,
 		"step", &NeuronStruct::step,
-		"output", &NeuronStructLIF::output,
-		"threshold", &NeuronStructLIF::membrane_resistance_R,
-		"role", &NeuronStructLIF::role
+
+		"output", &NeuronStructLIF::potential,
+		"stored", &NeuronStructLIF::potential, // todo remove
+		"threshold", &NeuronStructLIF::threshold,
+		"role", &NeuronStructLIF::role // todo rename to type
     );
 
 

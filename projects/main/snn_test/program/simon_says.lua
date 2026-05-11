@@ -149,7 +149,7 @@ SimonSays = {
 
 			-- no chosen output, punish all outputs
 			SNN_NETWORK_CONFIG:punish()
-			reset_sums()
+			ResetSnnSums()
 
 			return
 		end
@@ -163,7 +163,7 @@ SimonSays = {
 			answered_correctly = true
 			pulses_to_answer_left = PULSES_TO_ANSWER
 			SNN_NETWORK_CONFIG:reward()
-			reset_sums()
+			ResetSnnSums()
 
 			if sequence_index > #sequence then
 				print("network won game")
@@ -185,7 +185,7 @@ SimonSays = {
 			sequence_index = 0
 
 			SNN_NETWORK_CONFIG:punish()
-			reset_sums()
+			ResetSnnSums()
 			LOSSES = LOSSES + 1
 
 			set_input(SimonSays, "PUNISH", true)

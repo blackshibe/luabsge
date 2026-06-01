@@ -1,34 +1,27 @@
--- Exports a .rbxl place file to:
---   <out>/datamodel.json      full instance tree, every readable serialized property
---   <out>/manifest.json       asset_id -> { kind, refs[] }; downloader reads this
---   <out>/scripts/<path>.luau every Script / LocalScript / ModuleScript .Source
+-- Phases 1-3: parse a .rbxl, walk its DataModel via @lune/roblox reflection,
+-- and write
+--   <out>/datamodel.json     instance tree with every readable serialized property
+--   <out>/manifest.json      asset_id -> { kind, refs[] }
+--   <out>/scripts/<path>.<ext>   Script.Source written to disk (rojo layout)
 --
--- Usage:
---   lune run export.lua [<input.rbxl>] [<out_dir>]
---
--- Properties are enumerated via @lune/roblox's reflection database
--- (`roblox.getReflectionDatabase()`); no per-class allowlist. Each value is
--- typed via `typeof()` and serialized to a JSON-friendly form that keeps the
--- type information (`__type = "CFrame"`, etc.) so the importer can rebuild
--- it without guessing.
+--   lune run src/export.lua [<input.rbxl>] [<out_dir>]
 
 local fs = require("@lune/fs")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 local roblox = require("@lune/roblox")
+local util = require("./common/util")
+local asset = require("./common/asset")
+local manifest_lib = require("./common/manifest")
 
 local args = process.args
 local in_path = args[1] or "in/import.rbxl"
 local out_root = args[2] or "out"
 
--- ---------------------------------------------------------------------------
--- Reflection
--- ---------------------------------------------------------------------------
-
 local db = roblox.getReflectionDatabase()
 
--- Walks Superclass and returns a flat map of every property descriptor visible
--- on `class_name`. Cached because every instance of the same class hits this.
+-- Flat map of every property descriptor visible on `class_name`, including
+-- inherited ones. Cached because every instance of a class re-asks for them.
 local class_props_cache = {}
 local function class_props(class_name)
 	local cached = class_props_cache[class_name]
@@ -49,10 +42,8 @@ local function class_props(class_name)
 	return out
 end
 
--- Properties we never want in the JSON, regardless of class:
---   Source      handled separately (written to disk under scripts/)
---   Parent      redundant; the tree structure already encodes parentage
---   UniqueId    randomly generated; serialization adds noise without value
+-- Skipped regardless of class. Source is written to disk separately; the
+-- others either duplicate tree structure or are randomly generated.
 local SKIP_PROPS = {
 	Source = true,
 	Parent = true,
@@ -61,8 +52,6 @@ local SKIP_PROPS = {
 	ScriptGuid = true,
 }
 
--- Tags that mean "don't bother dumping". rbx-dom marks computed,
--- not-actually-stored, or editor-only properties with these.
 local function tag_skip(prop)
 	for _, t in ipairs(prop.Tags) do
 		if t == "Hidden" or t == "Deprecated" or t == "NotScriptable" then
@@ -72,13 +61,8 @@ local function tag_skip(prop)
 	return false
 end
 
--- ---------------------------------------------------------------------------
--- Asset collection
--- ---------------------------------------------------------------------------
-
--- Property name → kind. Hits via either a plain string property containing an
--- rbxassetid:// URI, or a Content userdata's .Uri. Unknown names default to
--- "unknown" and get sniffed by magic bytes later, in the downloader phase.
+-- Property name -> kind. Unknown names default to "unknown" and get resolved
+-- by magic-byte sniffing during the download phase.
 local ASSET_KIND_BY_PROP = {
 	-- Meshes
 	MeshContent = "mesh",
@@ -118,7 +102,7 @@ local ASSET_KIND_BY_PROP = {
 local assets = {}
 
 local function register_asset(uri, instance_path, prop_name)
-	local id = uri:match("^rbxassetid://(%d+)$")
+	local id = asset.id_from_uri(uri)
 	if not id then
 		return
 	end
@@ -130,15 +114,8 @@ local function register_asset(uri, instance_path, prop_name)
 	elseif entry.kind == "unknown" and kind ~= "unknown" then
 		entry.kind = kind
 	end
-	table.insert(entry.refs, {
-		instance = instance_path,
-		property = prop_name,
-	})
+	table.insert(entry.refs, { instance = instance_path, property = prop_name })
 end
-
--- ---------------------------------------------------------------------------
--- Value serialization
--- ---------------------------------------------------------------------------
 
 local function serialize_value(value, prop_name, instance_path)
 	local t = typeof(value)
@@ -242,32 +219,30 @@ local function serialize_value(value, prop_name, instance_path)
 	return { __type = "unknown:" .. t, repr = tostring(value) }
 end
 
--- ---------------------------------------------------------------------------
--- Filesystem helpers
--- ---------------------------------------------------------------------------
-
--- Replaces path-unsafe characters; collapses whitespace. Returns "" → caller
--- substitutes ClassName.
+-- Replaces path-unsafe characters; returns "" when nothing usable is left.
 local function sanitize(name)
 	local s = name:gsub('[%c/\\:*?"<>|]+', "_"):gsub("^%s+", ""):gsub("%s+$", "")
 	return s
 end
 
+-- rel_path (under out/scripts/) -> source. Consumed by the script-source scan.
 local scripts_written = {}
 
-local function write_script(path, source)
-	local target = out_root .. "/scripts/" .. path .. ".luau"
+local SCRIPT_SUFFIX = {
+	ModuleScript = ".luau",
+	LocalScript = ".client.luau",
+	Script = ".server.luau",
+}
+
+local function write_script_file(rel_path, source)
+	local target = out_root .. "/scripts/" .. rel_path
 	local dir = target:match("(.*)/[^/]+$")
 	if dir and not fs.isDir(dir) then
 		fs.writeDir(dir)
 	end
 	fs.writeFile(target, source)
-	scripts_written[path] = source
+	scripts_written[rel_path] = source
 end
-
--- ---------------------------------------------------------------------------
--- Walk
--- ---------------------------------------------------------------------------
 
 local function dump_instance(inst, path)
 	local class_name = inst.ClassName
@@ -278,14 +253,22 @@ local function dump_instance(inst, path)
 		children = {},
 	}
 
-	-- Script source: write to disk, leave a pointer in the JSON.
-	if class_name == "Script" or class_name == "LocalScript" or class_name == "ModuleScript" then
+	-- A script that's also a container becomes <path>/init<suffix> so the
+	-- directory holding its descendants doesn't collide with its source file.
+	local suffix = SCRIPT_SUFFIX[class_name]
+	if suffix then
 		local ok, src = pcall(function()
 			return inst.Source
 		end)
 		if ok and type(src) == "string" and #src > 0 then
-			write_script(path, src)
-			node.source_file = "scripts/" .. path .. ".luau"
+			local rel_path
+			if #inst:GetChildren() > 0 then
+				rel_path = path .. "/init" .. suffix
+			else
+				rel_path = path .. suffix
+			end
+			write_script_file(rel_path, src)
+			node.source_file = "scripts/" .. rel_path
 		end
 	end
 
@@ -305,8 +288,7 @@ local function dump_instance(inst, path)
 		end
 	end
 
-	-- Children, with collision-safe keys so duplicate sibling names don't
-	-- overwrite each other in the JSON object.
+	-- Suffix duplicate sibling names so they don't overwrite each other.
 	local seen = {}
 	for _, child in ipairs(inst:GetChildren()) do
 		local raw = sanitize(child.Name)
@@ -324,18 +306,6 @@ local function dump_instance(inst, path)
 	end
 
 	return node
-end
-
--- ---------------------------------------------------------------------------
--- Main
--- ---------------------------------------------------------------------------
-
-local function count(tbl)
-	local n = 0
-	for _ in pairs(tbl) do
-		n = n + 1
-	end
-	return n
 end
 
 print("loading: " .. in_path)
@@ -364,8 +334,7 @@ for _, svc in ipairs(game:GetChildren()) do
 	datamodel.children[key] = dump_instance(svc, key)
 end
 
--- Script-source scan: pick up any rbxassetid:// literals that only appear
--- inside script code, not on a property.
+-- Catch rbxassetid:// literals that only appear inside script bodies.
 for path, src in pairs(scripts_written) do
 	for id in src:gmatch("rbxassetid://(%d+)") do
 		local entry = assets[id]
@@ -378,6 +347,6 @@ for path, src in pairs(scripts_written) do
 end
 
 fs.writeFile(out_root .. "/datamodel.json", serde.encode("json", datamodel, true))
-fs.writeFile(out_root .. "/manifest.json", serde.encode("json", { assets = assets }, true))
+manifest_lib.write(out_root, { assets = assets })
 
-print(string.format("done. assets=%d  scripts=%d  out=%s", count(assets), count(scripts_written), out_root))
+print(string.format("done. assets=%d  scripts=%d  out=%s", util.count(assets), util.count(scripts_written), out_root))

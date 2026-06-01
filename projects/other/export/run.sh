@@ -1,5 +1,15 @@
-# 1. Download assets
-python download_assets.py
+#!/usr/bin/env bash
 
-# 2. Meshes have to be converted back to OBJ
-# filemesh/main.cpp should deal with this...
+cd "$(dirname "$0")"
+
+INPUT="${1:-in/import.rbxl}"
+OUT="${2:-out}"
+
+if [ ! -f "$INPUT" ]; then
+    echo "error: input rbxl not found: $INPUT" >&2
+    exit 1
+fi
+
+lune run src/export.lua "$INPUT" "$OUT"
+lune run src/download.lua "$OUT"
+lune run src/decode.lua "$OUT"

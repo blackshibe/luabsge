@@ -203,7 +203,7 @@ struct NeuronNetworkConfiguration {
         int start = layer_start(layer_index);
         int count = layers[layer_index].count;
         for (int i = 0; i < count; i++) {
-            network[start + i].loss = new_loss;
+            // network[start + i].loss = new_loss;
         }
     }
 
@@ -271,9 +271,9 @@ void lua_bsge_init_neuron(sol::state &lua) {
 		sol::constructors<NeuronStruct>(),
 		"spike", &NeuronStruct::spike,
 		"step", &NeuronStruct::step,
-		"stored", &NeuronStruct::stored,
+		// "stored", &NeuronStruct::stored,
 		"output", &NeuronStruct::output,
-		"threshold", &NeuronStruct::membrane_resistance_R,
+		// "threshold", &NeuronStruct::membrane_resistance_R,
 		"role", &NeuronStruct::role
     );
 

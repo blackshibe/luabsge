@@ -9,3 +9,6 @@ Window.set_window_size(1800, 1000)
 function now()
 	error("use NETWORK_RUNTIME_SECONDS instead of now()")
 end
+
+-- load preferences
+require("persistence.prefs").load()

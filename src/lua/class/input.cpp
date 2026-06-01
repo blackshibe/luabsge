@@ -3,6 +3,7 @@
 // Forward declaration
 extern glm::vec2 get_window_dimensions();
 
+// TODO toss out
 // Global mouse state
 static glm::vec2 mouse_position{0.0f};
 static glm::vec2 mouse_delta{0.0f};

@@ -1,3 +1,19 @@
+local preferences = require("persistence.prefs")
+local graphed = require("ui.graphed")
+
+local visualization = {}
+
+visualization.name = "Visualization"
+
+function visualization.push_styles()
+	ImGui.PushStyleVar(ImGui.StyleVar_WindowPadding, 0, 0)
+end
+
+function visualization.pop_styles()
+	ImGui.PopStyleVar()
+end
+
+-- Network visualization state
 local layer_info = nil
 local show_weights = true
 local weight_threshold = 0.1
@@ -16,7 +32,7 @@ local function get_layer_info()
 			name = layer.name,
 			config = layer.config,
 			count = layer.config.count,
-			start = snn_layer_start(layer.config),
+			start = GetSnnLayerStartIndex(layer.config),
 			labels = layer.labels,
 			x = layer.x or (i - 1),
 			y = layer.y or 0,
@@ -196,6 +212,23 @@ local function plot_graph()
 			)
 			ImGui.Text(("stored: %.3f  threshold: %.3f"):format(n.stored, n.threshold))
 			ImGui.Separator()
+			if ImGui.MenuItem("Graph neuron") then
+				local already_graphed = false
+				for i, g in ipairs(graphed.neurons) do
+					if g.global == context_target.global then
+						already_graphed = true
+						break
+					end
+				end
+				if not already_graphed then
+					table.insert(graphed.neurons, {
+						global = context_target.global,
+						name = context_target.name,
+						j = context_target.j,
+					})
+					preferences.save()
+				end
+			end
 			if ImGui.MenuItem("Force spike") then
 				n:spike()
 			end
@@ -207,7 +240,7 @@ local function plot_graph()
 	end
 end
 
-function plot_network()
+function visualization.update()
 	local _, new_weights = ImGui.Checkbox("Show Connections", show_weights)
 	show_weights = new_weights
 
@@ -220,6 +253,4 @@ function plot_network()
 	plot_graph()
 end
 
-return {
-	plot_network = plot_network,
-}
+return visualization

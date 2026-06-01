@@ -1,13 +1,13 @@
-SNN_NETWORK_CONFIG = NeuronNetworkConfiguration.new()
+SNN_NETWORK_CONFIG = NeuronNetworkConfigurationLIF.new()
 SNN_NETWORK_LAYERS = {
 	input = NeuronLayerConfiguration.new(NeuronRole.Input, 1),
 	memory = NeuronLayerConfiguration.new(NeuronRole.Neuron, 1),
 	output = NeuronLayerConfiguration.new(NeuronRole.Output, 1),
 }
 
-for i, v in pairs(SNN_NETWORK_LAYERS) do
-	SNN_NETWORK_CONFIG:add_group(v)
-end
+SNN_NETWORK_CONFIG:add_group(SNN_NETWORK_LAYERS.input)
+SNN_NETWORK_CONFIG:add_group(SNN_NETWORK_LAYERS.memory)
+SNN_NETWORK_CONFIG:add_group(SNN_NETWORK_LAYERS.output)
 
 SNN_NETWORK_CONFIG:set_weight_config_positive(SNN_NETWORK_LAYERS.input.index, SNN_NETWORK_LAYERS.memory.index, 10)
 SNN_NETWORK_CONFIG:set_weight_config_positive(SNN_NETWORK_LAYERS.memory.index, SNN_NETWORK_LAYERS.memory.index, 1)

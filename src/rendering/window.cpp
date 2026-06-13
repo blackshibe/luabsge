@@ -42,6 +42,7 @@ void WindowInstance::callback_focused(int focused) {}
 VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInstance(engine) {
 	glfwInit();
 	glfwSetErrorCallback(error_callback);
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);            
 
 	WindowConfiguration config(900, 400, "LuaBSGE");
 	sol::optional<sol::table> bsge = engine.lua["BSGE"];
@@ -51,6 +52,7 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 	}
 
 	glfw_window = glfwCreateWindow(config.width, config.height, config.name, NULL, NULL);
+	vulkan_renderer = std::make_unique<VulkanRenderer>(engine, glfw_window);
 }
 
 // void BSGEWindow::init() {

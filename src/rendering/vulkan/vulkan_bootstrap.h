@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <vector>
+#include "util/output.h"
 
 namespace Vulkan {
 

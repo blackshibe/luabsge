@@ -1,15 +1,11 @@
 #include "main.h"
 
-#define BSGE_VERSION_MAJOR "0"
-#define BSGE_VERSION_MINOR "0"
-#define BSGE_VERSION_PATCH "vulkan"
-
 static Output output;
 
 int main(int argc, char *argv[]) {
 
 	output.info("running %s", LUA_VERSION);
-	output.info("LuaBSGE %s.%s-%s", BSGE_VERSION_MAJOR, BSGE_VERSION_MINOR, BSGE_VERSION_PATCH);
+	output.info("LuaBSGE %s", Engine::VERSION);
 
 	try {
 		// engine instance first starts up the user context, which

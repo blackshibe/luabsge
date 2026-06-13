@@ -26,28 +26,17 @@ run_win.bat vulkan/native_test
 
 - **C++20** (`CMAKE_CXX_STANDARD 20`).
 - **`src/` is an include root.** Use project-root-relative includes everywhere: `#include "engine/engine.h"`, `#include "util/time.h"`, `#include "lua/luax.h"`. Not `../`.
-- Do **not** create a directory named `lua/` containing a `lua.h` — with `src/` on the include path it shadows sol2's `<lua/lua.h>` probe and drags C++ headers into sol's `extern "C"` block. The project's Lua state header is `src/lua/lua_state.h` for this reason.
-- `_HAS_EXCEPTIONS=0` leaks in from Jolt's flags; `throw`/`catch` may not behave normally. Prefer explicit error checks (e.g. a `VK_CHECK` macro) over exceptions in new renderer code.
 
 ## Architecture
 
 - **src/main.cpp / main.h** — entry point. `main.h` is an umbrella header (uses `// IWYU pragma: begin_exports`/`end_exports` to silence clangd's Include Cleaner).
-- **src/engine/** — `EngineInstance`: owns the EnTT `registry`, the sol2 `lua` state, and the window. `preflight()` sets up Lua and creates the window.
-- **src/rendering/** — `WindowInstance` (base) and `VulkanWindowInstance`. Vulkan renderer lives here.
-- **src/lua/** — `luax.{h,cpp}` (`Lua::util::run_script` using sol2's `safe_script_file`), and `lib/` for Lua-exposed functions. Lua C-functions live in namespaces (`Lua::global` for `print`/`warn`/`now`), so they carry **no** `lua_` prefix.
+- **src/engine/** — `EngineInstance`: owns the EnTT `registry`, the sol2 `lua` state, and the `unique_ptr<WindowInstance> window`. `main()` runs `EngineInstance()` → `preflight()` (sets up Lua, creates the window) → `start()`.
+- **src/rendering/** — `WindowInstance` (base; owns the `GLFWwindow*` and the virtual `render_loop`/`render_pass`/`render_loop_init` + resize/focus callback hooks) and `VulkanWindowInstance`, which owns a `unique_ptr<VulkanRenderer>`.
+- **src/rendering/vulkan/** — `vulkan_renderer.{h,cpp}` (`VulkanRenderer` holds the `Vulkan::Instance`/`Device`/`Swapchain` + surface) and `vulkan_bootstrap.{h,cpp}`, a hand-rolled **vk-bootstrap-style builder API** in `namespace Vulkan`: `InstanceBuilder`, `PhysicalDeviceSelector`, `DeviceBuilder`, `SwapchainBuilder` each return `std::optional<...>` from `build()`/`select()` (errors are optionals, not exceptions). Plain structs (`Instance`, `Device`, `Swapchain`) hold the raw handles; free `destroy_*` functions tear them down.
+- **src/lua/** — `luax.{h,cpp}` (`Lua::util::run_script` using sol2's `safe_script_file`). `lib/` holds free Lua C-functions in namespaces (`Lua::global` for `print`/`warn`/`now`) — **no** `lua_` prefix. `class/` holds sol2 object/usertype bindings (e.g. `Lua::object::window::init(lua)`).
 - **src/util/** — `output.h` (the `Output` logger, ANSI colors + filename via `std::source_location`), `time.h` (`Lua::time::now()`).
 - **src/include/** — vendored imgui, implot, stb, `colors.h` (ANSI macros).
 - **projects/** — each has `config.lua` (engine config) and `entry.lua` (game entry); assets in `mesh/`, `image/`, `shader/`, `font/`.
-
-## Vulkan stack
-
-Fully fetched from source via CMake `FetchContent` — **no Vulkan SDK needed to build**, only a Vulkan-capable driver at runtime:
-
-- **Vulkan-Headers** (`Vulkan::Headers`), **volk** (runtime meta-loader), **VMA** (header-only allocator).
-- Global defines: `VK_NO_PROTOTYPES` (required by volk) and `IMGUI_IMPL_VULKAN_USE_VOLK`.
-- Because of volk, `#include <volk.h>` must come **before** `#include <GLFW/glfw3.h>`, and do **not** define `GLFW_INCLUDE_VULKAN`.
-- volk init order: `volkInitialize()` → create instance → `volkLoadInstance(instance)` → create device → `volkLoadDevice(device)`. Call `glfwInitVulkanLoader(vkGetInstanceProcAddr)` before `glfwInit()` to share the loader.
-- Window creation: `glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API)` then `glfwCreateWindowSurface`. glad and `glad/KHR/khrplatform.h` are OpenGL-only and not used.
 
 ## Dependencies (all FetchContent, from source)
 

@@ -1,4 +1,4 @@
-#include "rendering/vulkan/vk_bootstrap.h"
+#include "rendering/vulkan/vulkan_bootstrap.h"
 
 #include "include/colors.h"
 
@@ -7,16 +7,9 @@
 #include <cstring>
 #include <set>
 
+static Output output;
+
 namespace Vulkan {
-
-	static void log_error(const char *fmt, VkResult result) {
-		printf("%s[vk_bootstrap] %s (VkResult %d)%s\n", ANSI_RED, fmt, (int)result, ANSI_NC);
-	}
-
-	static void log_error(const char *fmt) {
-		printf("%s[vk_bootstrap] %s%s\n", ANSI_RED, fmt, ANSI_NC);
-	}
-
 	static bool has_layer(const std::vector<VkLayerProperties> &available, const char *name) {
 		for (const VkLayerProperties &layer : available)
 			if (strcmp(layer.layerName, name) == 0)
@@ -37,21 +30,20 @@ namespace Vulkan {
 		const VkDebugUtilsMessengerCallbackDataEXT *data,
 		void *user_data) {
 
-		const char *color = ANSI_BLUE;
 		if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
-			color = ANSI_BOLD_RED;
+			output.error("%s", data->pMessage);
 		else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
-			color = ANSI_BOLD_YELLOW;
+			output.warn("%s", data->pMessage);
+		else
+			output.info("%s", data->pMessage);
 
-		printf("%s[vulkan] %s%s\n", color, data->pMessage, ANSI_NC);
 		return VK_FALSE;
 	}
 
 	static VkDebugUtilsMessengerCreateInfoEXT default_messenger_info() {
 		VkDebugUtilsMessengerCreateInfoEXT info{};
 		info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-							   VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+		info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
 							   VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
 						   VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
@@ -103,7 +95,7 @@ namespace Vulkan {
 
 	std::optional<Instance> InstanceBuilder::build() const {
 		if (volkInitialize() != VK_SUCCESS) {
-			log_error("volkInitialize failed; is a Vulkan driver installed?");
+			output.error("volkInitialize failed; is a Vulkan driver installed?");
 			return std::nullopt;
 		}
 
@@ -122,7 +114,7 @@ namespace Vulkan {
 			if (has_layer(available_layers, "VK_LAYER_KHRONOS_validation")) {
 				enabled_layers.push_back("VK_LAYER_KHRONOS_validation");
 			} else {
-				printf("%s[vk_bootstrap] validation requested but VK_LAYER_KHRONOS_validation not present; skipping%s\n", ANSI_BOLD_YELLOW, ANSI_NC);
+				output.warn("svalidation requested but VK_LAYER_KHRONOS_validation not present; skipping");
 				enable_validation = false;
 				enable_debug_messenger = false;
 			}
@@ -154,7 +146,7 @@ namespace Vulkan {
 		Instance result;
 		VkResult status = vkCreateInstance(&create_info, nullptr, &result.instance);
 		if (status != VK_SUCCESS) {
-			log_error("vkCreateInstance failed", status);
+			output.error("vkCreateInstance failed", status);
 			return std::nullopt;
 		}
 
@@ -163,7 +155,7 @@ namespace Vulkan {
 		if (enable_debug_messenger) {
 			status = vkCreateDebugUtilsMessengerEXT(result.instance, &messenger_info, nullptr, &result.debug_messenger);
 			if (status != VK_SUCCESS)
-				log_error("vkCreateDebugUtilsMessengerEXT failed", status);
+				output.error("vkCreateDebugUtilsMessengerEXT failed", status);
 		}
 
 		result.api_version = api_version;
@@ -249,14 +241,14 @@ namespace Vulkan {
 
 	std::optional<PhysicalDevice> PhysicalDeviceSelector::select() const {
 		if (surface == VK_NULL_HANDLE) {
-			log_error("PhysicalDeviceSelector requires a surface");
+			output.error("PhysicalDeviceSelector requires a surface");
 			return std::nullopt;
 		}
 
 		uint32_t count = 0;
 		vkEnumeratePhysicalDevices(instance, &count, nullptr);
 		if (count == 0) {
-			log_error("no Vulkan physical devices found");
+			output.error("no Vulkan physical devices found");
 			return std::nullopt;
 		}
 
@@ -299,11 +291,11 @@ namespace Vulkan {
 		}
 
 		if (best_score < 0) {
-			log_error("no suitable physical device (needs graphics+present queue, swapchain, required extensions)");
+			output.error("no suitable physical device (needs graphics+present queue, swapchain, required extensions)");
 			return std::nullopt;
 		}
 
-		printf("[vk_bootstrap] selected GPU: %s\n", best.properties.deviceName);
+		output.info("selected GPU: %s", best.properties.deviceName);
 		return best;
 	}
 
@@ -349,7 +341,7 @@ namespace Vulkan {
 		result.physical_device = physical_device;
 		VkResult status = vkCreateDevice(physical_device.physical_device, &create_info, nullptr, &result.device);
 		if (status != VK_SUCCESS) {
-			log_error("vkCreateDevice failed", status);
+			output.error("vkCreateDevice failed", status);
 			return std::nullopt;
 		}
 
@@ -476,7 +468,7 @@ namespace Vulkan {
 
 		VkResult status = vkCreateSwapchainKHR(device, &create_info, nullptr, &result.swapchain);
 		if (status != VK_SUCCESS) {
-			log_error("vkCreateSwapchainKHR failed", status);
+			output.error("vkCreateSwapchainKHR failed", status);
 			return std::nullopt;
 		}
 
@@ -517,7 +509,7 @@ namespace Vulkan {
 
 			VkResult status = vkCreateImageView(device, &info, nullptr, &image_views[i]);
 			if (status != VK_SUCCESS) {
-				log_error("vkCreateImageView failed", status);
+				output.error("vkCreateImageView failed", status);
 				return false;
 			}
 		}

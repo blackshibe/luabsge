@@ -10,6 +10,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <memory>
+
+#include "rendering/vulkan/vulkan_renderer.h"
+
 class EngineInstance;
 
 class WindowInstance {
@@ -39,6 +43,7 @@ struct WindowConfiguration {
 
 class VulkanWindowInstance : public WindowInstance {
 public:
-	VulkanWindowInstance(EngineInstance &engine);
+	std::unique_ptr<VulkanRenderer> vulkan_renderer;
 
+	VulkanWindowInstance(EngineInstance &engine);
 };

@@ -3,21 +3,13 @@
 
 static Output output;
 
+// config.lua and main.lua are split for cleanliness and because of legacy code
+// perhaps there should be a manifest of what to run when the project starts
+
 EngineInstance::EngineInstance() {
-	// needed for config.lua to register WindowConfiguration
 	Lua::object::window::init(lua);
 
-	Lua::util::run_script(lua, "config.lua");
-}
-
-EngineInstance::~EngineInstance() = default;
-
-void EngineInstance::preflight() {
-	output.info("preflight");
-
-	// get Lua ready before creating the window
-	lua_State *L = lua.lua_state();
-
+	// get Lua ready before executing it
 	lua.open_libraries();
 	lua.set_function("now", Lua::global::now);
 	lua.set_function("print", Lua::global::print);
@@ -26,10 +18,15 @@ void EngineInstance::preflight() {
 	// TODO shouldn't be globals at all
 	lua["BSGE_PLATFORM"] = "NATIVE";
 	lua["BSGE_RENDERER"] = "Vulkan"; // todo assign autonomously
-	lua["BSGE_VERSION"] = "VERSION"; // todo global constructor for this
+	lua["BSGE_VERSION"] = Engine::VERSION;
 
-	// object init
-	// ...
+	Lua::util::run_script(lua, "config.lua");
+}
+
+EngineInstance::~EngineInstance() = default;
+
+void EngineInstance::preflight() {
+	output.info("preflight");
 
 	// get the window ready
 	window = std::make_unique<VulkanWindowInstance>(*this);

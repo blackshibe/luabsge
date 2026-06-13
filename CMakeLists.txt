@@ -18,7 +18,7 @@ option(GLFW_INSTALL "" OFF)
 option(GLFW_BUILD_EXAMPLES "" OFF)
 
 # Configuration
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_BUILD_PARALLEL_LEVEL 16)
@@ -92,6 +92,10 @@ endif()
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
+# Treat src/ as an include root so any file can use project-relative includes,
+# e.g. #include "world/world.h" or #include "rendering/window.h" from anywhere.
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
+
 # Native Lua
 fetchcontent_declare(
     lua_static
@@ -102,17 +106,6 @@ fetchcontent_makeavailable(lua_static)
 target_include_directories(${PROJECT_NAME} PRIVATE ${lua_static_SOURCE_DIR}/src)
 target_link_libraries(${PROJECT_NAME} PRIVATE lua_static)
 
-# FreeType from source
-fetchcontent_declare(
-    freetype
-    GIT_REPOSITORY https://github.com/aseprite/freetype2.git
-    GIT_TAG master
-)
-
-fetchcontent_makeavailable(freetype)
-
-target_include_directories(${PROJECT_NAME} PRIVATE ${freetype_SOURCE_DIR}/include)
-target_link_libraries(${PROJECT_NAME} PRIVATE freetype)
 
 # Assimp
 fetchcontent_declare(
@@ -155,6 +148,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${glm_SOURCE_DIR})
 target_compile_definitions(${PROJECT_NAME} PRIVATE IMGUI_DISABLE_OBSOLETE_FUNCTIONS=1)
 
 # Jolt physics
+set(CPP_EXCEPTIONS_ENABLED ON CACHE BOOL "Enable C++ exceptions in Jolt" FORCE)
 fetchcontent_declare(
         JoltPhysics
         GIT_REPOSITORY "https://github.com/jrouwe/JoltPhysics"
@@ -176,4 +170,58 @@ fetchcontent_makeavailable(EnTT)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${EnTT_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} PRIVATE EnTT)
+
+# ============================================================
+# Vulkan (native only)
+# ============================================================
+# Fully self-contained: headers + meta-loader are fetched from source, so no
+# Vulkan SDK install is needed to configure/compile/link. Only a Vulkan-capable
+# GPU driver (the runtime vulkan-1 loader) is required to actually run.
+#
+#   - Vulkan-Headers : the Khronos headers (provides the Vulkan::Headers target)
+#   - volk           : a meta-loader that dlopen's vulkan-1 at runtime and
+#                      resolves entrypoints, so nothing has to link the loader
+#   - VMA            : Vulkan Memory Allocator (header-only, AMD GPUOpen)
+#
+# Because volk dispatches every call through function pointers it loads at
+# runtime, vulkan.h must NOT emit prototypes anywhere in the project, hence the
+# global VK_NO_PROTOTYPES. IMGUI_IMPL_VULKAN_USE_VOLK routes the ImGui Vulkan
+# backend through volk too (so it doesn't need the loader either).
+if(NOT USE_EMSCRIPTEN)
+        target_compile_definitions(${PROJECT_NAME} PRIVATE
+                VK_NO_PROTOTYPES
+                IMGUI_IMPL_VULKAN_USE_VOLK
+        )
+
+        # Vulkan-Headers -> Vulkan::Headers
+        fetchcontent_declare(
+                VulkanHeaders
+                GIT_REPOSITORY https://github.com/KhronosGroup/Vulkan-Headers.git
+                GIT_TAG vulkan-sdk-1.4.350.0
+        )
+        fetchcontent_makeavailable(VulkanHeaders)
+        target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Headers)
+
+        # volk (links Vulkan::Headers automatically since it's already declared)
+        fetchcontent_declare(
+                volk
+                GIT_REPOSITORY https://github.com/zeux/volk.git
+                GIT_TAG 1.4.350
+        )
+        fetchcontent_makeavailable(volk)
+        target_link_libraries(${PROJECT_NAME} PRIVATE volk)
+
+        # VulkanMemoryAllocator (header-only: just fetch + add the include dir,
+        # bypassing its CMake which would otherwise find_package(Vulkan))
+        fetchcontent_declare(
+                VulkanMemoryAllocator
+                GIT_REPOSITORY https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+                GIT_TAG v3.4.0
+        )
+        fetchcontent_getproperties(VulkanMemoryAllocator)
+        if(NOT vulkanmemoryallocator_POPULATED)
+                fetchcontent_populate(VulkanMemoryAllocator)
+        endif()
+        target_include_directories(${PROJECT_NAME} PRIVATE ${vulkanmemoryallocator_SOURCE_DIR}/include)
+endif()
 

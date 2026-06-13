@@ -1,71 +1,34 @@
 #include "main.h"
 
-// https://learnopengl.com/Getting-started/Transformations
-// https://csl.name/post/lua-and-cpp/
-// https://www.lua.org/pil/28.1.html
+#define BSGE_VERSION_MAJOR "0"
+#define BSGE_VERSION_MINOR "0"
+#define BSGE_VERSION_PATCH "vulkan"
 
-void window_resize(GLFWwindow *window, int width, int height) {
-	((BSGEWindow *)glfwGetWindowUserPointer(window))->size_callback(width, height);
-	freetype_resize_window(width, height);
-}
-
-void err(int error_code, const char *description) {
-	printf("[main.cpp] glfw error callback called because '%s'\n", description);
-}
+static Output output;
 
 int main(int argc, char *argv[]) {
-	printf("[main.cpp] running %s\n", LUA_VERSION);
 
-	glfwInit();
-	glfwSetErrorCallback(err);
-#if USE_EMSCRIPTEN
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#else
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif
+	output.info("running %s", LUA_VERSION);
+	output.info("LuaBSGE %s.%s-%s", BSGE_VERSION_MAJOR, BSGE_VERSION_MINOR, BSGE_VERSION_PATCH);
 
-#if !USE_EMSCRIPTEN
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-#endif
+	try {
+		// engine instance first starts up the user context, which
+		// will then configure properties for WindowInstance and any
+		// assets the engine uses
+		EngineInstance engine = EngineInstance();
 
-	sol::state lua;
+		// create instance, connect to render loop
+		engine.preflight();
 
-	// load configuration file for the engine
-	luax_run_script(lua, "config.lua");
+		// takeoff
+		engine.start();
 
-	BSGEWindow window = BSGEWindow();
-	window.init();
-	window.lua = &lua;
-
-	if (window.status != 0) {
-		return EXIT_FAILURE;
-	}
-
-	srand (static_cast<unsigned>(time(0)));
-	freetype_init(lua);
-	BSGE::Physics::init();
-	
-	if (bsge_lua_init_state(&window, lua) == -1) {
-		return EXIT_FAILURE;
-	}
-
-	if (luax_run_script(lua, "entry.lua")) {
-		glfwSetFramebufferSizeCallback(window.window, window_resize);
-
-		if (window.status == -1) {
-			return EXIT_FAILURE;
-		}
-
-		window_resize(window.window, window.width, window.height);
-		window.render_loop_init();
-	} else {
-		printf("[main.cpp] entry.lua failed to run. game closed.\n");
+		// BSGE::Physics::init();
+	} catch (const std::exception& exception) {
+		output.error("runtime error: %s", exception.what());
 	}
 
 	glfwTerminate();
-	freetype_quit();
 
 	return 0;
 }

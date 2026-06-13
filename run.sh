@@ -1,3 +1,10 @@
+case "$(uname -s)" in
+	MINGW*|MSYS*|CYGWIN*)
+		echo "[run.sh] this is the Unix script; on Windows use run_win.bat"
+		exit 1
+		;;
+esac
+
 if [ -z "$1" ]
   then
     echo "No project to run"

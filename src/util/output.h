@@ -58,7 +58,14 @@ class Output {
 		va_end(a);
 	}
 
+	void comment(LogFormat fmt, ...) const {
+		va_list a;
+		va_start(a, fmt);
+		line(stderr, ANSI_GREEN, fmt, a);
+		va_end(a);
+	}
+
 	void mark(std::source_location location = std::source_location::current()) const {
-		fprintf(stdout, "%s[%s] %s%s\n", ANSI_GREEN, name, location.function_name(), ANSI_NC);
+		comment("%s", location.function_name());
 	}
 };

@@ -1,10 +1,10 @@
-#include "lua/lib/lua_imgui.h"
+#include "lua_imgui.h"
 
 #include "include/imgui/imgui.h"
 #include <string>
 #include <tuple>
 
-namespace Lua::global::imgui {
+namespace Lua::imgui {
 	void init(sol::state &lua) {
 		auto imgui_namespace = lua["ImGui"].get_or_create<sol::table>();
 

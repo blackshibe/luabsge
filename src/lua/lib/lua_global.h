@@ -5,7 +5,7 @@
 #include <sol/sol.hpp>
 #include <string>
 
-namespace Lua::global {
+namespace Lua {
 	void init(sol::state &lua);
 
 	std::string concat_arguments(lua_State *L);

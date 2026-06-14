@@ -2,42 +2,77 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Hard rules
+## Comments
 
-- **Comments are banned entirely.** Do not write code comments — no `//`, no `/* */`, no doc comments, no "explanatory" comments, none. Existing comments may be left alone or deleted, but never add new ones. Explanations belong in chat, not in the source.
-- The code is mid-port from OpenGL to Vulkan. Old/half-ported code may not compile; do not assume a green build. Only the renderer is changing — the Lua/sol2 and CMake layers are being reshaped around it.
+Comments are banned
+
+## What this is
+
+LuaBSGE is a Vulkan game engine with a Lua scripting frontend. The C++ side is engine plumbing; actual "games" live in `projects/` as Lua scripts plus assets — the engine itself ships no default content.
+
+The codebase is **mid-port from OpenGL to Vulkan**. Old/half-ported code may not compile; do not assume a green build. The active path is the Vulkan renderer; `oldsrc/` and `projects/opengl/` are legacy. The Vulkan renderer closely follows the structure of [vkguide.dev](https://vkguide.dev).
 
 ## Build & run
 
-This is developed on **Windows with MSVC + Ninja**. The `.sh` scripts are Unix-only and now hard-exit if run under Git Bash/MSYS — use the `.bat` equivalents:
+Developed on **Windows with MSYS2 UCRT64 (gcc + Ninja + GDB)**. `build.sh` is the single entry point — it configures on first run (or after `build/` is deleted) and builds:
 
-```bat
-setup_win.bat                 :: configure (calls vcvarsall x64, Ninja, C++20, compile_commands.json)
-run_win.bat <project>         :: build (cmake --build) then run projects/<project>/luabsge.exe
-run_win.bat vulkan/native_test
+```bash
+./build.sh        # configure if needed, then build (Debug, gcc/g++, Ninja, compile_commands.json)
 ```
 
-- `setup_win.bat` passes `-DFETCHCONTENT_UPDATES_DISCONNECTED=ON` so reconfiguring doesn't re-hit the network for already-fetched deps.
-- The build **must** run inside the VS dev environment. If cl.exe reports missing `float.h`/`cstdint`/`stddef.h` etc., the MSVC `INCLUDE` paths aren't set — you ran `run.sh` instead of `run_win.bat`.
-- There is no test suite. "Running" means launching one of the example projects in `projects/`.
-- Unix/web builds exist (`setup.sh`/`run.sh`, `setup_web.sh`/`run_web.sh` via Emscripten) but are not the active path.
+- `gcc` must be on PATH (e.g. `C:\msys64\ucrt64\bin`). `build.sh` errors out if it isn't.
+- It auto-detects stale CMake globs (added/moved/deleted source files) and reconfigures, since sources are picked up via `file(GLOB_RECURSE src/*.cpp)`.
+- Reconfigure uses `-DFETCHCONTENT_UPDATES_DISCONNECTED=ON` so already-fetched deps don't re-hit the network.
+- The executable is built to `build/luabsge.exe`.
+- There is **no test suite**. "Running" means launching one of the `projects/` examples.
+
+### Running a project
+
+The engine loads `config.lua` then `entry.lua` **relative to the current working directory** (there is no `chdir` in C++ and no project-selection arg). So you must run the binary from inside the project directory, e.g.:
+
+```bash
+cd projects/vulkan/native_test && ../../../build/luabsge.exe
+```
 
 ## C++ conventions
 
-- **C++20** (`CMAKE_CXX_STANDARD 20`).
-- **`src/` is an include root.** Use project-root-relative includes everywhere: `#include "engine/engine.h"`, `#include "util/time.h"`, `#include "lua/luax.h"`. Not `../`.
+- **C++20**, `src/` is an include root: use project-relative includes everywhere (`#include "engine/engine.h"`, `#include "lua/luax.h"`), never `../`.
+- Formatting is enforced by `.clang-format` (LLVM base, **tabs** for indentation, width 4, no column limit, attached braces, right-aligned pointers/refs, `NamespaceIndentation: All`). Run clang-format on changed files.
+- Errors in the Vulkan bootstrap layer are returned as `std::optional`, not thrown.
 
 ## Architecture
 
-- **src/main.cpp / main.h** — entry point. `main.h` is an umbrella header (uses `// IWYU pragma: begin_exports`/`end_exports` to silence clangd's Include Cleaner).
-- **src/engine/** — `EngineInstance`: owns the EnTT `registry`, the sol2 `lua` state, and the `unique_ptr<WindowInstance> window`. `main()` runs `EngineInstance()` → `preflight()` (sets up Lua, creates the window) → `start()`.
-- **src/rendering/** — `WindowInstance` (base; owns the `GLFWwindow*` and the virtual `render_loop`/`render_pass`/`render_loop_init` + resize/focus callback hooks) and `VulkanWindowInstance`, which owns a `unique_ptr<VulkanRenderer>`.
-- **src/rendering/vulkan/** — `vulkan_renderer.{h,cpp}` (`VulkanRenderer` holds the `Vulkan::Instance`/`Device`/`Swapchain` + surface) and `vulkan_bootstrap.{h,cpp}`, a hand-rolled **vk-bootstrap-style builder API** in `namespace Vulkan`: `InstanceBuilder`, `PhysicalDeviceSelector`, `DeviceBuilder`, `SwapchainBuilder` each return `std::optional<...>` from `build()`/`select()` (errors are optionals, not exceptions). Plain structs (`Instance`, `Device`, `Swapchain`) hold the raw handles; free `destroy_*` functions tear them down.
-- **src/lua/** — `luax.{h,cpp}` (`Lua::util::run_script` using sol2's `safe_script_file`). `lib/` holds free Lua C-functions in namespaces (`Lua::global` for `print`/`warn`/`now`) — **no** `lua_` prefix. `class/` holds sol2 object/usertype bindings (e.g. `Lua::object::window::init(lua)`).
-- **src/util/** — `output.h` (the `Output` logger, ANSI colors + filename via `std::source_location`), `time.h` (`Lua::time::now()`).
-- **src/include/** — vendored imgui, implot, stb, `colors.h` (ANSI macros).
-- **projects/** — each has `config.lua` (engine config) and `entry.lua` (game entry); assets in `mesh/`, `image/`, `shader/`, `font/`.
+- **`src/main.cpp`** — entry point. Constructs `EngineInstance` → `preflight()` → `start()`, wrapped in a try/catch.
+- **`src/engine/`** — `EngineInstance` owns the three core pieces: the EnTT `registry`, the sol2 `lua` state, and `unique_ptr<WindowInstance> window`. The constructor registers all Lua bindings and runs `config.lua`; `preflight()` creates the `VulkanWindowInstance`, sets up ImGui/ImPlot, and runs `entry.lua`; `start()` enters the render loop. Also `queue.{h,cpp}` (`DeletionQueue` for ordered Vulkan teardown).
+- **`src/rendering/window/`** — `WindowInstance` (base; owns `GLFWwindow*` and virtual `render_loop`/`render_pass`/`render_loop_init` + resize/focus callbacks) and `VulkanWindowInstance`, which owns a `unique_ptr<Vulkan::Renderer>`.
+- **`src/rendering/vulkan/`**
+    - `base/` — bootstrap (instance/device/swapchain builders), VMA setup (`vulkan_vma.cpp`), images, descriptors, and `vulkan_init.*` / `vulkan_types.h` helpers.
+    - `pipeline/` — `ComputePipeline`, `GraphicsPipeline`, and shared shading helpers.
+    - `renderer/` — `Vulkan::Renderer` implementation split across `_init`, `_rendering`, and `_buffer` translation units. Renders into an off-swapchain RGBA16F `draw_image`, then copies to the swapchain. Double-buffered (`FRAME_OVERLAP = 2`), with per-frame and lifetime `DeletionQueue`s.
+- **`src/scene/`** — `instance/instance.h` defines the ECS data: `Scene::ecs::Instance` (name, `glm::mat4` transform, parent entity) stored in the EnTT registry. `mesh_component.*` for mesh data.
+- **`src/lua/`** — `luax.{h,cpp}` (`Lua::util::run_script`, sol2 `safe_script_file`). `lib/` holds the binding modules, each with an `init(...)` that registers a global table or usertype: `lua_global` (`print`/`warn`/`now`), `lua_imgui`, `lua_instance` (`Instance` usertype → creates EnTT entities), `lua_gltf` (`GLTF.import`). `class/window.*` binds the window. Bindings live in `Lua::*` / `Lua::object::*` namespaces — **no `lua_` symbol prefix**.
+- **`src/util/`** — `output.h` (`Output` logger: ANSI colors + source location), `time.{h,cpp}` (`now()`).
+- **`src/include/`** — vendored imgui, implot, stb, `colors.h`.
 
-## Dependencies (all FetchContent, from source)
+## Lua API & type generation
 
-GLFW, Lua (walterschell), FreeType, Assimp, sol2 (`SOL_ALL_SAFETIES_ON`), GLM, Jolt, EnTT, Vulkan-Headers, volk, VMA. Native exe in `build/`; web output in `public/`.
+Lua bindings carry Doxygen-style doc comments (`@namespace`/`@class`, `@field`, optional `@param`/`@return`) directly above the sol2 registration. `tools/gen_types.py` scans these and emits LuaCATS annotations for the sumneko/LuaLS language server:
+
+```bash
+python tools/gen_types.py -o projects/types.d.lua   # defaults to scanning src/lua/lib/*.cpp
+```
+
+When adding or changing a Lua binding, update its doc comment and regenerate `projects/types.d.lua` so editor completion stays in sync. (`document.sh` + `util/document.py` are the older, removed version of this tooling.)
+
+## Project structure
+
+Each project under `projects/<renderer>/<name>/` has:
+
+- `config.lua` — engine config (sets the `BSGE` table: asset dir, `WindowConfiguration`). Run first.
+- `entry.lua` — game entry point. Run second.
+- `shader/` — GLSL `.vert`/`.frag`/`.comp`. CMake compiles every shader under `projects/` to `.spv` via glslang (target `vulkan1.3`) as part of the build.
+- `asset/` — meshes (`.glb`/`.blend`), images, etc.
+
+## Dependencies
+
+All via CMake `FetchContent` from source: GLFW, Lua (walterschell), Assimp, sol2 (`SOL_ALL_SAFETIES_ON`), GLM, Jolt physics, EnTT, Vulkan-Headers, volk (loader; `VK_NO_PROTOTYPES`), VulkanMemoryAllocator, glslang. An Emscripten/WASM path exists in `CMakeLists.txt` (`-DUSE_EMSCRIPTEN`, output to `public/`) but is not the active target.

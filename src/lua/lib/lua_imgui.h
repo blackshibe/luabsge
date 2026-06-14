@@ -3,6 +3,6 @@
 #include <lua.hpp>
 #include <sol/sol.hpp>
 
-namespace Lua::global::imgui {
+namespace Lua::imgui {
 	void init(sol::state &lua);
 }

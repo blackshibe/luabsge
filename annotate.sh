@@ -1,0 +1,1 @@
+python tools/gen_types.py > projects/types.d.lua

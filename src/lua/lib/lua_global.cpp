@@ -7,12 +7,12 @@
 
 static Output output;
 
-namespace Lua::global {
+namespace Lua {
 	void init(sol::state &lua) {
 		lua.open_libraries();
-		lua.set_function("now", Lua::global::now);
-		lua.set_function("print", Lua::global::print);
-		lua.set_function("warn", Lua::global::warn);
+		lua.set_function("now", Lua::now);
+		lua.set_function("print", Lua::print);
+		lua.set_function("warn", Lua::warn);
 	}
 
 	std::string concat_arguments(lua_State *L) {

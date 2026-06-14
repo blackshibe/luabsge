@@ -1,6 +1,17 @@
 #include "engine/engine.h"
 #include "rendering/window/window.h"
 
+#include "include/imgui/imgui.h"
+#include "include/implot/implot.h"
+#include "lua/class/window.h"
+#include "lua/lib/lua_global.h"
+#include "lua/lib/lua_gltf.h"
+#include "lua/lib/lua_imgui.h"
+#include "lua/lib/lua_instance.h"
+#include "lua/luax.h"
+#include "util/output.h"
+#include <memory>
+
 static Output output;
 
 // config.lua and main.lua are split for cleanliness and because of legacy code
@@ -9,14 +20,19 @@ static Output output;
 EngineInstance::EngineInstance() {
 	output.mark();
 
-	Lua::global::init(lua);
+	Lua::init(lua);
 	Lua::object::window::init(lua);
-	Lua::global::imgui::init(lua);
+	Lua::imgui::init(lua);
+	Lua::instance::init(*this, lua);
+	Lua::gltf::init(*this, lua);
 
 	// TODO shouldn't be globals at all
 	lua["BSGE_PLATFORM"] = "NATIVE";
 	lua["BSGE_RENDERER"] = "Vulkan"; // todo assign autonomously
 	lua["BSGE_VERSION"] = Engine::VERSION;
+
+	scene_root = std::make_unique<Lua::instance::Instance>("Scene");
+	lua["Scene"] = scene_root.get();
 
 	Lua::util::run_script(lua, "config.lua");
 }

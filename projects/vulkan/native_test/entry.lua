@@ -1,5 +1,22 @@
 ---@diagnostic disable: undefined-global
 
+GLTF.import("asset/scene.glb")
+
+local test = Instance.new("Test")
+test.parent = Scene
+print("created instance:", test)
+
+for i, v in pairs(Scene.children) do
+	print("Child:", v.name)
+end
+
+TODO_RENDER = function()
+	if ImGui.Begin("LuaBSGE ImGui Demo") then
+		ImGui.Text("hello world")
+	end
+	ImGui.End()
+end
+
 -- local primary_camera = Camera.new()
 -- primary_camera.fov = 90 -- degrees
 -- primary_camera.near_clip = 0.1
@@ -82,12 +99,3 @@
 -- 	end
 -- 	ImGui.End()
 -- end)
-
-print("Lua entry file finished")
-
-TODO_RENDER = function()
-	if ImGui.Begin("LuaBSGE ImGui Demo") then
-		ImGui.Text("hello world")
-	end
-	ImGui.End()
-end

@@ -1,4 +1,5 @@
 #include "lua/luax.h"
+#include "util/output.h"
 
 static Output output;
 

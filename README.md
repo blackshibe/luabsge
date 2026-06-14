@@ -15,8 +15,9 @@ Vulkan game engine with Lua backend.
 ## Compilation
 
 ```bash
-# Native
-# TODO test on linux, make sure MinGW/Gcc is used instead of microsoft tools
-./setup_win.bat
-./run_win.bat vulkan/native_test
+# Native (MSYS2 UCRT64: gcc + Ninja)
+./build.sh
+
+# Run the exe in the project folder
+exec -a projects/vulkan/native_test build/luabsge
 ```

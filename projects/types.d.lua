@@ -3,6 +3,7 @@
 ---This is an autodoc tool test
 ---@class Instance
 ---@field parent integer Parent of entity.
+---@field name string Name of entity.
 ---@field children Instance[] Instances parented to this one.
 Instance = {}
 

@@ -3,6 +3,7 @@
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
 #include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
 #include "rendering/vulkan/vulkan.h"
+#include "resource/mesh/mesh.h"
 
 #include "engine/queue.h"
 #include <GLFW/glfw3.h>
@@ -81,7 +82,7 @@ namespace Vulkan {
 		void destroy_buffer(const Vulkan::AllocatedBuffer &buffer);
 
 		// mesh
-		Vulkan::GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+		Vulkan::GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<MeshVertex> vertices);
 
 		// swapchain?
 		Frame _frames[FRAME_OVERLAP];

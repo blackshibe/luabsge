@@ -170,6 +170,59 @@ namespace Lua::imgui {
 		    });
 		imgui_namespace["EndChild"] = &ImGui::EndChild;
 
+		// Tables
+		imgui_namespace["BeginTable"] = sol::overload(
+		    [](const char *str_id, int columns) { return ImGui::BeginTable(str_id, columns); },
+		    [](const char *str_id, int columns, int flags) { return ImGui::BeginTable(str_id, columns, flags); },
+		    [](const char *str_id, int columns, int flags, float outer_size_x, float outer_size_y) {
+			    return ImGui::BeginTable(str_id, columns, flags, ImVec2(outer_size_x, outer_size_y));
+		    });
+		imgui_namespace["EndTable"] = &ImGui::EndTable;
+		imgui_namespace["TableNextRow"] = sol::overload(
+		    []() { ImGui::TableNextRow(); },
+		    [](int row_flags) { ImGui::TableNextRow(row_flags); },
+		    [](int row_flags, float min_row_height) { ImGui::TableNextRow(row_flags, min_row_height); });
+		imgui_namespace["TableNextColumn"] = &ImGui::TableNextColumn;
+		imgui_namespace["TableSetColumnIndex"] = &ImGui::TableSetColumnIndex;
+		imgui_namespace["TableSetupColumn"] = sol::overload(
+		    [](const char *label) { ImGui::TableSetupColumn(label); },
+		    [](const char *label, int flags) { ImGui::TableSetupColumn(label, flags); },
+		    [](const char *label, int flags, float init_width_or_weight) { ImGui::TableSetupColumn(label, flags, init_width_or_weight); });
+		imgui_namespace["TableSetupScrollFreeze"] = &ImGui::TableSetupScrollFreeze;
+		imgui_namespace["TableHeadersRow"] = &ImGui::TableHeadersRow;
+		imgui_namespace["TableHeader"] = [](const char *label) { ImGui::TableHeader(label); };
+		imgui_namespace["TableGetColumnCount"] = &ImGui::TableGetColumnCount;
+		imgui_namespace["TableGetColumnIndex"] = &ImGui::TableGetColumnIndex;
+		imgui_namespace["TableGetRowIndex"] = &ImGui::TableGetRowIndex;
+
+		// Table flags
+		imgui_namespace["TableFlags_None"] = ImGuiTableFlags_None;
+		imgui_namespace["TableFlags_Resizable"] = ImGuiTableFlags_Resizable;
+		imgui_namespace["TableFlags_Reorderable"] = ImGuiTableFlags_Reorderable;
+		imgui_namespace["TableFlags_Hideable"] = ImGuiTableFlags_Hideable;
+		imgui_namespace["TableFlags_Sortable"] = ImGuiTableFlags_Sortable;
+		imgui_namespace["TableFlags_RowBg"] = ImGuiTableFlags_RowBg;
+		imgui_namespace["TableFlags_Borders"] = ImGuiTableFlags_Borders;
+		imgui_namespace["TableFlags_BordersH"] = ImGuiTableFlags_BordersH;
+		imgui_namespace["TableFlags_BordersV"] = ImGuiTableFlags_BordersV;
+		imgui_namespace["TableFlags_BordersInner"] = ImGuiTableFlags_BordersInner;
+		imgui_namespace["TableFlags_BordersOuter"] = ImGuiTableFlags_BordersOuter;
+		imgui_namespace["TableFlags_ScrollX"] = ImGuiTableFlags_ScrollX;
+		imgui_namespace["TableFlags_ScrollY"] = ImGuiTableFlags_ScrollY;
+		imgui_namespace["TableFlags_SizingFixedFit"] = ImGuiTableFlags_SizingFixedFit;
+		imgui_namespace["TableFlags_SizingFixedSame"] = ImGuiTableFlags_SizingFixedSame;
+		imgui_namespace["TableFlags_SizingStretchProp"] = ImGuiTableFlags_SizingStretchProp;
+		imgui_namespace["TableFlags_SizingStretchSame"] = ImGuiTableFlags_SizingStretchSame;
+
+		// Table column flags
+		imgui_namespace["TableColumnFlags_None"] = ImGuiTableColumnFlags_None;
+		imgui_namespace["TableColumnFlags_WidthStretch"] = ImGuiTableColumnFlags_WidthStretch;
+		imgui_namespace["TableColumnFlags_WidthFixed"] = ImGuiTableColumnFlags_WidthFixed;
+		imgui_namespace["TableColumnFlags_NoResize"] = ImGuiTableColumnFlags_NoResize;
+		imgui_namespace["TableColumnFlags_NoHide"] = ImGuiTableColumnFlags_NoHide;
+		imgui_namespace["TableColumnFlags_DefaultSort"] = ImGuiTableColumnFlags_DefaultSort;
+		imgui_namespace["TableColumnFlags_WidthAuto"] = ImGuiTableColumnFlags_NoResize | ImGuiTableColumnFlags_WidthFixed;
+
 		// Scrolling
 		imgui_namespace["GetScrollX"] = &ImGui::GetScrollX;
 		imgui_namespace["GetScrollY"] = &ImGui::GetScrollY;

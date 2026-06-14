@@ -1,5 +1,7 @@
 #pragma once
 
+#include "entt/entity/fwd.hpp"
+#include "resource/resource.h"
 #include <entt/entt.hpp>
 #include <memory>
 #include <sol/sol.hpp>
@@ -22,10 +24,17 @@ namespace Lua::instance {
 
 class EngineInstance {
   public:
+	// scene
+	std::unique_ptr<Lua::instance::Instance> scene_root;
 	entt::registry registry;
+
+	// data
+	Resource::Bank resources;
+
+	// lua
 	sol::state lua;
 
-	std::unique_ptr<Lua::instance::Instance> scene_root;
+	// rendering
 	std::unique_ptr<WindowInstance> window;
 
 	EngineInstance();

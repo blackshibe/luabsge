@@ -25,8 +25,8 @@ void Vulkan::Renderer::destroy_buffer(const Vulkan::AllocatedBuffer &buffer) {
 	vmaDestroyBuffer(allocator, buffer.buffer, buffer.allocation);
 }
 
-Vulkan::GPUMeshBuffers Vulkan::Renderer::upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices) {
-	const size_t vertexBufferSize = vertices.size() * sizeof(Vertex);
+Vulkan::GPUMeshBuffers Vulkan::Renderer::upload_mesh(std::span<uint32_t> indices, std::span<MeshVertex> vertices) {
+	const size_t vertexBufferSize = vertices.size() * sizeof(MeshVertex);
 	const size_t indexBufferSize = indices.size() * sizeof(uint32_t);
 
 	GPUMeshBuffers new_buffer;

@@ -1,6 +1,9 @@
 ---@diagnostic disable: undefined-global
 
-GLTF.import("asset/scene.glb")
+-- https://pthom.github.io/imgui_explorer/
+
+local import = GLTF.import("asset/scene.glb")
+import.parent = Scene
 
 local test = Instance.new("Test")
 test.parent = Scene
@@ -10,9 +13,48 @@ for i, v in pairs(Scene.children) do
 	print("Child:", v.name)
 end
 
+local function draw_instance(instance)
+	local children = instance.children
+	local child_count = #children
+
+	ImGui.TableNextRow()
+	ImGui.TableNextColumn()
+
+	local flags = ImGui.TreeNodeFlags_SpanFullWidth + ImGui.TreeNodeFlags_OpenOnArrow + ImGui.TreeNodeFlags_DefaultOpen
+	if child_count == 0 then
+		flags = flags + ImGui.TreeNodeFlags_Leaf
+	end
+
+	local open = ImGui.TreeNodeEx(instance.name, flags)
+
+	ImGui.TableNextColumn()
+	ImGui.Text(tostring(instance.parent and instance.parent.name))
+
+	if open then
+		for _, child in pairs(children) do
+			draw_instance(child)
+		end
+		ImGui.TreePop()
+	end
+end
+
 TODO_RENDER = function()
-	if ImGui.Begin("LuaBSGE ImGui Demo") then
-		ImGui.Text("hello world")
+	if ImGui.Begin("Data Model") then
+		local flags = ImGui.TableFlags_RowBg
+			+ ImGui.TableFlags_Borders
+			+ ImGui.TableFlags_Resizable
+			+ ImGui.TableFlags_ScrollY
+
+		if ImGui.BeginTable("datamodel", 3, flags) then
+			ImGui.TableSetupColumn("Name")
+			ImGui.TableSetupColumn("Parent", ImGui.TableColumnFlags_WidthFixed, 80)
+			ImGui.TableSetupColumn("Children", ImGui.TableColumnFlags_WidthFixed, 70)
+			ImGui.TableHeadersRow()
+
+			draw_instance(Scene)
+
+			ImGui.EndTable()
+		end
 	end
 	ImGui.End()
 end

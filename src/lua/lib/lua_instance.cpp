@@ -1,5 +1,8 @@
 #include "lua_instance.h"
+#include "entt/entity/entity.hpp"
+#include "entt/entity/fwd.hpp"
 #include "util/output.h"
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -20,8 +23,8 @@ namespace Lua::instance {
 	 * @namespace Instance
 	 * This is an autodoc tool test
 	 */
-	void init(EngineInstance &engine, sol::state &lua) {
-		registry = &engine.registry;
+	void init(EngineInstance *engine, sol::state &lua) {
+		registry = &engine->registry;
 
 		lua.new_usertype<Instance>("Instance",
 		                           /*
@@ -39,8 +42,11 @@ namespace Lua::instance {
 		                            */
 		                           "parent",
 		                           sol::property(
-		                               [](Instance &i) -> entt::entity {
-			                               return get_instance(registry, i.entity).parent;
+		                               [](Instance &i) -> std::optional<Instance> {
+			                               entt::entity parent = get_instance(registry, i.entity).parent;
+			                               if (parent == entt::null) return std::nullopt;
+
+			                               return Instance(parent);
 		                               },
 		                               [](Instance &i, Instance parent) {
 			                               get_instance(registry, i.entity).parent = parent.entity;
@@ -82,12 +88,16 @@ namespace Lua::instance {
 	}
 
 	Lua::instance::Instance::Instance(std::string name) {
-		output.mark();
-
 		entt::entity entity = registry->create();
-		registry->emplace<Scene::ecs::Instance>(entity);
+		registry->emplace<Scene::ecs::Instance>(entity).name = name;
 		this->entity = entity;
 	};
+
+	Lua::instance::Instance::Instance(aiNode *node) {
+		entt::entity entity = registry->create();
+		registry->emplace<Scene::ecs::Instance>(entity).name = node->mName.data;
+		this->entity = entity;
+	}
 
 	Lua::instance::Instance::Instance(entt::entity entity) {
 		this->entity = entity;

@@ -23,8 +23,8 @@ EngineInstance::EngineInstance() {
 	Lua::init(lua);
 	Lua::object::window::init(lua);
 	Lua::imgui::init(lua);
-	Lua::instance::init(*this, lua);
-	Lua::gltf::init(*this, lua);
+	Lua::instance::init(this, lua);
+	Lua::gltf::init(this, lua);
 
 	// TODO shouldn't be globals at all
 	lua["BSGE_PLATFORM"] = "NATIVE";
@@ -42,12 +42,12 @@ EngineInstance::~EngineInstance() = default;
 void EngineInstance::preflight() {
 	output.mark();
 
-	// get the window ready
+	// get the window ready; the renderer's init_imgui creates the ImGui context
+	// and binds the GLFW/Vulkan backends to it
 	window = std::make_unique<VulkanWindowInstance>(*this);
 
-	// setup Dear ImGui context
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
+	// configure that single context (a second CreateContext here would shadow it
+	// and the docking flag would land on the wrong context)
 	ImPlot::CreateContext();
 	ImGui::StyleColorsDark();
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "assimp/scene.h"
 #include "engine/engine.h"
 #include "scene/instance/instance.h"
 
@@ -10,9 +11,12 @@ namespace Lua::instance {
 
 	struct Instance {
 		entt::entity entity;
+
+	  public:
 		Instance(std::string name);
 		Instance(entt::entity entity);
+		Instance(aiNode *node);
 	};
 
-	void init(EngineInstance &engine, sol::state &lua);
+	void init(EngineInstance *engine, sol::state &lua);
 }

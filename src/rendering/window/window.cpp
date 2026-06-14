@@ -44,7 +44,7 @@ void WindowInstance::callback_focused(int focused) {}
 VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInstance(engine) {
 	glfwInit();
 	glfwSetErrorCallback(error_callback);
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);            
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 
 	WindowConfiguration config(900, 400, "LuaBSGE");
 	sol::optional<sol::table> bsge = engine.lua["BSGE"];
@@ -65,6 +65,7 @@ bool VulkanWindowInstance::render_loop() {
 	ImGui_ImplVulkan_NewFrame();
 	ImGui_ImplGlfw_NewFrame();
 	ImGui::NewFrame();
+	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
 	// let Lua run its per-frame render logic, if the game defined one
 	// TODO doesn't belong in window
@@ -109,21 +110,9 @@ void VulkanWindowInstance::render_loop_init() {
 // 		return;
 // 	}
 
-
-	
-	
-
-
-
-
-
-
-
-
 // 	// Enable docking
 // 	ImGuiIO& io = ImGui::GetIO();
 // 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-
 
 // 	// Explose Lua render_pass
 // 	(*lua)["World"]["rendering"]["render_pass"] = [this]() {
@@ -131,19 +120,19 @@ void VulkanWindowInstance::render_loop_init() {
 // 	};
 
 // 	#if USE_EMSCRIPTEN
-	
+
 // 	// Set up static instance for emscripten callback
 // 	g_window_instance = this;
 // 	emscripten_glfw_make_canvas_resizable(window, "#bsge-canvas-container", nullptr);
 // 	emscripten_set_main_loop(emscripten_render_loop_callback, 0, 1);
-	
+
 // 	#else
 
 // 	while (!should_break && !glfwWindowShouldClose(this->window)) {
 // 		this->render_loop();
 // 	}
-	
-// 	#endif	
+
+// 	#endif
 // }
 
 // bool BSGEWindow::render_loop() {
@@ -151,11 +140,10 @@ void VulkanWindowInstance::render_loop_init() {
 // 		glfwSetWindowShouldClose(window, true);
 // 	}
 
-
 // 	// frame start
 // 	float current_frame = glfwGetTime();
 // 	float delta_time = current_frame - last_frame;
-	
+
 // 	// update input system
 // 	update_mouse_input();
 
@@ -163,7 +151,7 @@ void VulkanWindowInstance::render_loop_init() {
 // 	sol::table world = (*lua)["World"];
 // 	sol::table rendering = world["rendering"];
 // 	sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
-	
+
 // 	if (!camera_opt) {
 // 		printf("%s", ANSI_RED);
 // 		printf("[window.cpp] no camera defined!\n");
@@ -183,8 +171,6 @@ void VulkanWindowInstance::render_loop_init() {
 // 	BSGECameraMetadata* camera = camera_opt.value();
 // 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
 
-
-	
 // 	// Create dockspace over the entire viewport (PassthruCentralNode allows 3D rendering to show through)
 // 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 
@@ -240,7 +226,7 @@ void VulkanWindowInstance::render_loop_init() {
 // 	sol::table rendering = world["rendering"];
 // 	sol::optional<BSGECameraMetadata*> camera_opt = rendering["camera"];
 // 	glm::vec3 camera_position = glm::vec3(0.0f);
-	
+
 // 	if (camera_opt) {
 // 		BSGECameraMetadata* camera = camera_opt.value();
 // 		camera_position = glm::vec3(camera->transform[3]);
@@ -251,12 +237,12 @@ void VulkanWindowInstance::render_loop_init() {
 // 	std::unordered_map<entt::entity, int> depths;
 // 	std::unordered_map<entt::entity, glm::mat4> transforms;
 // 	std::unordered_map<entt::entity, float> distances;
-	
+
 // 	auto calculate_depth = [this, &depths](const entt::entity entity, auto&& self) -> int {
 // 		if (depths.find(entity) != depths.end()) {
 // 			return depths[entity];
 // 		}
-		
+
 // 		EcsObjectComponent* object = registry.try_get<EcsObjectComponent>(entity);
 // 		if (!object || object->parent == entt::null) {
 // 			depths[entity] = 0;
@@ -281,7 +267,7 @@ void VulkanWindowInstance::render_loop_init() {
 //     auto view = registry.view<EcsObjectComponent>();
 // 	std::vector<entt::entity> opaque_entities;
 // 	std::vector<entt::entity> transparent_entities;
-	
+
 // 	view.each([this, &transforms, &depths, &distances, &camera_position, &opaque_entities, &transparent_entities](entt::entity entity, EcsObjectComponent &object_component) {
 // 		// handle hierarchy
 // 		glm::mat4 final_transform;
@@ -305,7 +291,7 @@ void VulkanWindowInstance::render_loop_init() {
 // 		}
 
 // 		transforms[entity] = final_transform;
-	
+
 // 		EcsMeshComponent* mesh_component = registry.try_get<EcsMeshComponent>(entity);
 // 		if (!mesh_component) {
 // 			return; // some things aren't renderable
@@ -345,7 +331,7 @@ void VulkanWindowInstance::render_loop_init() {
 // 		glBindVertexArray(0);
 // 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 // 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		
+
 // 		// Get optional texture component
 // 		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
 
@@ -371,7 +357,7 @@ void VulkanWindowInstance::render_loop_init() {
 // 		glBindVertexArray(0);
 // 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 // 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		
+
 // 		EcsMeshTextureComponent* texture_component = registry.try_get<EcsMeshTextureComponent>(entity);
 
 // 		if (texture_component) {
@@ -388,4 +374,3 @@ void VulkanWindowInstance::render_loop_init() {
 // 	glDisable(GL_BLEND);
 // 	glDepthMask(GL_TRUE);
 // }
-

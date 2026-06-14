@@ -94,6 +94,14 @@ target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
 if(MINGW)
         target_link_options(${PROJECT_NAME} PRIVATE -static -static-libgcc -static-libstdc++)
+
+        # the bfd linker's diagnostics are swallowed by collect2 on this toolchain
+        # (a link failure prints only "ld returned 1 exit status" with no symbol);
+        # lld reports undefined symbols with full file/reference context
+        find_program(LLD_LINKER ld.lld)
+        if(LLD_LINKER)
+                target_link_options(${PROJECT_NAME} PRIVATE -fuse-ld=lld)
+        endif()
 endif()
 
 # Treat src/ as an include root so any file can use project-relative includes,

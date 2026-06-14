@@ -1,8 +1,9 @@
 #pragma once
 
 #include "rendering/vulkan/vulkan.h"
-#include "rendering/vulkan/vulkan_types.h"
-#include "rendering/vulkan/vulkan_descriptors.h"
+#include "rendering/vulkan/pipeline/vulkan_pipeline.h"
+
+#include "engine/queue.h"
 #include <GLFW/glfw3.h>
 #include <memory>
 

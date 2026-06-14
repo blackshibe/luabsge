@@ -4,7 +4,6 @@
 #include "vulkan_pipeline.h"
 
 #include <fstream>
-#include <vector>
 
 // path is relative to the working directory (projects/<project>) the engine runs in
 bool Vulkan::pipeline::shading::load_shader_module(const char *filePath, VkDevice device, VkShaderModule *outShaderModule) {

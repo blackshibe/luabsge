@@ -1,9 +1,8 @@
 #pragma once
 
-#include <volk.h>
-#include "rendering/vulkan/base/vulkan_bootstrap.h"
-#include "rendering/vulkan/vulkan_types.h"
+#include "rendering/vulkan/vulkan.h"
 #include "vulkan/vulkan_core.h"
+#include "engine/queue.h"
 
 namespace Vulkan::pipeline {
 	namespace shading {

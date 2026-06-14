@@ -12,6 +12,7 @@
 
 #include <memory>
 
+#include "rendering/vulkan/vulkan.h"
 #include "rendering/vulkan/vulkan_renderer.h"
 
 class EngineInstance;
@@ -43,7 +44,10 @@ struct WindowConfiguration {
 
 class VulkanWindowInstance : public WindowInstance {
 public:
-	std::unique_ptr<VulkanRenderer> vulkan_renderer;
+	std::unique_ptr<Vulkan::Renderer> vulkan_renderer;
 
 	VulkanWindowInstance(EngineInstance &engine);
+
+	bool render_loop();
+	void render_loop_init();
 };

@@ -1,5 +1,7 @@
 #include "window.h"
 #include "engine/engine.h" // full EngineInstance definition (forward-declared in window.h)
+#include "include/imgui/imgui_impl_glfw.h"
+#include "include/imgui/imgui_impl_vulkan.h"
 
 // #if USE_EMSCRIPTEN
 // #include <emscripten.h>
@@ -52,7 +54,41 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 	}
 
 	glfw_window = glfwCreateWindow(config.width, config.height, config.name, NULL, NULL);
-	vulkan_renderer = std::make_unique<VulkanRenderer>(engine, glfw_window);
+	glfwSetWindowUserPointer(glfw_window, this);
+	vulkan_renderer = std::make_unique<Vulkan::Renderer>(engine, glfw_window);
+}
+
+// pumps events and draws one frame; returns false once the window wants to close
+bool VulkanWindowInstance::render_loop() {
+	glfwPollEvents();
+
+	ImGui_ImplVulkan_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// let Lua run its per-frame render logic, if the game defined one
+	// TODO doesn't belong in window
+	sol::optional<sol::protected_function> render = engine.lua["TODO_RENDER"];
+	if (render) {
+		sol::protected_function_result result = (*render)();
+		if (!result.valid()) {
+			sol::error err = result;
+			printf("[window.cpp] TODO_RENDER error: %s\n", err.what());
+		}
+	}
+
+	// finalize the imgui frame (builds the draw data) before the renderer records it
+	ImGui::Render();
+
+	vulkan_renderer->draw();
+
+	return !glfwWindowShouldClose(glfw_window);
+}
+
+// blocking main loop: keep drawing until the window closes
+void VulkanWindowInstance::render_loop_init() {
+	while (render_loop()) {
+	}
 }
 
 // void BSGEWindow::init() {
@@ -73,79 +109,21 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 // 		return;
 // 	}
 
-// 	glEnable(GL_DEPTH_TEST);
+
 	
-// 	// Set up framebuffer size callback and initialize viewport
-// 	glfwSetFramebufferSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-// 		BSGEWindow* win = static_cast<BSGEWindow*>(glfwGetWindowUserPointer(window));
-// 		win->size_callback(width, height);
-// 	});
 	
-// 	// Set up window focus callback
-// 	glfwSetWindowFocusCallback(window, [](GLFWwindow* window, int focused) {
-// 		BSGEWindow* win = static_cast<BSGEWindow*>(glfwGetWindowUserPointer(window));
-// 		win->focus_callback(focused);
-// 	});
-	
-// 	// Get the actual framebuffer size and initialize viewport
-// 	int framebuffer_width, framebuffer_height;
-// 	glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
-// 	size_callback(framebuffer_width, framebuffer_height);
-// 	printf("[window.cpp] initialized viewport with framebuffer callback: %i, %i\n", 
-// 		   framebuffer_width, framebuffer_height);
-	
-// 	// Initialize input system
-// 	// TODO move everything to lua_window
-// 	set_input_window(window);
-// 	lua_bsge_set_registry_reference(&registry);
-// }
 
-// // todo: dynamic resizing that works with textlabels
-// void BSGEWindow::size_callback(int width, int height) {
-// 	printf("[window.cpp] resized window to %i, %i\n", width, height);
 
-// 	this->width = width;
-// 	this->height = height;
-// 	glViewport(0, 0, width, height);
 
-// 	freetype_resize_window(width, height);
-// }
 
-// void BSGEWindow::focus_callback(int focused) {
-// 	this->focused = (focused == GLFW_TRUE);
-// }
 
-// void BSGEWindow::render_loop_init() {
 
-// 	// MODEL SHADER CODE
-// 	unsigned int default_shader;
-// 	bool success = bsge_compile_shader(*lua, &default_shader, "shader/mesh/vertex_default.glsl", "shader/mesh/frag_default.glsl");
-// 	if (!success) {
-// 		printf("[main.cpp] exit: couldn't compile default shaders\n");
-// 		status = -1;
-// 		return;
-// 	};
 
-// 	this->default_shader = default_shader;
-// 	this->last_frame = glfwGetTime();
-
-// 	bool show_demo_window = true;
-// 	bool show_another_window = false;
-
-// 	// Setup Dear ImGui context
-// 	IMGUI_CHECKVERSION();
-// 	ImGui::CreateContext();
-// 	ImPlot::CreateContext();
 
 // 	// Enable docking
 // 	ImGuiIO& io = ImGui::GetIO();
 // 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-// 	ImGui::StyleColorsDark();
-
-// 	// Setup Platform/Renderer backends
-// 	ImGui_ImplGlfw_InitForOpenGL(window, true);
-// 	ImGui_ImplOpenGL3_Init();
 
 // 	// Explose Lua render_pass
 // 	(*lua)["World"]["rendering"]["render_pass"] = [this]() {
@@ -173,19 +151,6 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 // 		glfwSetWindowShouldClose(window, true);
 // 	}
 
-// 	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS) {
-// 		if (!waiting_for_press_false) {
-// 			wireframe = !wireframe;
-// 			if (!wireframe) {
-// 				glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-// 			} else {
-// 				glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-// 			}
-// 		}
-// 		waiting_for_press_false = true;
-// 	} else {
-// 		waiting_for_press_false = false;
-// 	}
 
 // 	// frame start
 // 	float current_frame = glfwGetTime();
@@ -193,10 +158,6 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 	
 // 	// update input system
 // 	update_mouse_input();
-
-// 	// clear the screen
-// 	glClearColor(0.1, 0.1, 0.1, 1.0f);
-// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 // 	// get camera projection and coordinates from the Lua context using sol2
 // 	sol::table world = (*lua)["World"];
@@ -222,23 +183,8 @@ VulkanWindowInstance::VulkanWindowInstance(EngineInstance &engine) : WindowInsta
 // 	BSGECameraMetadata* camera = camera_opt.value();
 // 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
 
-// 	// WebGL: Ensure attribute locations are bound correctly
-// 	// TODO better code
-// 	static bool attributes_bound = false;
-// 	if (!attributes_bound) {
-// 		glUseProgram(default_shader);
-// 		glBindAttribLocation(default_shader, 0, "vert_pos");
-// 		glBindAttribLocation(default_shader, 1, "vert_normal");
-// 		glBindAttribLocation(default_shader, 2, "vert_tex_coord");
-// 		glLinkProgram(default_shader);
-// 		attributes_bound = true;
-// 	}
-	
-// 	// imgui
-// 	ImGui_ImplOpenGL3_NewFrame();
-// 	ImGui_ImplGlfw_NewFrame();
-// 	ImGui::NewFrame();
 
+	
 // 	// Create dockspace over the entire viewport (PassthruCentralNode allows 3D rendering to show through)
 // 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 

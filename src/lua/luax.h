@@ -6,8 +6,6 @@
 
 #include <sol/sol.hpp>
 
-namespace Lua {
-	namespace util {
-		bool run_script(sol::state &lua, const char *filename);
-	}
+namespace Lua::util {
+	bool run_script(sol::state &lua, const char *filename);
 }

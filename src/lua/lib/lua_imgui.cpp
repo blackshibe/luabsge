@@ -4,9 +4,7 @@
 #include <string>
 #include <tuple>
 
-namespace Lua {
-namespace global {
-namespace imgui {
+namespace Lua::global::imgui {
     void init(sol::state &lua) {
         auto imgui_namespace = lua["ImGui"].get_or_create<sol::table>();
         
@@ -342,7 +340,5 @@ namespace imgui {
         imgui_namespace["StyleVar_ItemSpacing"] = ImGuiStyleVar_ItemSpacing;
         imgui_namespace["StyleVar_ItemInnerSpacing"] = ImGuiStyleVar_ItemInnerSpacing;
     }
-}
-}
 }
 

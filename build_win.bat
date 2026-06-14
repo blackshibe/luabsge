@@ -1,6 +1,5 @@
 @echo off
 
-REM complete build process:
 REM ensure gcc exists, ensure CMake is configured, ensure build doesn't have missing globs, build, run
 
 where gcc >nul 2>&1 || (
@@ -21,6 +20,9 @@ set BUILD_ERR=%errorlevel%
 type "%TEMP%\luabsge_build.log"
 
 if %BUILD_ERR% equ 0 exit /b 0
+
+REM collect2 hides linker errors for some bullshit reason, surface them
+if exist "C:\msys64\usr\bin\bash.exe" "C:\msys64\usr\bin\bash.exe" "%~dp0surface_link_error.sh" "%TEMP%\luabsge_build.log"
 
 findstr /c:"no known rule to make it" "%TEMP%\luabsge_build.log" >nul
 if errorlevel 1 (

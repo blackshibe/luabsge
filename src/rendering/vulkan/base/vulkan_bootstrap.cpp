@@ -1,6 +1,6 @@
-#include "rendering/vulkan/vulkan_bootstrap.h"
+#include "rendering/vulkan/base/vulkan_bootstrap.h"
 
-#include "include/colors.h"
+#include "util/output.h"
 
 #include <algorithm>
 #include <cstdio>
@@ -9,7 +9,7 @@
 
 static Output output;
 
-namespace Vulkan {
+namespace Vulkan::Bootstrap {
 	static bool has_layer(const std::vector<VkLayerProperties> &available, const char *name) {
 		for (const VkLayerProperties &layer : available)
 			if (strcmp(layer.layerName, name) == 0)
@@ -44,10 +44,10 @@ namespace Vulkan {
 		VkDebugUtilsMessengerCreateInfoEXT info{};
 		info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-							   VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+							VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-						   VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-						   VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+						VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+						VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		info.pfnUserCallback = default_debug_callback;
 		return info;
 	}
@@ -280,7 +280,7 @@ namespace Vulkan {
 			if (score > best_score) {
 				best_score = score;
 				best = PhysicalDevice{};
-				best.physical_device = device;
+				best.vk_device = device;
 				best.properties = properties;
 				vkGetPhysicalDeviceFeatures(device, &best.features);
 				vkGetPhysicalDeviceMemoryProperties(device, &best.memory_properties);
@@ -339,25 +339,25 @@ namespace Vulkan {
 
 		Device result;
 		result.physical_device = physical_device;
-		VkResult status = vkCreateDevice(physical_device.physical_device, &create_info, nullptr, &result.device);
+		VkResult status = vkCreateDevice(physical_device.vk_device, &create_info, nullptr, &result.vk_device);
 		if (status != VK_SUCCESS) {
 			output.error("vkCreateDevice failed", status);
 			return std::nullopt;
 		}
 
-		volkLoadDevice(result.device);
+		volkLoadDevice(result.vk_device);
 
-		vkGetDeviceQueue(result.device, physical_device.graphics_queue_family, 0, &result.graphics_queue);
-		vkGetDeviceQueue(result.device, physical_device.present_queue_family, 0, &result.present_queue);
+		vkGetDeviceQueue(result.vk_device, physical_device.graphics_queue_family, 0, &result.graphics_queue);
+		vkGetDeviceQueue(result.vk_device, physical_device.present_queue_family, 0, &result.present_queue);
 		return result;
 	}
 
 	SwapchainBuilder::SwapchainBuilder(const Device &device, VkSurfaceKHR surface)
-		: physical_device(device.physical_device.physical_device),
-		  device(device.device),
-		  surface(surface),
-		  graphics_queue_family(device.physical_device.graphics_queue_family),
-		  present_queue_family(device.physical_device.present_queue_family) {}
+		: physical_device(device.physical_device.vk_device),
+		device(device.vk_device),
+		surface(surface),
+		graphics_queue_family(device.physical_device.graphics_queue_family),
+		present_queue_family(device.physical_device.present_queue_family) {}
 
 	SwapchainBuilder &SwapchainBuilder::set_desired_extent(uint32_t width, uint32_t height) {
 		desired_width = width;
@@ -480,6 +480,27 @@ namespace Vulkan {
 		return result;
 	}
 
+	void destroy_swapchain(const Swapchain &swapchain) {
+		Swapchain mutable_copy = swapchain;
+		mutable_copy.destroy_image_views();
+		if (swapchain.swapchain != VK_NULL_HANDLE)
+			vkDestroySwapchainKHR(swapchain.device, swapchain.swapchain, nullptr);
+	}
+
+	void destroy_device(const Device &device) {
+		if (device.vk_device != VK_NULL_HANDLE)
+			vkDestroyDevice(device.vk_device, nullptr);
+	}
+
+	void destroy_instance(const Instance &instance) {
+		if (instance.debug_messenger != VK_NULL_HANDLE)
+			vkDestroyDebugUtilsMessengerEXT(instance.instance, instance.debug_messenger, nullptr);
+		if (instance.instance != VK_NULL_HANDLE)
+			vkDestroyInstance(instance.instance, nullptr);
+	}
+}
+
+namespace Vulkan {
 	bool Swapchain::get_images() {
 		uint32_t count = 0;
 		vkGetSwapchainImagesKHR(device, swapchain, &count, nullptr);
@@ -522,24 +543,4 @@ namespace Vulkan {
 				vkDestroyImageView(device, view, nullptr);
 		image_views.clear();
 	}
-
-	void destroy_swapchain(const Swapchain &swapchain) {
-		Swapchain mutable_copy = swapchain;
-		mutable_copy.destroy_image_views();
-		if (swapchain.swapchain != VK_NULL_HANDLE)
-			vkDestroySwapchainKHR(swapchain.device, swapchain.swapchain, nullptr);
-	}
-
-	void destroy_device(const Device &device) {
-		if (device.device != VK_NULL_HANDLE)
-			vkDestroyDevice(device.device, nullptr);
-	}
-
-	void destroy_instance(const Instance &instance) {
-		if (instance.debug_messenger != VK_NULL_HANDLE)
-			vkDestroyDebugUtilsMessengerEXT(instance.instance, instance.debug_messenger, nullptr);
-		if (instance.instance != VK_NULL_HANDLE)
-			vkDestroyInstance(instance.instance, nullptr);
-	}
-
 }

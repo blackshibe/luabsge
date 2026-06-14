@@ -7,13 +7,11 @@ static Output output;
 // perhaps there should be a manifest of what to run when the project starts
 
 EngineInstance::EngineInstance() {
-	Lua::object::window::init(lua);
+	output.mark();
 
-	// get Lua ready before executing it
-	lua.open_libraries();
-	lua.set_function("now", Lua::global::now);
-	lua.set_function("print", Lua::global::print);
-	lua.set_function("warn", Lua::global::warn);
+	Lua::global::init(lua);
+	Lua::object::window::init(lua);
+	Lua::global::imgui::init(lua);
 
 	// TODO shouldn't be globals at all
 	lua["BSGE_PLATFORM"] = "NATIVE";
@@ -26,10 +24,19 @@ EngineInstance::EngineInstance() {
 EngineInstance::~EngineInstance() = default;
 
 void EngineInstance::preflight() {
-	output.info("preflight");
+	output.mark();
 
 	// get the window ready
 	window = std::make_unique<VulkanWindowInstance>(*this);
+
+	// setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImPlot::CreateContext();
+	ImGui::StyleColorsDark();
+
+	ImGuiIO& io = ImGui::GetIO();
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	// first user code run
 	if (Lua::util::run_script(lua, "entry.lua")) {
@@ -47,5 +54,6 @@ void EngineInstance::preflight() {
 }
 
 void EngineInstance::start() {
+	output.mark();
 	window->render_loop_init();
 }

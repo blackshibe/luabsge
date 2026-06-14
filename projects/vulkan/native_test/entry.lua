@@ -40,7 +40,6 @@
 -- primary_camera.transform = base_matrix
 
 -- function render_pass()
--- 	display_label:render()
 -- 	World.rendering.render_pass()
 
 -- 	Gizmo.set_line_width(0.05)
@@ -55,10 +54,6 @@
 -- World.rendering.step:connect(function(delta_time)
 -- 	local dim = Window.get_window_dimensions()
 -- 	local alpha = math.sin(now() * 0.001) * 0.5
--- 	display_label.position = Vec2.new(dim.x / 2, dim.y / 2)
--- 	display_label.anchor = Vec2.new(0.5, alpha)
--- 	display_label.scale = 0.5 + alpha
--- 	display_label.color = Vec3.new(1, alpha, math.abs(math.sin(now() / 5000)))
 
 -- 	primary_camera.transform = Mat4.new(1)
 -- 		:translate(Vec3.new(0, 0, -10))
@@ -89,3 +84,10 @@
 -- end)
 
 print("Lua entry file finished")
+
+TODO_RENDER = function()
+	if ImGui.Begin("LuaBSGE ImGui Demo") then
+		ImGui.Text("hello world")
+	end
+	ImGui.End()
+end

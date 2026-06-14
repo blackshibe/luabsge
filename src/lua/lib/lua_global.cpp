@@ -9,6 +9,13 @@ static Output output;
 
 namespace Lua {
 	namespace global {
+		void init(sol::state &lua) {
+			lua.open_libraries();
+			lua.set_function("now", Lua::global::now);
+			lua.set_function("print", Lua::global::print);
+			lua.set_function("warn", Lua::global::warn);
+		}
+
 		std::string concat_arguments(lua_State *L) {
 			int arguments = lua_gettop(L);
 			std::string result;

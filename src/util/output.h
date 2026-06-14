@@ -32,4 +32,8 @@ public:
 	void info(const char *fmt, ...) const { va_list a; va_start(a, fmt); line(stdout, ANSI_BLUE, fmt, a); va_end(a); }
 	void warn(const char *fmt, ...) const { va_list a; va_start(a, fmt); line(stdout, ANSI_BOLD_YELLOW, fmt, a); va_end(a); }
 	void error(const char *fmt, ...) const { va_list a; va_start(a, fmt); line(stderr, ANSI_BOLD_RED, fmt, a); va_end(a); }
+
+	void mark(std::source_location loc = std::source_location::current()) const {
+		fprintf(stdout, "%s[%s]%s %s\n", ANSI_GREEN, name, ANSI_NC, loc.function_name());
+	}
 };

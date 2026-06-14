@@ -1,11 +1,13 @@
-#include "main.h"
+#include "engine/engine.h"
+#include "rendering/window.h"
+#include "util/output.h"
 
 static Output output;
 
 int main(int argc, char *argv[]) {
 
 	output.info("running %s", LUA_VERSION);
-	output.info("LuaBSGE %s", Engine::VERSION);
+	output.info("LuaBSGE %s", Engine::VERSION); 
 
 	try {
 		// engine instance first starts up the user context, which

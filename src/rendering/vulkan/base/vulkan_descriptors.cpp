@@ -11,10 +11,12 @@ void Vulkan::DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptor
 	bindings.push_back(newbind);
 }
 
-void Vulkan::DescriptorLayoutBuilder::clear() { bindings.clear(); }
+void Vulkan::DescriptorLayoutBuilder::clear() {
+	bindings.clear();
+}
 
 VkDescriptorSetLayout Vulkan::DescriptorLayoutBuilder::build(VkDevice device, VkShaderStageFlags shaderStages, void *pNext,
-															 VkDescriptorSetLayoutCreateFlags flags) {
+                                                             VkDescriptorSetLayoutCreateFlags flags) {
 	// we don't support per-binding stage flags; force the same stages for the whole set
 	for (auto &b : bindings) {
 		b.stageFlags |= shaderStages;
@@ -48,9 +50,13 @@ void Vulkan::DescriptorAllocator::init_pool(VkDevice device, uint32_t maxSets, s
 }
 
 // not a delete: resets the pool, destroying all descriptors but keeping the pool itself
-void Vulkan::DescriptorAllocator::clear_descriptors(VkDevice device) { vkResetDescriptorPool(device, pool, 0); }
+void Vulkan::DescriptorAllocator::clear_descriptors(VkDevice device) {
+	vkResetDescriptorPool(device, pool, 0);
+}
 
-void Vulkan::DescriptorAllocator::destroy_pool(VkDevice device) { vkDestroyDescriptorPool(device, pool, nullptr); }
+void Vulkan::DescriptorAllocator::destroy_pool(VkDevice device) {
+	vkDestroyDescriptorPool(device, pool, nullptr);
+}
 
 VkDescriptorSet Vulkan::DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout) {
 	VkDescriptorSetAllocateInfo allocInfo = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};

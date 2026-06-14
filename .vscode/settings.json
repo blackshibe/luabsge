@@ -3,6 +3,13 @@
 	"cmake.configureOnOpen": false,
 	"cmake.configureOnEdit": false,
 	"cmake.automaticReconfigure": false,
+	"[cpp]": {
+		"editor.defaultFormatter": "KylinIdeTeam.kylin-clangd",
+		"editor.formatOnSave": true
+	},                                                                                                                                                     
+	"[c]": {
+		"editor.defaultFormatter": "KylinIdeTeam.kylin-clangd"                                                                                                  8 +    "editor.formatOnSave": true                                                                                                                          
+	},
 	"files.associations": {
 		"chrono": "cpp",
 		"iostream": "cpp",

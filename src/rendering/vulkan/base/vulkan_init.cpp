@@ -58,7 +58,7 @@ VkCommandBufferSubmitInfo Vulkan::init::command_buffer_submit_info(VkCommandBuff
 }
 
 VkSubmitInfo2 Vulkan::init::submit_info(VkCommandBufferSubmitInfo *cmd, VkSemaphoreSubmitInfo *signalSemaphoreInfo,
-										VkSemaphoreSubmitInfo *waitSemaphoreInfo) {
+                                        VkSemaphoreSubmitInfo *waitSemaphoreInfo) {
 	VkSubmitInfo2 info = {};
 	info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO_2;
 	info.pNext = nullptr;
@@ -127,7 +127,7 @@ VkRenderingAttachmentInfo Vulkan::init::attachment_info(VkImageView view, VkClea
 }
 
 VkRenderingInfo Vulkan::init::rendering_info(VkExtent2D renderExtent, VkRenderingAttachmentInfo *colorAttachment,
-											 VkRenderingAttachmentInfo *depthAttachment) {
+                                             VkRenderingAttachmentInfo *depthAttachment) {
 	VkRenderingInfo renderInfo = {};
 	renderInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;
 	renderInfo.pNext = nullptr;

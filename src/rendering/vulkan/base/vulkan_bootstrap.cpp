@@ -25,10 +25,10 @@ namespace Vulkan::Bootstrap {
 	}
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL default_debug_callback(
-		VkDebugUtilsMessageSeverityFlagBitsEXT severity,
-		VkDebugUtilsMessageTypeFlagsEXT type,
-		const VkDebugUtilsMessengerCallbackDataEXT *data,
-		void *user_data) {
+	    VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+	    VkDebugUtilsMessageTypeFlagsEXT type,
+	    const VkDebugUtilsMessengerCallbackDataEXT *data,
+	    void *user_data) {
 
 		if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 			output.error("%s", data->pMessage);
@@ -44,10 +44,10 @@ namespace Vulkan::Bootstrap {
 		VkDebugUtilsMessengerCreateInfoEXT info{};
 		info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		info.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-							VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
 		info.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-						VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-						VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		                   VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+		                   VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 		info.pfnUserCallback = default_debug_callback;
 		return info;
 	}
@@ -164,7 +164,7 @@ namespace Vulkan::Bootstrap {
 	}
 
 	PhysicalDeviceSelector::PhysicalDeviceSelector(const Instance &instance, VkSurfaceKHR surface)
-		: instance(instance.instance), surface(surface) {
+	    : instance(instance.instance), surface(surface) {
 		required_extensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
@@ -308,8 +308,8 @@ namespace Vulkan::Bootstrap {
 
 	std::optional<Device> DeviceBuilder::build() const {
 		std::set<uint32_t> unique_families = {
-			physical_device.graphics_queue_family,
-			physical_device.present_queue_family,
+		    physical_device.graphics_queue_family,
+		    physical_device.present_queue_family,
 		};
 
 		float priority = 1.0f;
@@ -353,11 +353,11 @@ namespace Vulkan::Bootstrap {
 	}
 
 	SwapchainBuilder::SwapchainBuilder(const Device &device, VkSurfaceKHR surface)
-		: physical_device(device.physical_device.vk_device),
-		device(device.vk_device),
-		surface(surface),
-		graphics_queue_family(device.physical_device.graphics_queue_family),
-		present_queue_family(device.physical_device.present_queue_family) {}
+	    : physical_device(device.physical_device.vk_device),
+	      device(device.vk_device),
+	      surface(surface),
+	      graphics_queue_family(device.physical_device.graphics_queue_family),
+	      present_queue_family(device.physical_device.present_queue_family) {}
 
 	SwapchainBuilder &SwapchainBuilder::set_desired_extent(uint32_t width, uint32_t height) {
 		desired_width = width;

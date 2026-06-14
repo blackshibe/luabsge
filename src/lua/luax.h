@@ -2,7 +2,6 @@
 
 #include <lua.hpp>
 #include <sol/forward.hpp>
-#include "util/output.h"
 
 #include <sol/sol.hpp>
 

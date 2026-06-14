@@ -1,9 +1,9 @@
 #pragma once
 
+#include "util/output.h"
 #include <lua.hpp>
 #include <sol/sol.hpp>
 #include <string>
-#include "util/output.h"
 
 namespace Lua::global {
 	void init(sol::state &lua);

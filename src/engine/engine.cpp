@@ -1,5 +1,5 @@
 #include "engine/engine.h"
-#include "rendering/window.h"
+#include "rendering/window/window.h"
 
 static Output output;
 
@@ -35,7 +35,7 @@ void EngineInstance::preflight() {
 	ImPlot::CreateContext();
 	ImGui::StyleColorsDark();
 
-	ImGuiIO& io = ImGui::GetIO();
+	ImGuiIO &io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 	// first user code run

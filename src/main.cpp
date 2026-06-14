@@ -1,5 +1,5 @@
 #include "engine/engine.h"
-#include "rendering/window.h"
+#include "rendering/window/window.h"
 #include "util/output.h"
 
 static Output output;
@@ -7,7 +7,7 @@ static Output output;
 int main(int argc, char *argv[]) {
 
 	output.info("running %s", LUA_VERSION);
-	output.info("LuaBSGE %s", Engine::VERSION); 
+	output.info("LuaBSGE %s", Engine::VERSION);
 
 	try {
 		// engine instance first starts up the user context, which
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 		engine.start();
 
 		// BSGE::Physics::init();
-	} catch (const std::exception& exception) {
+	} catch (const std::exception &exception) {
 		output.error("runtime error: %s", exception.what());
 	}
 

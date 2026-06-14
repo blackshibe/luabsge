@@ -1,0 +1,19 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+UseTab: ForIndentation
+TabWidth: 4
+IndentWidth: 4
+ColumnLimit: 0
+
+PointerAlignment: Right
+ReferenceAlignment: Right
+NamespaceIndentation: All
+BreakBeforeBraces: Attach
+FixNamespaceComments: false
+
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortBlocksOnASingleLine: Empty

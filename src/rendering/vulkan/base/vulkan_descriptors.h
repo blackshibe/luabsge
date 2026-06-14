@@ -15,7 +15,7 @@ namespace Vulkan {
 		void add_binding(uint32_t binding, VkDescriptorType type);
 		void clear();
 		VkDescriptorSetLayout build(VkDevice device, VkShaderStageFlags shaderStages, void *pNext = nullptr,
-									VkDescriptorSetLayoutCreateFlags flags = 0);
+		                            VkDescriptorSetLayoutCreateFlags flags = 0);
 	};
 
 	// Descriptor allocation happens through a VkDescriptorPool: think of it as a memory

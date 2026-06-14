@@ -8,6 +8,10 @@ Vulkan game engine with Lua backend.
 - Write this README
 - Sensible namespacing for engine elements
 
+## Autocomplete
+
+- use "Extension Pack for C/C++" from KylindeTeam
+
 ## Compilation
 
 ```bash

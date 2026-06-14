@@ -18,7 +18,7 @@
 class EngineInstance;
 
 class WindowInstance {
-public:
+  public:
 	GLFWwindow *glfw_window;
 	EngineInstance &engine;
 
@@ -37,13 +37,13 @@ public:
 struct WindowConfiguration {
 	int width;
 	int height;
-	const char* name;
+	const char *name;
 
-	WindowConfiguration(int width, int height, const char *name): width(width), height(height), name(name) {}
+	WindowConfiguration(int width, int height, const char *name) : width(width), height(height), name(name) {}
 };
 
 class VulkanWindowInstance : public WindowInstance {
-public:
+  public:
 	std::unique_ptr<Vulkan::Renderer> vulkan_renderer;
 
 	VulkanWindowInstance(EngineInstance &engine);

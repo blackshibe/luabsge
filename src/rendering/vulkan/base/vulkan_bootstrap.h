@@ -14,7 +14,6 @@ namespace Vulkan {
 		bool validation_enabled = false;
 	};
 
-
 	struct PhysicalDevice {
 		VkPhysicalDevice vk_device = VK_NULL_HANDLE;
 		VkPhysicalDeviceProperties properties{};
@@ -47,10 +46,10 @@ namespace Vulkan {
 		bool create_image_views();
 		void destroy_image_views();
 	};
-	
+
 	namespace Bootstrap {
 		class InstanceBuilder {
-		public:
+		  public:
 			InstanceBuilder &set_app_name(const char *name);
 			InstanceBuilder &set_engine_name(const char *name);
 			InstanceBuilder &require_api_version(uint32_t version);
@@ -62,7 +61,7 @@ namespace Vulkan {
 
 			std::optional<Instance> build() const;
 
-		private:
+		  private:
 			const char *app_name = "luabsge";
 			const char *engine_name = "luabsge";
 			uint32_t api_version = VK_API_VERSION_1_3;
@@ -72,9 +71,8 @@ namespace Vulkan {
 			std::vector<const char *> layers;
 		};
 
-
 		class PhysicalDeviceSelector {
-		public:
+		  public:
 			PhysicalDeviceSelector(const Instance &instance, VkSurfaceKHR surface);
 
 			PhysicalDeviceSelector &set_surface(VkSurfaceKHR surface);
@@ -84,7 +82,7 @@ namespace Vulkan {
 
 			std::optional<PhysicalDevice> select() const;
 
-		private:
+		  private:
 			VkInstance instance = VK_NULL_HANDLE;
 			VkSurfaceKHR surface = VK_NULL_HANDLE;
 			std::vector<const char *> required_extensions;
@@ -92,24 +90,21 @@ namespace Vulkan {
 			VkPhysicalDeviceFeatures required_features{};
 		};
 
-
 		class DeviceBuilder {
-		public:
+		  public:
 			DeviceBuilder(const PhysicalDevice &physical_device);
 
 			DeviceBuilder &add_pnext(void *structure);
 
 			std::optional<Device> build() const;
 
-		private:
+		  private:
 			PhysicalDevice physical_device;
 			std::vector<void *> pnext_chain;
 		};
 
-
-
 		class SwapchainBuilder {
-		public:
+		  public:
 			SwapchainBuilder(const Device &device, VkSurfaceKHR surface);
 
 			SwapchainBuilder &set_desired_extent(uint32_t width, uint32_t height);
@@ -121,7 +116,7 @@ namespace Vulkan {
 
 			std::optional<Swapchain> build() const;
 
-		private:
+		  private:
 			VkPhysicalDevice physical_device = VK_NULL_HANDLE;
 			VkDevice device = VK_NULL_HANDLE;
 			VkSurfaceKHR surface = VK_NULL_HANDLE;

@@ -21,7 +21,7 @@ void Vulkan::util::transition_image(VkCommandBuffer cmd, VkImage image, VkImageL
 
 	// COLOR aspect under all cases except when transitioning to a depth attachment.
 	VkImageAspectFlags aspectMask =
-		(newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+	    (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 	imageBarrier.subresourceRange = Vulkan::init::image_subresource_range(aspectMask);
 	imageBarrier.image = image;
 

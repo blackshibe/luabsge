@@ -25,7 +25,7 @@ namespace Vulkan::init {
 	VkSemaphoreSubmitInfo semaphore_submit_info(VkPipelineStageFlags2 stageMask, VkSemaphore semaphore);
 	VkCommandBufferSubmitInfo command_buffer_submit_info(VkCommandBuffer cmd);
 	VkSubmitInfo2 submit_info(VkCommandBufferSubmitInfo *cmd, VkSemaphoreSubmitInfo *signalSemaphoreInfo,
-							  VkSemaphoreSubmitInfo *waitSemaphoreInfo);
+	                          VkSemaphoreSubmitInfo *waitSemaphoreInfo);
 
 	// Image tiling is hardcoded to OPTIMAL: the gpu may shuffle the data however it
 	// sees fit. Samples default to 1 (no MSAA). The view is the thin wrapper needed
@@ -37,6 +37,6 @@ namespace Vulkan::init {
 	// null clear value the attachment loads existing contents instead of clearing.
 	VkRenderingAttachmentInfo attachment_info(VkImageView view, VkClearValue *clear, VkImageLayout layout);
 	VkRenderingInfo rendering_info(VkExtent2D renderExtent, VkRenderingAttachmentInfo *colorAttachment,
-								   VkRenderingAttachmentInfo *depthAttachment);
+	                               VkRenderingAttachmentInfo *depthAttachment);
 
 }

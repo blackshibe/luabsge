@@ -92,6 +92,10 @@ endif()
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 target_sources(${PROJECT_NAME} PRIVATE ${SOURCES})
 
+if(MINGW)
+        target_link_options(${PROJECT_NAME} PRIVATE -static -static-libgcc -static-libstdc++)
+endif()
+
 # Treat src/ as an include root so any file can use project-relative includes,
 # e.g. #include "world/world.h" or #include "rendering/window.h" from anywhere.
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/src)
@@ -113,6 +117,7 @@ fetchcontent_declare(
     URL https://github.com/assimp/assimp/archive/refs/tags/v6.0.2.tar.gz
 )
 
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
 fetchcontent_makeavailable(assimp)
 target_include_directories(${PROJECT_NAME} PRIVATE ${assimp_SOURCE_DIR}/include)
 target_link_libraries(${PROJECT_NAME} PRIVATE assimp)
@@ -171,22 +176,7 @@ fetchcontent_makeavailable(EnTT)
 target_include_directories(${PROJECT_NAME} PRIVATE ${EnTT_SOURCE_DIR}/..)
 target_link_libraries(${PROJECT_NAME} PRIVATE EnTT)
 
-# ============================================================
-# Vulkan (native only)
-# ============================================================
-# Fully self-contained: headers + meta-loader are fetched from source, so no
-# Vulkan SDK install is needed to configure/compile/link. Only a Vulkan-capable
-# GPU driver (the runtime vulkan-1 loader) is required to actually run.
-#
-#   - Vulkan-Headers : the Khronos headers (provides the Vulkan::Headers target)
-#   - volk           : a meta-loader that dlopen's vulkan-1 at runtime and
-#                      resolves entrypoints, so nothing has to link the loader
-#   - VMA            : Vulkan Memory Allocator (header-only, AMD GPUOpen)
-#
-# Because volk dispatches every call through function pointers it loads at
-# runtime, vulkan.h must NOT emit prototypes anywhere in the project, hence the
-# global VK_NO_PROTOTYPES. IMGUI_IMPL_VULKAN_USE_VOLK routes the ImGui Vulkan
-# backend through volk too (so it doesn't need the loader either).
+# Vulkan
 if(NOT USE_EMSCRIPTEN)
         target_compile_definitions(${PROJECT_NAME} PRIVATE
                 VK_NO_PROTOTYPES
@@ -223,5 +213,40 @@ if(NOT USE_EMSCRIPTEN)
                 fetchcontent_populate(VulkanMemoryAllocator)
         endif()
         target_include_directories(${PROJECT_NAME} PRIVATE ${vulkanmemoryallocator_SOURCE_DIR}/include)
+endif()
+
+# Shader compilation
+if(NOT USE_EMSCRIPTEN)
+        set(ENABLE_OPT OFF CACHE BOOL "" FORCE)
+        set(ENABLE_HLSL OFF CACHE BOOL "" FORCE)
+        set(ENABLE_SPVREMAPPER OFF CACHE BOOL "" FORCE)
+        set(GLSLANG_TESTS OFF CACHE BOOL "" FORCE)
+        set(GLSLANG_ENABLE_INSTALL OFF CACHE BOOL "" FORCE)
+
+        fetchcontent_declare(
+                glslang
+                GIT_REPOSITORY https://github.com/KhronosGroup/glslang.git
+                GIT_TAG vulkan-sdk-1.4.350.0
+        )
+        fetchcontent_makeavailable(glslang)
+
+        file(GLOB_RECURSE SHADER_SOURCES
+                "${CMAKE_SOURCE_DIR}/projects/*.comp"
+                "${CMAKE_SOURCE_DIR}/projects/*.vert"
+                "${CMAKE_SOURCE_DIR}/projects/*.frag")
+
+        set(SPV_OUTPUTS "")
+        foreach(SHADER ${SHADER_SOURCES})
+                add_custom_command(
+                        OUTPUT "${SHADER}.spv"
+                        COMMAND $<TARGET_FILE:glslang-standalone> -V --target-env vulkan1.3 -o "${SHADER}.spv" "${SHADER}"
+                        DEPENDS "${SHADER}" glslang-standalone
+                        COMMENT "Compiling shader ${SHADER}"
+                        VERBATIM)
+                list(APPEND SPV_OUTPUTS "${SHADER}.spv")
+        endforeach()
+
+        add_custom_target(Shaders ALL DEPENDS ${SPV_OUTPUTS})
+        add_dependencies(${PROJECT_NAME} Shaders)
 endif()
 

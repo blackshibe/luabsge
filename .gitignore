@@ -40,3 +40,6 @@ projects/other/export/out
 projects/other/export/test/out
 projects/other/export/test/decode_in
 projects/other/export/test/fixture.rbxl
+
+# i don't know
+.cache

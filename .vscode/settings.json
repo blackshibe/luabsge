@@ -1,5 +1,8 @@
 {
-	"C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+	"clangd.serverCompletionRanking": false,
+	"cmake.configureOnOpen": false,
+	"cmake.configureOnEdit": false,
+	"cmake.automaticReconfigure": false,
 	"files.associations": {
 		"chrono": "cpp",
 		"iostream": "cpp",

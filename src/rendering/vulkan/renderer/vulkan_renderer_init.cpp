@@ -4,6 +4,7 @@
 #include "include/imgui/imgui_impl_glfw.h"
 #include "include/imgui/imgui_impl_vulkan.h"
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
+#include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
 #include <cstddef>
 #include <span>
 #include <vector>
@@ -89,6 +90,7 @@ void Vulkan::Renderer::init_descriptors() {
 
 void Vulkan::Renderer::init_pipelines() {
 	init_background_pipeline();
+	init_triangle_pipeline();
 }
 
 void Vulkan::Renderer::init_background_pipeline() {
@@ -105,6 +107,23 @@ void Vulkan::Renderer::init_background_pipeline() {
 	// idk how else to do this
 	lifetime_deletion_queue.push_function([this]() {
 		Vulkan::pipeline::ComputePipeline *pipeline = this->gradient_pipeline.get();
+		if (pipeline != NULL) pipeline->destroy();
+	});
+}
+
+void Vulkan::Renderer::init_triangle_pipeline() {
+	// build the pipeline layout that controls the inputs/outputs of the shader. we are
+	// not using descriptor sets or other systems yet, so no need to use anything other
+	// than empty default.
+	VkPipelineLayoutCreateInfo layout_info = Vulkan::init::pipeline_layout_create_info();
+
+	// connect the image format we will draw into (the draw image) so the graphics
+	// pipeline targets the same off-swapchain image the compute background wrote to
+	triangle_pipeline = std::make_unique<Vulkan::pipeline::GraphicsPipeline>(
+	    device, layout_info, "shader/colored_triangle.vert.spv", "shader/colored_triangle.frag.spv", draw_image.imageFormat);
+
+	lifetime_deletion_queue.push_function([this]() {
+		Vulkan::pipeline::GraphicsPipeline *pipeline = this->triangle_pipeline.get();
 		if (pipeline != NULL) pipeline->destroy();
 	});
 }

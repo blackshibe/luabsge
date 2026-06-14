@@ -1,5 +1,6 @@
-#include "rendering/vulkan/vulkan_renderer.h"
 #include "include/imgui/imgui_impl_vulkan.h"
+#include "rendering/vulkan/vulkan_renderer.h"
+
 
 #include <cmath>
 
@@ -18,7 +19,7 @@ void Vulkan::Renderer::draw() {
 	// sync our render commands to the swapchain image being ready.
 	uint32_t swapchainImageIndex;
 	VK_CHECK(vkAcquireNextImageKHR(device.vk_device, swapchain.swapchain, 1000000000,
-								   get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
+	                               get_current_frame()._swapchainSemaphore, nullptr, &swapchainImageIndex));
 
 	// naming it cmd for shorter writing. Vulkan handles are just 64-bit pointers,
 	// so copying them around is fine.
@@ -43,11 +44,19 @@ void Vulkan::Renderer::draw() {
 
 	// record the actual draw commands into the draw image
 	// boy i sure hope this shit isn't null!
-	draw_pipeline(cmd, *gradient_pipeline.get());
+	// draw_pipeline(cmd, *gradient_pipeline.get());
+
+	// the compute shader we run for the background needed to draw into GENERAL image
+	// layout, but when doing geometry rendering, we need to use COLOR_ATTACHMENT_OPTIMAL.
+	// It is possible to draw into GENERAL layout with graphics pipelines, but its lower
+	// performance and the validation layers will complain.
+	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	draw_geometry(cmd);
 
 	// transition the draw image and the swapchain image into their transfer layouts,
 	// then blit (copy) the draw image into the swapchain image.
-	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	Vulkan::util::transition_image(cmd, swapchain.images[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 	Vulkan::util::copy_image_to_image(cmd, draw_image.image, swapchain.images[swapchainImageIndex], draw_extent, swapchain.extent);
@@ -70,9 +79,9 @@ void Vulkan::Renderer::draw() {
 	// to indicate that rendering has finished.
 	VkCommandBufferSubmitInfo cmdinfo = Vulkan::init::command_buffer_submit_info(cmd);
 	VkSemaphoreSubmitInfo waitInfo =
-		Vulkan::init::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame()._swapchainSemaphore);
+	    Vulkan::init::semaphore_submit_info(VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR, get_current_frame()._swapchainSemaphore);
 	VkSemaphoreSubmitInfo signalInfo =
-		Vulkan::init::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, render_semaphores[swapchainImageIndex]);
+	    Vulkan::init::semaphore_submit_info(VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT, render_semaphores[swapchainImageIndex]);
 	VkSubmitInfo2 submit = Vulkan::init::submit_info(&cmdinfo, &signalInfo, &waitInfo);
 
 	// submit command buffer to the queue and execute it. _renderFence will now block
@@ -103,6 +112,45 @@ void Vulkan::Renderer::draw_pipeline(VkCommandBuffer vk_buffer, Vulkan::pipeline
 	vkCmdBindPipeline(vk_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.vk_pipeline);
 	vkCmdBindDescriptorSets(vk_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline.vk_layout, 0, 1, &draw_image_descriptors, 0, nullptr);
 	vkCmdDispatch(vk_buffer, (uint32_t)std::ceil(draw_extent.width / 16.0), (uint32_t)std::ceil(draw_extent.height / 16.0), 1);
+}
+
+void Vulkan::Renderer::draw_geometry(VkCommandBuffer cmd) {
+	// begin a render pass connected to our draw image. This is the same we were doing
+	// for imgui, but this time we are pointing it into our draw image instead of the
+	// swapchain image.
+	VkRenderingAttachmentInfo colorAttachment = Vulkan::init::attachment_info(draw_image.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+	VkRenderingInfo renderInfo = Vulkan::init::rendering_info(draw_extent, &colorAttachment, nullptr);
+	vkCmdBeginRendering(cmd, &renderInfo);
+
+	// we do a CmdBindPipeline, but instead of using BIND_POINT_COMPUTE, we now use
+	// VK_PIPELINE_BIND_POINT_GRAPHICS.
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, triangle_pipeline->vk_pipeline);
+
+	// set dynamic viewport and scissor. This is required before as we left them
+	// undefined when creating the pipeline (we were using dynamic pipeline state).
+	VkViewport viewport = {};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = draw_extent.width;
+	viewport.height = draw_extent.height;
+	viewport.minDepth = 0.f;
+	viewport.maxDepth = 1.f;
+
+	vkCmdSetViewport(cmd, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent.width = draw_extent.width;
+	scissor.extent.height = draw_extent.height;
+
+	vkCmdSetScissor(cmd, 0, 1, &scissor);
+
+	// launch a draw command to draw 3 vertices
+	vkCmdDraw(cmd, 3, 1, 0, 0);
+
+	vkCmdEndRendering(cmd);
 }
 
 void Vulkan::Renderer::draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view) {

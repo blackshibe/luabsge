@@ -123,12 +123,12 @@ def parse_params(arglist):
 
 
 def parse_params_unnamed(arglist):
-    """Split a type-only argument list (e.g. a constructor signature), naming
-    each positionally as arg1, arg2, ..."""
+    """Split a type-only argument list (e.g. a constructor signature). Each param
+    is returned with name None so @param tags can name it positionally."""
     arglist = arglist.strip()
     if not arglist or arglist == "void":
         return []
-    return [(f"arg{i + 1}", map_type(p) or "any") for i, p in enumerate(split_top_level(arglist))]
+    return [(None, map_type(p) or "any") for p in split_top_level(arglist)]
 
 
 def infer_field_type(code_after):
@@ -200,6 +200,7 @@ def parse_file(path):
         name = None
         kind = None
         field_decl_type = None
+        type_decl_type = None
         desc = []
         params = {}
         ret = None
@@ -216,7 +217,9 @@ def parse_file(path):
                     name = toks[0] if toks else None
                     field_decl_type = toks[1] if len(toks) > 1 else None
                 elif key == "type":
-                    kind = val.split()[0] if val else None
+                    toks = val.split()
+                    kind = toks[0] if toks else None
+                    type_decl_type = toks[1] if len(toks) > 1 else None
                 elif key == "param":
                     pm = re.match(r"(\w+)\s+(\S+)\s*(.*)$", val)
                     if pm:
@@ -241,7 +244,7 @@ def parse_file(path):
         elif tag == "field" and name:
             code_after = src[block.end():block.end() + 400]
             if kind == "field":
-                ftype = field_decl_type or (ret[0] if ret else None) or infer_field_type(code_after)
+                ftype = field_decl_type or type_decl_type or (ret[0] if ret else None) or infer_field_type(code_after)
                 fld = {
                     "name": name,
                     "kind": "field",
@@ -287,21 +290,39 @@ def emit(namespaces):
         out.append(f"{ns['name']} = {{}}")
         out.append("")
         for fld in funcs:
-            param_names = []
-            inferred = {n: t for n, t in (fld["inferred_params"] or [])}
-            order = [n for n, _ in (fld["inferred_params"] or [])]
-            for n in fld["params"]:
-                if n not in order:
-                    order.append(n)
-
             if fld["desc"]:
                 out.append(f"---{fld['desc']}")
-            for n in order:
-                param_names.append(n)
-                if n in fld["params"]:
-                    ptype, pdesc = fld["params"][n]
+
+            # Merge inferred params with @param overrides: unnamed slots (name
+            # None, e.g. from a constructor) take @param names positionally;
+            # named slots are overridden by a matching @param.
+            explicit = list(fld["params"].items())
+            resolved = []
+            ei = 0
+            used = set()
+            for iname, itype in fld["inferred_params"] or []:
+                if iname is None:
+                    while ei < len(explicit) and explicit[ei][0] in used:
+                        ei += 1
+                    if ei < len(explicit):
+                        name, (ptype, pdesc) = explicit[ei]
+                        ei += 1
+                        used.add(name)
+                        resolved.append((name, ptype, pdesc))
+                    else:
+                        resolved.append((f"arg{len(resolved) + 1}", itype, ""))
+                elif iname in fld["params"]:
+                    ptype, pdesc = fld["params"][iname]
+                    used.add(iname)
+                    resolved.append((iname, ptype, pdesc))
                 else:
-                    ptype, pdesc = inferred.get(n, "any"), ""
+                    resolved.append((iname, itype, ""))
+            for name, (ptype, pdesc) in explicit:
+                if name not in used:
+                    resolved.append((name, ptype, pdesc))
+
+            param_names = [n for n, _, _ in resolved]
+            for n, ptype, pdesc in resolved:
                 line = f"---@param {n} {ptype}"
                 if pdesc:
                     line += f" {pdesc}"

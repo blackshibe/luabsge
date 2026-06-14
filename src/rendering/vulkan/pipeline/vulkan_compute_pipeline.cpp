@@ -1,45 +1,10 @@
-#include "rendering/vulkan/pipeline/vulkan_pipeline.h"
+#include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
+
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
+#include "rendering/vulkan/pipeline/vulkan_pipeline_shading.h"
 #include "vulkan/vulkan_core.h"
-#include "vulkan_pipeline.h"
 
-#include <fstream>
-
-// path is relative to the working directory (projects/<project>) the engine runs in
-bool Vulkan::pipeline::shading::load_shader_module(const char *filePath, VkDevice device, VkShaderModule *outShaderModule) {
-	// open the file with the cursor at the end so tellg gives the size directly
-	std::ifstream file(filePath, std::ios::ate | std::ios::binary);
-	if (!file.is_open()) {
-		return false;
-	}
-
-	size_t fileSize = (size_t)file.tellg();
-
-	// spirv expects the buffer to be uint32, so reserve a vector big enough
-	std::vector<uint32_t> buffer(fileSize / sizeof(uint32_t));
-
-	file.seekg(0);
-	file.read((char *)buffer.data(), fileSize);
-	file.close();
-
-	VkShaderModuleCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	createInfo.pNext = nullptr;
-
-	// codeSize has to be in bytes
-	createInfo.codeSize = buffer.size() * sizeof(uint32_t);
-	createInfo.pCode = buffer.data();
-
-	VkShaderModule shaderModule;
-	if (vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-		return false;
-	}
-
-	*outShaderModule = shaderModule;
-	return true;
-}
-
-Vulkan::pipeline::ComputePipeline::ComputePipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char* shader_path) {
+Vulkan::pipeline::ComputePipeline::ComputePipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *shader_path) {
 	VkShaderModule vk_draw_shader;
 	if (!Vulkan::pipeline::shading::load_shader_module(shader_path, device.vk_device, &vk_draw_shader)) {
 		throw std::runtime_error("failed to load shader/gradient.comp.spv (was the Shaders target built?)");

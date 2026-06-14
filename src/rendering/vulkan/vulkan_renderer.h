@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
+#include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
 #include "rendering/vulkan/vulkan.h"
 
 #include "engine/queue.h"
@@ -57,7 +58,9 @@ namespace Vulkan {
 		VkDescriptorSetLayout draw_image_descriptor_layout = VK_NULL_HANDLE;
 
 		std::unique_ptr<Vulkan::pipeline::ComputePipeline> gradient_pipeline;
+		std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> triangle_pipeline;
 
+		// creation
 		void init_vulkan(EngineInstance &engine, GLFWwindow *glfw_window);
 		void create_swapchain(uint32_t width, uint32_t height);
 		void init_commands();
@@ -65,11 +68,22 @@ namespace Vulkan {
 		void init_descriptors();
 		void init_pipelines();
 		void init_background_pipeline();
+		void init_triangle_pipeline();
 		void init_imgui(GLFWwindow *glfw_window);
 
+		// drawing
 		void draw_pipeline(VkCommandBuffer vk_buffer, Vulkan::pipeline::ComputePipeline pipeline);
+		void draw_geometry(VkCommandBuffer cmd);
 		void draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view);
 
+		// buffer
+		AllocatedBuffer allocate_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
+		void destroy_buffer(const Vulkan::AllocatedBuffer &buffer);
+
+		// mesh
+		Vulkan::GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<Vertex> vertices);
+
+		// swapchain?
 		Frame _frames[FRAME_OVERLAP];
 		Frame &get_current_frame() { return _frames[frame_number % FRAME_OVERLAP]; };
 

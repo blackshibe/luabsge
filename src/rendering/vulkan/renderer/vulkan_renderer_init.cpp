@@ -5,7 +5,9 @@
 #include "include/imgui/imgui_impl_vulkan.h"
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
 #include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
+#include <array>
 #include <cstddef>
+#include <cstdint>
 #include <span>
 #include <vector>
 
@@ -28,6 +30,19 @@ void Vulkan::Renderer::init_commands() {
 
 		VK_CHECK(vkAllocateCommandBuffers(device.vk_device, &cmdAllocInfo, &_frames[i]._mainCommandBuffer));
 	}
+
+	// a separate command pool + buffer for immediate_submit, used to upload mesh
+	// data to the GPU outside of the per-frame command buffers
+	VK_CHECK(vkCreateCommandPool(device.vk_device, &commandPoolInfo, nullptr, &imm_command_pool));
+
+	VkCommandBufferAllocateInfo immAllocInfo = {};
+	immAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	immAllocInfo.pNext = nullptr;
+	immAllocInfo.commandPool = imm_command_pool;
+	immAllocInfo.commandBufferCount = 1;
+	immAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+	VK_CHECK(vkAllocateCommandBuffers(device.vk_device, &immAllocInfo, &imm_command_buffer));
 }
 
 void Vulkan::Renderer::init_sync_structures() {
@@ -48,6 +63,9 @@ void Vulkan::Renderer::init_sync_structures() {
 	for (size_t i = 0; i < render_semaphores.size(); i++) {
 		VK_CHECK(vkCreateSemaphore(device.vk_device, &semaphoreCreateInfo, nullptr, &render_semaphores[i]));
 	}
+
+	// fence used by immediate_submit to block the CPU until a one-off upload finishes
+	VK_CHECK(vkCreateFence(device.vk_device, &fenceCreateInfo, nullptr, &imm_fence));
 }
 
 void Vulkan::Renderer::init_descriptors() {
@@ -69,7 +87,7 @@ void Vulkan::Renderer::init_descriptors() {
 
 	VkDescriptorImageInfo imgInfo = {};
 	imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imgInfo.imageView = draw_image.imageView;
+	imgInfo.imageView = draw_image.vk_view;
 
 	VkWriteDescriptorSet drawImageWrite = {};
 	drawImageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -86,11 +104,45 @@ void Vulkan::Renderer::init_descriptors() {
 		global_descriptor_allocator.destroy_pool(device.vk_device);
 		vkDestroyDescriptorSetLayout(device.vk_device, draw_image_descriptor_layout, nullptr);
 	});
+
+	// each frame gets its own pool for the transient combined-image-sampler sets we
+	// allocate while recording draws; it is reset at the start of every frame
+	std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1}};
+	for (int i = 0; i < FRAME_OVERLAP; i++) {
+		_frames[i]._frameDescriptors.init_pool(device.vk_device, 1000, frame_sizes);
+	}
+
+	// nearest-filter sampler shared by every texture bind
+	VkSamplerCreateInfo sampler_info = {.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO};
+	sampler_info.magFilter = VK_FILTER_NEAREST;
+	sampler_info.minFilter = VK_FILTER_NEAREST;
+	VK_CHECK(vkCreateSampler(device.vk_device, &sampler_info, nullptr, &_defaultSamplerNearest));
+
+	// a 16x16 magenta/black checkerboard used as the fallback texture
+	uint32_t black = 0x00000000;
+	uint32_t magenta = 0xFFFF00FF;
+	std::array<uint32_t, 16 * 16> checkerboard;
+	for (int y = 0; y < 16; y++) {
+		for (int x = 0; x < 16; x++) {
+			checkerboard[y * 16 + x] = ((x % 2) ^ (y % 2)) ? magenta : black;
+		}
+	}
+
+	_errorCheckerboardImage = create_image(checkerboard.data(), VkExtent3D{16, 16, 1}, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT);
+
+	lifetime_deletion_queue.push_function([this]() {
+		vkDestroySampler(device.vk_device, _defaultSamplerNearest, nullptr);
+	});
 }
 
 void Vulkan::Renderer::init_pipelines() {
+	// COMPUTE PIPELINES
 	init_background_pipeline();
+
+	// GRAPHICS PIPELINES
 	init_triangle_pipeline();
+	// Now we call this function from our main init_pipelines() function.
+	init_mesh_pipeline();
 }
 
 void Vulkan::Renderer::init_background_pipeline() {
@@ -120,10 +172,46 @@ void Vulkan::Renderer::init_triangle_pipeline() {
 	// connect the image format we will draw into (the draw image) so the graphics
 	// pipeline targets the same off-swapchain image the compute background wrote to
 	triangle_pipeline = std::make_unique<Vulkan::pipeline::GraphicsPipeline>(
-	    device, layout_info, "shader/colored_triangle.vert.spv", "shader/colored_triangle.frag.spv", draw_image.imageFormat);
+	    device, layout_info, "shader/colored_triangle.vert.spv", "shader/colored_triangle.frag.spv", draw_image.format);
 
 	lifetime_deletion_queue.push_function([this]() {
 		Vulkan::pipeline::GraphicsPipeline *pipeline = this->triangle_pipeline.get();
+		if (pipeline != NULL) pipeline->destroy();
+	});
+}
+
+void Vulkan::Renderer::init_mesh_pipeline() {
+	// Its going to be mostly a copypaste of init_triangle_pipeline()
+	DescriptorLayoutBuilder builder;
+	builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	_singleImageDescriptorLayout = builder.build(device.vk_device, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+	// We change the vertex shader to load colored_triangle_mesh.vert.spv, and we modify the pipeline layout to give
+	// it the push constants struct we defined above. The vertex data is reached through a buffer device address in
+	// the push constants, so the layout needs no descriptor sets, only the push-constant range.
+	VkPushConstantRange bufferRange{};
+	bufferRange.offset = 0;
+	bufferRange.size = sizeof(Vulkan::GPUDrawPushConstants);
+	bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+	VkPipelineLayoutCreateInfo layout_info = Vulkan::init::pipeline_layout_create_info();
+	layout_info.pPushConstantRanges = &bufferRange;
+	layout_info.pushConstantRangeCount = 1;
+	layout_info.pSetLayouts = &_singleImageDescriptorLayout;
+	layout_info.setLayoutCount = 1;
+
+	// For the rest of the function, we do the same as in the triangle pipeline function, but changing the pipeline
+	// layout and the pipeline name to be the new ones. We keep colored_triangle.frag as the fragment shader, and the
+	// GraphicsPipeline builder applies the same triangle-list / fill / no-cull / no-blend / no-depth state.
+	mesh_pipeline = std::make_unique<Vulkan::pipeline::GraphicsPipeline>(
+	    device,
+	    layout_info,
+	    "shader/colored_triangle_mesh.vert.spv",
+	    "shader/tex_image.frag.spv",
+	    draw_image.format);
+
+	lifetime_deletion_queue.push_function([this]() {
+		Vulkan::pipeline::GraphicsPipeline *pipeline = this->mesh_pipeline.get();
 		if (pipeline != NULL) pipeline->destroy();
 	});
 }

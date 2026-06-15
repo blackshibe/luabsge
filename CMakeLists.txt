@@ -141,9 +141,10 @@ fetchcontent_makeavailable(sol2)
 add_definitions(-DSOL_ALL_SAFETIES_ON=1)
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${sol2_SOURCE_DIR}/include)
-target_compile_definitions(${PROJECT_NAME} PRIVATE 
+target_compile_definitions(${PROJECT_NAME} PRIVATE
     SOL_ALL_SAFETIES_ON=1
     SOL_PRINT_ERRORS=1
+    GLM_FORCE_DEPTH_ZERO_TO_ONE=1
 )
 
 # glm

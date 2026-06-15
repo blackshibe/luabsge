@@ -18,6 +18,6 @@ Vulkan game engine with Lua backend.
 # Native (MSYS2 UCRT64: gcc + Ninja)
 ./build.sh
 
-# Run the exe in the project folder
-exec -a projects/vulkan/native_test build/luabsge
+# Run from inside the project folder
+(cd projects/vulkan/native_test && ../../../build/luabsge.exe)
 ```

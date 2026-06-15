@@ -49,7 +49,7 @@ cd projects/vulkan/native_test && ../../../build/luabsge.exe
     - `base/` — bootstrap (instance/device/swapchain builders), VMA setup (`vulkan_vma.cpp`), images, descriptors, and `vulkan_init.*` / `vulkan_types.h` helpers.
     - `pipeline/` — `ComputePipeline`, `GraphicsPipeline`, and shared shading helpers.
     - `renderer/` — `Vulkan::Renderer` implementation split across `_init`, `_rendering`, and `_buffer` translation units. Renders into an off-swapchain RGBA16F `draw_image`, then copies to the swapchain. Double-buffered (`FRAME_OVERLAP = 2`), with per-frame and lifetime `DeletionQueue`s.
-- **`src/scene/`** — `instance/instance.h` defines the ECS data: `Scene::ecs::Instance` (name, `glm::mat4` transform, parent entity) stored in the EnTT registry. `mesh_component.*` for mesh data.
+- **`src/ecs/`** — `instance.h` defines the ECS data: `Ecs::Instance` (name, `glm::mat4` transform, parent entity) stored in the EnTT registry. `scene_mesh.h` / `scene_camera.h` for mesh and camera components.
 - **`src/lua/`** — `luax.{h,cpp}` (`Lua::util::run_script`, sol2 `safe_script_file`). `lib/` holds the binding modules, each with an `init(...)` that registers a global table or usertype: `lua_global` (`print`/`warn`/`now`), `lua_imgui`, `lua_instance` (`Instance` usertype → creates EnTT entities), `lua_gltf` (`GLTF.import`). `class/window.*` binds the window. Bindings live in `Lua::*` / `Lua::object::*` namespaces — **no `lua_` symbol prefix**.
 - **`src/util/`** — `output.h` (`Output` logger: ANSI colors + source location), `time.{h,cpp}` (`now()`).
 - **`src/include/`** — vendored imgui, implot, stb, `colors.h`.

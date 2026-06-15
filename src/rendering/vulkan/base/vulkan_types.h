@@ -9,11 +9,11 @@ namespace Vulkan {
 	// Holds the data needed for an image: the VkImage alongside its default VkImageView,
 	// the VMA allocation backing the image memory, and the image size and format.
 	struct AllocatedImage {
-		VkImage image = VK_NULL_HANDLE;
-		VkImageView imageView = VK_NULL_HANDLE;
+		VkImage vk_image = VK_NULL_HANDLE;
+		VkImageView vk_view = VK_NULL_HANDLE;
 		VmaAllocation allocation = nullptr;
-		VkExtent3D imageExtent = {};
-		VkFormat imageFormat = VK_FORMAT_UNDEFINED;
+		VkExtent3D extent = {};
+		VkFormat format = VK_FORMAT_UNDEFINED;
 	};
 
 	struct AllocatedBuffer {
@@ -32,7 +32,8 @@ namespace Vulkan {
 
 	// push constants for our mesh object draws
 	struct GPUDrawPushConstants {
-		glm::mat4 worldMatrix;
+		glm::mat4 camera_transform;
+		glm::mat4 object_transform;
 		VkDeviceAddress vertexBuffer;
 	};
 

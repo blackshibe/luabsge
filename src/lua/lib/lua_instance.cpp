@@ -1,6 +1,7 @@
 #include "lua_instance.h"
 #include "entt/entity/entity.hpp"
 #include "entt/entity/fwd.hpp"
+#include "util/assimp.h"
 #include "util/output.h"
 #include <optional>
 #include <stdexcept>
@@ -11,12 +12,12 @@ static Output output;
 
 namespace Lua::instance {
 
-	Scene::ecs::Instance &get_instance(entt::registry *registry, entt::entity entity) {
-		if (!registry->any_of<Scene::ecs::Instance>(entity)) {
+	Ecs::InstanceComponent &get_instance(entt::registry *registry, entt::entity entity) {
+		if (!registry->any_of<Ecs::InstanceComponent>(entity)) {
 			throw std::runtime_error("ECS entity has no Instance?");
 		}
 
-		return registry->get<Scene::ecs::Instance>(entity);
+		return registry->get<Ecs::InstanceComponent>(entity);
 	}
 
 	/*
@@ -75,31 +76,55 @@ namespace Lua::instance {
 		                           sol::property([](Instance &i) -> std::vector<Instance> {
 			                           std::vector<Instance> children;
 
-			                           for (entt::entity entity : registry->view<Scene::ecs::Instance>()) {
-				                           if (registry->get<Scene::ecs::Instance>(entity).parent == i.entity) {
+			                           for (entt::entity entity : registry->view<Ecs::InstanceComponent>()) {
+				                           if (registry->get<Ecs::InstanceComponent>(entity).parent == i.entity) {
 					                           children.emplace_back(entity);
 				                           }
 			                           }
 
 			                           return children;
-		                           })
+		                           }),
+
+		                           /*
+		                            * @field transform
+		                            * @type field Mat4
+		                            * Local transform of the entity.
+		                            */
+		                           "transform",
+		                           sol::property(
+		                               [](Instance &i) -> glm::mat4 {
+			                               return get_instance(registry, i.entity).transform;
+		                               },
+		                               [](Instance &i, glm::mat4 transform) {
+			                               get_instance(registry, i.entity).transform = transform;
+		                               })
 
 		);
 	}
 
 	Lua::instance::Instance::Instance(std::string name) {
 		entt::entity entity = registry->create();
-		registry->emplace<Scene::ecs::Instance>(entity).name = name;
+		registry->emplace<Ecs::InstanceComponent>(entity).name = name;
 		this->entity = entity;
 	};
 
 	Lua::instance::Instance::Instance(aiNode *node) {
 		entt::entity entity = registry->create();
-		registry->emplace<Scene::ecs::Instance>(entity).name = node->mName.data;
+		registry->emplace<Ecs::InstanceComponent>(entity).name = node->mName.data;
 		this->entity = entity;
 	}
 
 	Lua::instance::Instance::Instance(entt::entity entity) {
 		this->entity = entity;
 	};
+
+	void Lua::instance::Instance::set_parent(Instance parent) {
+		auto &instance = registry->get<Ecs::InstanceComponent>(entity);
+		instance.parent = parent.entity;
+	}
+
+	void Lua::instance::Instance::set_transform(const aiMatrix4x4 &transform) {
+		auto &instance = registry->get<Ecs::InstanceComponent>(entity);
+		instance.transform = AssimpGLMHelpers::get_glm_matrix(transform);
+	}
 }

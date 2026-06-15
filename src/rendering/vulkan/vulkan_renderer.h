@@ -1,5 +1,6 @@
 #pragma once
 
+#include "rendering/vulkan/base/vulkan_types.h"
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
 #include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
 #include "rendering/vulkan/vulkan.h"
@@ -7,7 +8,9 @@
 
 #include "engine/queue.h"
 #include <GLFW/glfw3.h>
+#include <functional>
 #include <memory>
+#include <vector>
 
 class EngineInstance;
 
@@ -27,9 +30,16 @@ namespace Vulkan {
 		// per-frame deletion queue: flushed after the frame's fence so we can safely
 		// delete objects created for that specific frame
 		DeletionQueue _deletionQueue;
+
+		// per-frame descriptor pool, reset at the start of the frame so transient sets
+		// (like the texture bound for a draw) don't accumulate across frames
+		DescriptorAllocator _frameDescriptors;
 	};
 
 	class Renderer : AbstractRenderer {
+		// the engine owns the ECS registry and the mesh resource bank we draw from
+		EngineInstance *engine = nullptr;
+
 		Vulkan::Instance instance;
 		Vulkan::Device device;
 		Vulkan::Swapchain swapchain;
@@ -57,9 +67,31 @@ namespace Vulkan {
 		DescriptorAllocator global_descriptor_allocator;
 		VkDescriptorSet draw_image_descriptors = VK_NULL_HANDLE;
 		VkDescriptorSetLayout draw_image_descriptor_layout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout _singleImageDescriptorLayout;
+
+		// nearest-filter sampler used when binding textures for mesh draws
+		VkSampler _defaultSamplerNearest = VK_NULL_HANDLE;
+
+		// magenta/black checkerboard bound when a mesh has no texture to sample
+		AllocatedImage _errorCheckerboardImage;
 
 		std::unique_ptr<Vulkan::pipeline::ComputePipeline> gradient_pipeline;
 		std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> triangle_pipeline;
+		std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> mesh_pipeline;
+
+		// immediate-submit structures: a one-off command buffer + fence used to run
+		// GPU work (like staging-buffer copies) synchronously, outside the frame loop
+		VkFence imm_fence = VK_NULL_HANDLE;
+		VkCommandPool imm_command_pool = VK_NULL_HANDLE;
+		VkCommandBuffer imm_command_buffer = VK_NULL_HANDLE;
+
+		// GPU buffers for every mesh in EngineInstance::resources.meshes, kept in the
+		// same order/index so a MeshComponent's mesh_index maps straight into here
+		std::vector<Vulkan::GPUMeshBuffers> gpu_meshes;
+
+		// GPU images for every texture in EngineInstance::resources.images, kept
+		// index-aligned with the resource bank just like gpu_meshes
+		std::vector<Vulkan::AllocatedImage> gpu_textures;
 
 		// creation
 		void init_vulkan(EngineInstance &engine, GLFWwindow *glfw_window);
@@ -70,6 +102,7 @@ namespace Vulkan {
 		void init_pipelines();
 		void init_background_pipeline();
 		void init_triangle_pipeline();
+		void init_mesh_pipeline();
 		void init_imgui(GLFWwindow *glfw_window);
 
 		// drawing
@@ -81,8 +114,22 @@ namespace Vulkan {
 		AllocatedBuffer allocate_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);
 		void destroy_buffer(const Vulkan::AllocatedBuffer &buffer);
 
+		// image
+		AllocatedImage create_image(VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+		AllocatedImage create_image(void *data, VkExtent3D size, VkFormat format, VkImageUsageFlags usage, bool mipmapped = false);
+		void destroy_image(const AllocatedImage &img);
+
 		// mesh
 		Vulkan::GPUMeshBuffers upload_mesh(std::span<uint32_t> indices, std::span<MeshVertex> vertices);
+
+		// run a function on the GPU and block until it finishes
+		void immediate_submit(std::function<void(VkCommandBuffer cmd)> &&function);
+
+		// upload any resource-bank meshes that don't have GPU buffers yet
+		void upload_pending_meshes();
+
+		// upload any resource-bank textures that don't have GPU images yet
+		void upload_pending_textures();
 
 		// swapchain?
 		Frame _frames[FRAME_OVERLAP];

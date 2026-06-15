@@ -15,6 +15,9 @@ Vulkan::Renderer::~Renderer() {
 		// free any per-frame resources before destroying the frame data
 		_frames[i]._deletionQueue.flush();
 
+		if (_frames[i]._frameDescriptors.pool != VK_NULL_HANDLE)
+			_frames[i]._frameDescriptors.destroy_pool(device.vk_device);
+
 		if (_frames[i]._commandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(device.vk_device, _frames[i]._commandPool, nullptr);
 
@@ -27,6 +30,24 @@ Vulkan::Renderer::~Renderer() {
 	for (VkSemaphore semaphore : render_semaphores) {
 		if (semaphore != VK_NULL_HANDLE) vkDestroySemaphore(device.vk_device, semaphore, nullptr);
 	}
+
+	// free the GPU mesh buffers while the allocator is still alive (the lifetime
+	// queue below destroys it)
+	for (const Vulkan::GPUMeshBuffers &mesh : gpu_meshes) {
+		destroy_buffer(mesh.vertex_buffer);
+		destroy_buffer(mesh.index_buffer);
+	}
+
+	// free the GPU textures before the allocator is torn down
+	for (const Vulkan::AllocatedImage &texture : gpu_textures) {
+		destroy_image(texture);
+	}
+
+	if (_errorCheckerboardImage.vk_image != VK_NULL_HANDLE) destroy_image(_errorCheckerboardImage);
+
+	// immediate-submit command pool + fence
+	if (imm_command_pool != VK_NULL_HANDLE) vkDestroyCommandPool(device.vk_device, imm_command_pool, nullptr);
+	if (imm_fence != VK_NULL_HANDLE) vkDestroyFence(device.vk_device, imm_fence, nullptr);
 
 	// flush the global deletion queue (draw image, descriptors, pipelines, allocator).
 	// This must run while the device is still alive but before it is destroyed.
@@ -41,6 +62,10 @@ Vulkan::Renderer::~Renderer() {
 }
 
 void Vulkan::Renderer::init_vulkan(EngineInstance &engine, GLFWwindow *glfw_window) {
+	// keep a handle on the engine so drawing can reach the ECS registry and the mesh
+	// resource bank
+	this->engine = &engine;
+
 	Vulkan::Bootstrap::InstanceBuilder builder;
 
 	// glfw requires some vulkan extensions
@@ -131,8 +156,8 @@ void Vulkan::Renderer::create_swapchain(uint32_t width, uint32_t height) {
 	// draw image size matches the window. We hardcode RGBA 16-bit float for the extra
 	// precision that helps with lighting calculations and avoids banding.
 	VkExtent3D drawImageExtent = {width, height, 1};
-	draw_image.imageFormat = VK_FORMAT_R16G16B16A16_SFLOAT;
-	draw_image.imageExtent = drawImageExtent;
+	draw_image.format = VK_FORMAT_R16G16B16A16_SFLOAT;
+	draw_image.extent = drawImageExtent;
 
 	// TransferSRC/DST to copy from and into it, Storage so a compute shader can write
 	// to it, ColorAttachment so graphics pipelines can draw into it.
@@ -142,21 +167,21 @@ void Vulkan::Renderer::create_swapchain(uint32_t width, uint32_t height) {
 	drawImageUsages |= VK_IMAGE_USAGE_STORAGE_BIT;
 	drawImageUsages |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-	VkImageCreateInfo rimg_info = Vulkan::init::image_create_info(draw_image.imageFormat, drawImageUsages, drawImageExtent);
+	VkImageCreateInfo rimg_info = Vulkan::init::image_create_info(draw_image.format, drawImageUsages, drawImageExtent);
 
 	// allocate the draw image from gpu local memory (VRAM) for fastest access
 	VmaAllocationCreateInfo rimg_allocinfo = {};
 	rimg_allocinfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 	rimg_allocinfo.requiredFlags = VkMemoryPropertyFlags(VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	vmaCreateImage(allocator, &rimg_info, &rimg_allocinfo, &draw_image.image, &draw_image.allocation, nullptr);
+	vmaCreateImage(allocator, &rimg_info, &rimg_allocinfo, &draw_image.vk_image, &draw_image.allocation, nullptr);
 
 	// build the default image view we pair with the image to access it
-	VkImageViewCreateInfo rview_info = Vulkan::init::imageview_create_info(draw_image.imageFormat, draw_image.image, VK_IMAGE_ASPECT_COLOR_BIT);
-	VK_CHECK(vkCreateImageView(device.vk_device, &rview_info, nullptr, &draw_image.imageView));
+	VkImageViewCreateInfo rview_info = Vulkan::init::imageview_create_info(draw_image.format, draw_image.vk_image, VK_IMAGE_ASPECT_COLOR_BIT);
+	VK_CHECK(vkCreateImageView(device.vk_device, &rview_info, nullptr, &draw_image.vk_view));
 
 	lifetime_deletion_queue.push_function([this]() {
-		vkDestroyImageView(device.vk_device, draw_image.imageView, nullptr);
-		vmaDestroyImage(allocator, draw_image.image, draw_image.allocation);
+		vkDestroyImageView(device.vk_device, draw_image.vk_view, nullptr);
+		vmaDestroyImage(allocator, draw_image.vk_image, draw_image.allocation);
 	});
 }

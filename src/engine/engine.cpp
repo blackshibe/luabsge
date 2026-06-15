@@ -4,6 +4,7 @@
 #include "include/imgui/imgui.h"
 #include "include/implot/implot.h"
 #include "lua/class/window.h"
+#include "lua/lib/lua_glm.h"
 #include "lua/lib/lua_global.h"
 #include "lua/lib/lua_gltf.h"
 #include "lua/lib/lua_imgui.h"
@@ -21,6 +22,7 @@ EngineInstance::EngineInstance() {
 	output.mark();
 
 	Lua::init(lua);
+	Lua::transform::init(lua);
 	Lua::object::window::init(lua);
 	Lua::imgui::init(lua);
 	Lua::instance::init(this, lua);

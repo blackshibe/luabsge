@@ -1,8 +1,15 @@
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_float4x4.hpp"
 #include "include/imgui/imgui_impl_vulkan.h"
 #include "rendering/vulkan/vulkan_renderer.h"
 
+#include "ecs/instance.h"
+#include "ecs/scene_camera.h"
+#include "ecs/scene_mesh.h"
+#include "engine/engine.h"
 
 #include <cmath>
+#include <vector>
 
 void Vulkan::Renderer::draw() {
 	// wait until the gpu has finished rendering the last frame. Timeout of 1 second
@@ -12,6 +19,7 @@ void Vulkan::Renderer::draw() {
 	// the fence is signalled, so the gpu finished this frame's work: safe to flush any
 	// per-frame resources now.
 	get_current_frame()._deletionQueue.flush();
+	get_current_frame()._frameDescriptors.clear_descriptors(device.vk_device);
 
 	VK_CHECK(vkResetFences(device.vk_device, 1, &get_current_frame()._renderFence));
 
@@ -30,8 +38,8 @@ void Vulkan::Renderer::draw() {
 	VK_CHECK(vkResetCommandBuffer(cmd, 0));
 
 	// the draw region matches our off-swapchain draw image
-	draw_extent.width = draw_image.imageExtent.width;
-	draw_extent.height = draw_image.imageExtent.height;
+	draw_extent.width = draw_image.extent.width;
+	draw_extent.height = draw_image.extent.height;
 
 	// we will use this command buffer exactly once, so tell vulkan that for a
 	// possible small speedup in command encoding.
@@ -40,7 +48,7 @@ void Vulkan::Renderer::draw() {
 
 	// transition our main draw image into general layout so we can write into it. We
 	// will overwrite it all so we dont care about the older layout.
-	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+	Vulkan::util::transition_image(cmd, draw_image.vk_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
 
 	// record the actual draw commands into the draw image
 	// boy i sure hope this shit isn't null!
@@ -50,16 +58,16 @@ void Vulkan::Renderer::draw() {
 	// layout, but when doing geometry rendering, we need to use COLOR_ATTACHMENT_OPTIMAL.
 	// It is possible to draw into GENERAL layout with graphics pipelines, but its lower
 	// performance and the validation layers will complain.
-	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	Vulkan::util::transition_image(cmd, draw_image.vk_image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 	draw_geometry(cmd);
 
 	// transition the draw image and the swapchain image into their transfer layouts,
 	// then blit (copy) the draw image into the swapchain image.
-	Vulkan::util::transition_image(cmd, draw_image.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+	Vulkan::util::transition_image(cmd, draw_image.vk_image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 	Vulkan::util::transition_image(cmd, swapchain.images[swapchainImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	Vulkan::util::copy_image_to_image(cmd, draw_image.image, swapchain.images[swapchainImageIndex], draw_extent, swapchain.extent);
+	Vulkan::util::copy_image_to_image(cmd, draw_image.vk_image, swapchain.images[swapchainImageIndex], draw_extent, swapchain.extent);
 
 	// draw imgui directly onto the swapchain image. We need it in color-attachment
 	// layout for dynamic rendering, then transition to present.
@@ -118,7 +126,7 @@ void Vulkan::Renderer::draw_geometry(VkCommandBuffer cmd) {
 	// begin a render pass connected to our draw image. This is the same we were doing
 	// for imgui, but this time we are pointing it into our draw image instead of the
 	// swapchain image.
-	VkRenderingAttachmentInfo colorAttachment = Vulkan::init::attachment_info(draw_image.imageView, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo colorAttachment = Vulkan::init::attachment_info(draw_image.vk_view, nullptr, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
 	VkRenderingInfo renderInfo = Vulkan::init::rendering_info(draw_extent, &colorAttachment, nullptr);
 	vkCmdBeginRendering(cmd, &renderInfo);
@@ -149,6 +157,75 @@ void Vulkan::Renderer::draw_geometry(VkCommandBuffer cmd) {
 
 	// launch a draw command to draw 3 vertices
 	vkCmdDraw(cmd, 3, 1, 0, 0);
+
+	// make sure every mesh that was loaded into the resource bank has GPU buffers
+	// before we try to draw with it
+	upload_pending_meshes();
+	upload_pending_textures();
+
+	// We bind another pipeline, this time the rectangle mesh one.
+	vkCmdBindPipeline(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline->vk_pipeline);
+
+	// bind a texture: use the first imported texture if there is one, otherwise fall
+	// back to the magenta/black checkerboard
+	VkImageView texture_view = gpu_textures.empty() ? _errorCheckerboardImage.vk_view : gpu_textures[0].vk_view;
+
+	VkDescriptorSet imageSet = get_current_frame()._frameDescriptors.allocate(device.vk_device, _singleImageDescriptorLayout);
+	{
+		Vulkan::DescriptorWriter writer;
+		writer.write_image(0, texture_view, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+		writer.update_set(device.vk_device, imageSet);
+	}
+
+	vkCmdBindDescriptorSets(cmd, VK_PIPELINE_BIND_POINT_GRAPHICS, mesh_pipeline->vk_layout, 0, 1, &imageSet, 0, nullptr);
+
+	// find first camera in scene to render with
+	auto engine_cameras = engine->registry.view<Ecs::InstanceComponent, Ecs::CameraComponent>();
+	auto first_camera = engine->registry.get<Ecs::CameraComponent>(engine_cameras.front());
+	auto first_camera_instance = engine->registry.get<Ecs::InstanceComponent>(engine_cameras.front());
+
+	glm::mat4 projection = glm::perspective(
+	    first_camera.field_of_view,
+	    (float)draw_extent.width / (float)draw_extent.height,
+	    0.1f,
+	    1000.0f);
+	projection[1][1] *= -1;
+
+	glm::mat4 camera_transform = projection * glm::inverse(first_camera_instance.transform);
+
+	// Draw every entity that has a mesh: each MeshComponent stores an index into the
+	// resource bank, which is kept index-aligned with gpu_meshes, so we can look up
+	// the GPU buffers directly and draw the geometry the same way the tutorial draws
+	// its single rectangle.
+	std::vector<MeshGeometry> &meshes = engine->resources.meshes;
+	auto view = engine->registry.view<Ecs::InstanceComponent, Ecs::MeshComponent>();
+	for (entt::entity entity : view) {
+		const Ecs::InstanceComponent &instance = view.get<Ecs::InstanceComponent>(entity);
+		const Ecs::MeshComponent &mesh = view.get<Ecs::MeshComponent>(entity);
+
+		if (mesh.mesh_index < 0 || (size_t)mesh.mesh_index >= gpu_meshes.size()) continue;
+
+		const Vulkan::GPUMeshBuffers &buffers = gpu_meshes[mesh.mesh_index];
+
+		// Then, we use push-constants to upload the vertexBufferAdress to the gpu. For the matrix, we use the
+		// entity's transform (it defaults to identity until we implement mesh transformations / a camera).
+		Vulkan::GPUDrawPushConstants push_constants;
+		push_constants.object_transform = instance.transform;
+		push_constants.camera_transform = camera_transform;
+		push_constants.vertexBuffer = buffers.vertex_buffer_address;
+
+		vkCmdPushConstants(cmd, mesh_pipeline->vk_layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(Vulkan::GPUDrawPushConstants), &push_constants);
+
+		// We then need to do a cmdBindIndexBuffer to bind the index buffer for graphics. Sadly there is no way of
+		// using device adress here, and you need to give it the VkBuffer and offsets.
+		vkCmdBindIndexBuffer(cmd, buffers.index_buffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+		// Last, we use vkCmdDrawIndexed to draw the mesh. This is the same as the vkCmdDraw, but it uses the
+		// currently bound index buffer to draw meshes.
+		uint32_t index_count = (uint32_t)meshes[mesh.mesh_index].indices.size();
+		vkCmdDrawIndexed(cmd, index_count, 1, 0, 0, 0);
+	}
 
 	vkCmdEndRendering(cmd);
 }

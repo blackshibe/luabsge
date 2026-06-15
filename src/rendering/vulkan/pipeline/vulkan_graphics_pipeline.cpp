@@ -34,7 +34,7 @@ Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(Vulkan::Device device, VkPi
 	// filled triangles
 	builder.set_polygon_mode(VK_POLYGON_MODE_FILL);
 	// no backface culling
-	builder.set_cull_mode(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	builder.set_cull_mode(VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
 	// no multisampling
 	builder.set_multisampling_none();
 	// no blending

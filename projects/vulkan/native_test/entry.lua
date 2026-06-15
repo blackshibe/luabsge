@@ -5,14 +5,6 @@
 local import = GLTF.import("asset/scene.glb")
 import.parent = Scene
 
-local test = Instance.new("Test")
-test.parent = Scene
-print("created instance:", test)
-
-for i, v in pairs(Scene.children) do
-	print("Child:", v.name)
-end
-
 local function draw_instance(instance)
 	local children = instance.children
 	local child_count = #children
@@ -38,8 +30,17 @@ local function draw_instance(instance)
 	end
 end
 
+local camera_position = { x = 0, y = 0, z = 0 }
+
 TODO_RENDER = function()
 	if ImGui.Begin("Data Model") then
+		local camera
+		for i, v in pairs(import.children) do
+			if v.name == "Camera" then
+				camera = v
+			end
+		end
+
 		local flags = ImGui.TableFlags_RowBg
 			+ ImGui.TableFlags_Borders
 			+ ImGui.TableFlags_Resizable
@@ -50,10 +51,17 @@ TODO_RENDER = function()
 			ImGui.TableSetupColumn("Parent", ImGui.TableColumnFlags_WidthFixed, 80)
 			ImGui.TableSetupColumn("Children", ImGui.TableColumnFlags_WidthFixed, 70)
 			ImGui.TableHeadersRow()
-
 			draw_instance(Scene)
-
 			ImGui.EndTable()
+
+			local _, x = ImGui.SliderFloat("X", camera_position.x, -1.0, 1.0)
+			local _, y = ImGui.SliderFloat("Y", camera_position.y, -1.0, 1.0)
+			local _, z = ImGui.SliderFloat("Z", camera_position.z, -100.0, 100.0)
+			camera_position.x, camera_position.y, camera_position.z = x, y, z
+
+			if camera then
+				-- camera.transform = Transform.new(Vec3.new(x, y, z))
+			end
 		end
 	end
 	ImGui.End()
@@ -63,15 +71,6 @@ end
 -- primary_camera.fov = 90 -- degrees
 -- primary_camera.near_clip = 0.1
 -- primary_camera.far_clip = 100
-
--- local secondary_camera = Camera.new()
--- secondary_camera.fov = 40 -- degrees
--- secondary_camera.near_clip = 0.1
--- secondary_camera.far_clip = 100
-
--- local texture = Image.new(COMMON_PATH .. "image/fox.jpg")
--- local texture_grid = Image.new(COMMON_PATH .. "image/grid_04.png")
--- local box = Mesh.new(COMMON_PATH .. "mesh/box.obj")
 
 -- local box_object = Object.new()
 -- box_object.transform = Mat4.new(1):translate(Vec3.new(0, 4, 0))

@@ -4,6 +4,18 @@
 
 cd "$(dirname "$0")" || exit 1
 
+rebuild=0
+for arg in "$@"; do
+	case "$arg" in
+		-r | --rebuild) rebuild=1 ;;
+		*)
+			echo "[build.sh] unknown argument: $arg"
+			echo "usage: build.sh [-r|--rebuild]"
+			exit 1
+			;;
+	esac
+done
+
 setup() {
 	command -v gcc >/dev/null 2>&1 || {
 		echo "[build.sh] gcc not found on PATH"
@@ -14,6 +26,12 @@ setup() {
 
 	cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DFETCHCONTENT_UPDATES_DISCONNECTED=ON
 }
+
+if [ "$rebuild" -eq 1 ]; then
+	echo "[build.sh] rebuild requested, rebuilding cmake"
+	setup
+fi
+
 
 if [ ! -f build/CMakeCache.txt ]; then
 	echo "[build.sh] not configured, configuring"

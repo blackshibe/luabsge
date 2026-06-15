@@ -5,9 +5,11 @@
 #include "include/imgui/imgui_impl_vulkan.h"
 #include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
 #include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
+#include "vulkan/vulkan_core.h"
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <span>
 #include <vector>
 
@@ -74,42 +76,41 @@ void Vulkan::Renderer::init_descriptors() {
 	std::vector<DescriptorAllocator::PoolSizeRatio> sizes = {{VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
 	global_descriptor_allocator.init_pool(device.vk_device, 10, sizes);
 
-	// the descriptor set layout for our compute draw: a single binding 0 of type
-	// storage image, visible to the compute stage
-	{
-		DescriptorLayoutBuilder builder;
-		builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
-		draw_image_descriptor_layout = builder.build(device.vk_device, VK_SHADER_STAGE_COMPUTE_BIT);
-	}
+	// // the descriptor set layout for our compute draw: a single binding 0 of type
+	// // storage image, visible to the compute stage
+	// DescriptorLayoutBuilder builder;
+	// builder.add_binding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+	// auto new_layout = builder.build(device.vk_device, VK_SHADER_STAGE_COMPUTE_BIT);
 
-	// allocate a descriptor set of that layout and point it at our draw image
-	draw_image_descriptors = global_descriptor_allocator.allocate(device.vk_device, draw_image_descriptor_layout);
+	// // allocate a descriptor set of that layout and point it at our draw image
+	// auto draw_image_descriptors = global_descriptor_allocator.allocat e(device.vk_device, new_layout);
 
-	VkDescriptorImageInfo imgInfo = {};
-	imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-	imgInfo.imageView = draw_image.vk_view;
+	// VkDescriptorImageInfo imgInfo = {};
+	// imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+	// imgInfo.imageView = draw_image.vk_view;
 
-	VkWriteDescriptorSet drawImageWrite = {};
-	drawImageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	drawImageWrite.pNext = nullptr;
-	drawImageWrite.dstBinding = 0;
-	drawImageWrite.dstSet = draw_image_descriptors;
-	drawImageWrite.descriptorCount = 1;
-	drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	drawImageWrite.pImageInfo = &imgInfo;
+	// VkWriteDescriptorSet drawImageWrite = {};
+	// drawImageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	// drawImageWrite.pNext = nullptr;
+	// drawImageWrite.dstBinding = 0;
+	// drawImageWrite.dstSet = draw_image_descriptors;
+	// drawImageWrite.descriptorCount = 1;
+	// drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+	// drawImageWrite.pImageInfo = &imgInfo;
 
-	vkUpdateDescriptorSets(device.vk_device, 1, &drawImageWrite, 0, nullptr);
+	// vkUpdateDescriptorSets(device.vk_device, 1, &drawImageWrite, 0, nullptr);
 
-	lifetime_deletion_queue.push_function([this]() {
-		global_descriptor_allocator.destroy_pool(device.vk_device);
-		vkDestroyDescriptorSetLayout(device.vk_device, draw_image_descriptor_layout, nullptr);
-	});
+	// lifetime_deletion_queue.push_function([this]() {
+	// 	global_descriptor_allocator.destroy_pool(device.vk_device);
+	// 	vkDestroyDescriptorSetLayout(device.vk_device, draw_image_descriptor_layout, nullptr);
+	// });
 
 	// each frame gets its own pool for the transient combined-image-sampler sets we
 	// allocate while recording draws; it is reset at the start of every frame
-	std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1}};
+	std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1},
+	                                                               {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
 	for (int i = 0; i < FRAME_OVERLAP; i++) {
-		_frames[i]._frameDescriptors.init_pool(device.vk_device, 1000, frame_sizes);
+		_frames[i].frame_descriptors.init_pool(device.vk_device, 1000, frame_sizes);
 	}
 
 	// nearest-filter sampler shared by every texture bind
@@ -136,84 +137,90 @@ void Vulkan::Renderer::init_descriptors() {
 }
 
 void Vulkan::Renderer::init_pipelines() {
-	// COMPUTE PIPELINES
-	init_background_pipeline();
-
-	// GRAPHICS PIPELINES
-	init_triangle_pipeline();
 	// Now we call this function from our main init_pipelines() function.
 	init_mesh_pipeline();
-}
 
-void Vulkan::Renderer::init_background_pipeline() {
-	// the pipeline layout only needs the draw-image descriptor set layout; this shader
-	// has no push constants
-	VkPipelineLayoutCreateInfo layout_info = {};
-	layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	layout_info.pNext = nullptr;
-	layout_info.pSetLayouts = &draw_image_descriptor_layout;
-	layout_info.setLayoutCount = 1;
+	// Passes 1 sampler to shader
+	DescriptorLayoutBuilder prepass_builder;
+	VkDescriptorSetLayout prepass_image_layout = prepass_builder
+	                                                 .add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+	                                                 .build(device.vk_device, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	gradient_pipeline = std::make_unique<Vulkan::pipeline::ComputePipeline>(device, layout_info, "shader/gradient.comp.spv");
-
-	// idk how else to do this
-	lifetime_deletion_queue.push_function([this]() {
-		Vulkan::pipeline::ComputePipeline *pipeline = this->gradient_pipeline.get();
-		if (pipeline != NULL) pipeline->destroy();
-	});
-}
-
-void Vulkan::Renderer::init_triangle_pipeline() {
-	// build the pipeline layout that controls the inputs/outputs of the shader. we are
-	// not using descriptor sets or other systems yet, so no need to use anything other
-	// than empty default.
-	VkPipelineLayoutCreateInfo layout_info = Vulkan::init::pipeline_layout_create_info();
-
-	// connect the image format we will draw into (the draw image) so the graphics
-	// pipeline targets the same off-swapchain image the compute background wrote to
-	triangle_pipeline = std::make_unique<Vulkan::pipeline::GraphicsPipeline>(
-	    device, layout_info, "shader/colored_triangle.vert.spv", "shader/colored_triangle.frag.spv", draw_image.format);
-
-	lifetime_deletion_queue.push_function([this]() {
-		Vulkan::pipeline::GraphicsPipeline *pipeline = this->triangle_pipeline.get();
-		if (pipeline != NULL) pipeline->destroy();
-	});
-}
-
-void Vulkan::Renderer::init_mesh_pipeline() {
-	// Its going to be mostly a copypaste of init_triangle_pipeline()
-	DescriptorLayoutBuilder builder;
-	builder.add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
-	_singleImageDescriptorLayout = builder.build(device.vk_device, VK_SHADER_STAGE_FRAGMENT_BIT);
+	// binding 0: sampled input texture, binding 1: storage image written by the shader
+	DescriptorLayoutBuilder lighting_builder;
+	VkDescriptorSetLayout lighting_image_layout = lighting_builder
+	                                                  .add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+	                                                  .add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
+	                                                  .add_binding(2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+	                                                  .build(device.vk_device, VK_SHADER_STAGE_COMPUTE_BIT);
 
 	// We change the vertex shader to load colored_triangle_mesh.vert.spv, and we modify the pipeline layout to give
 	// it the push constants struct we defined above. The vertex data is reached through a buffer device address in
 	// the push constants, so the layout needs no descriptor sets, only the push-constant range.
-	VkPushConstantRange bufferRange{};
-	bufferRange.offset = 0;
-	bufferRange.size = sizeof(Vulkan::GPUDrawPushConstants);
-	bufferRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	VkPushConstantRange buffer_range = Vulkan::init::push_constant_range<Vulkan::GPUDrawPrepassConstants>(VK_SHADER_STAGE_VERTEX_BIT, 0);
+	VkPushConstantRange lighting_range = Vulkan::init::push_constant_range<Vulkan::GPUDrawLightingConstants>(VK_SHADER_STAGE_COMPUTE_BIT, 0);
 
-	VkPipelineLayoutCreateInfo layout_info = Vulkan::init::pipeline_layout_create_info();
-	layout_info.pPushConstantRanges = &bufferRange;
-	layout_info.pushConstantRangeCount = 1;
-	layout_info.pSetLayouts = &_singleImageDescriptorLayout;
-	layout_info.setLayoutCount = 1;
+	VkPipelineLayoutCreateInfo prepass_draw_geometry_layout = Vulkan::init::pipeline_layout_create_info();
+	prepass_draw_geometry_layout.pPushConstantRanges = &buffer_range;
+	prepass_draw_geometry_layout.pushConstantRangeCount = 1;
+	prepass_draw_geometry_layout.pSetLayouts = &prepass_image_layout;
+	prepass_draw_geometry_layout.setLayoutCount = 1;
 
-	// For the rest of the function, we do the same as in the triangle pipeline function, but changing the pipeline
-	// layout and the pipeline name to be the new ones. We keep colored_triangle.frag as the fragment shader, and the
-	// GraphicsPipeline builder applies the same triangle-list / fill / no-cull / no-blend / no-depth state.
-	mesh_pipeline = std::make_unique<Vulkan::pipeline::GraphicsPipeline>(
-	    device,
-	    layout_info,
-	    "shader/colored_triangle_mesh.vert.spv",
-	    "shader/tex_image.frag.spv",
-	    draw_image.format);
+	VkPipelineLayoutCreateInfo pass_draw_lighting_layout = Vulkan::init::pipeline_layout_create_info();
+	pass_draw_lighting_layout.pPushConstantRanges = &lighting_range;
+	pass_draw_lighting_layout.pushConstantRangeCount = 1;
+	pass_draw_lighting_layout.pSetLayouts = &lighting_image_layout;
+	pass_draw_lighting_layout.setLayoutCount = 1;
 
-	lifetime_deletion_queue.push_function([this]() {
-		Vulkan::pipeline::GraphicsPipeline *pipeline = this->mesh_pipeline.get();
-		if (pipeline != NULL) pipeline->destroy();
+	VkExtent3D extent = draw_image.extent;
+
+	// TODO draw image format dependent on pipeline
+	pipelines = std::unique_ptr<Vulkan::EnginePipelines>(new Vulkan::EnginePipelines{
+	    .image_depth = create_image(extent,
+		                            VK_FORMAT_R8G8B8A8_UNORM,
+		                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+		                            false),
+	    .prepass_depth = Vulkan::pipeline::GraphicsPipeline(
+	        "depth_prepass",
+	        device,
+	        prepass_draw_geometry_layout,
+	        "shader/prepass/depth.vert.spv",
+	        "shader/prepass/depth.frag.spv",
+	        VK_FORMAT_R8G8B8A8_UNORM),
+
+	    .image_albedo = create_image(extent,
+		                             VK_FORMAT_R8G8B8A8_UNORM,
+		                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+		                             false),
+
+	    .prepass_albedo = Vulkan::pipeline::GraphicsPipeline(
+	        "albedo_prepass",
+	        device,
+	        prepass_draw_geometry_layout,
+	        "shader/prepass/albedo.vert.spv",
+	        "shader/prepass/albedo.frag.spv",
+	        VK_FORMAT_R8G8B8A8_UNORM),
+
+	    .image_lighting = create_image(
+	        extent,
+	        VK_FORMAT_R8G8B8A8_UNORM,
+	        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+	        false),
+
+	    .pass_lighting = Vulkan::pipeline::ComputePipeline(
+	        "lighting_pass",
+	        device,
+	        pass_draw_lighting_layout,
+	        "shader/pass/lighting.comp.spv"),
 	});
+
+	// lifetime_deletion_queue.push_function([this]() {
+	// 	Vulkan::pipeline::GraphicsPipeline *pipeline = this->mesh_pipeline.get();
+	// 	if (pipeline != NULL) pipeline->destroy();
+	// });
+}
+
+void Vulkan::Renderer::init_mesh_pipeline() {
 }
 
 void Vulkan::Renderer::init_imgui(GLFWwindow *glfw_window) {

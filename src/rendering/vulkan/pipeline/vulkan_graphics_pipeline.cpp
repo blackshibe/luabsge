@@ -2,10 +2,17 @@
 
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
 #include "rendering/vulkan/pipeline/vulkan_pipeline_shading.h"
+#include "util/output.h"
 #include "vulkan/vulkan_core.h"
 #include <stdexcept>
 
-Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format) {
+static Output output;
+
+Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format) {
+	output.mark();
+
+	this->name = name;
+
 	// We will start by loading the 2 shaders into VkShaderModules, like we did with the
 	// compute shader, but this time more shaders.
 	VkShaderModule vertex_shader;
@@ -47,7 +54,9 @@ Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(Vulkan::Device device, VkPi
 	builder.set_depth_format(VK_FORMAT_UNDEFINED);
 
 	// finally build the pipeline
-	vk_pipeline = builder.build_pipeline(device.vk_device);
+	vk_pipeline = builder.build_pipeline(name, device.vk_device);
+
+	vk_descriptor_layout = *vk_layout_info.pSetLayouts;
 
 	// clean structures: the shader modules are only needed to build the pipeline
 	vkDestroyShaderModule(device.vk_device, fragment_shader, nullptr);
@@ -60,7 +69,9 @@ Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(Vulkan::Device device, VkPi
 	});
 }
 
-VkPipeline Vulkan::pipeline::GraphicsPipelineBuilder::build_pipeline(VkDevice device) {
+VkPipeline Vulkan::pipeline::GraphicsPipelineBuilder::build_pipeline(std::string name, VkDevice device) {
+	output.mark();
+
 	// make viewport state from our stored viewport and scissor.
 	// at the moment we wont support multiple viewports or scissors
 	VkPipelineViewportStateCreateInfo viewportState = {};
@@ -113,6 +124,7 @@ VkPipeline Vulkan::pipeline::GraphicsPipelineBuilder::build_pipeline(VkDevice de
 	// its easy to error out on create graphics pipeline, so we handle it a bit
 	// better than the common VK_CHECK case
 	VkPipeline newPipeline;
+	output.info("building pipeline %s", name.data());
 	if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &newPipeline) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create pipeline");
 	} else {

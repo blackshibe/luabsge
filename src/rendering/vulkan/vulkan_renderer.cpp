@@ -15,8 +15,8 @@ Vulkan::Renderer::~Renderer() {
 		// free any per-frame resources before destroying the frame data
 		_frames[i]._deletionQueue.flush();
 
-		if (_frames[i]._frameDescriptors.pool != VK_NULL_HANDLE)
-			_frames[i]._frameDescriptors.destroy_pool(device.vk_device);
+		if (_frames[i].frame_descriptors.pool != VK_NULL_HANDLE)
+			_frames[i].frame_descriptors.destroy_pool(device.vk_device);
 
 		if (_frames[i]._commandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(device.vk_device, _frames[i]._commandPool, nullptr);

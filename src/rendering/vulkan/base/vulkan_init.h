@@ -43,4 +43,12 @@ namespace Vulkan::init {
 
 	VkPipelineLayoutCreateInfo pipeline_layout_create_info();
 
+	template <typename T>
+	constexpr VkPushConstantRange push_constant_range(VkShaderStageFlags stages, uint32_t offset = 0) {
+		VkPushConstantRange range{};
+		range.offset = offset;
+		range.size = sizeof(T);
+		range.stageFlags = stages;
+		return range;
+	}
 }

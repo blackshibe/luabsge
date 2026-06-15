@@ -1,7 +1,7 @@
 #include "rendering/vulkan/vulkan.h"
 #include "vulkan/vulkan_core.h"
 
-void Vulkan::DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptorType type) {
+Vulkan::DescriptorLayoutBuilder Vulkan::DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptorType type) {
 	// for now we only need the binding number and descriptor type
 	VkDescriptorSetLayoutBinding newbind = {};
 	newbind.binding = binding;
@@ -9,6 +9,8 @@ void Vulkan::DescriptorLayoutBuilder::add_binding(uint32_t binding, VkDescriptor
 	newbind.descriptorType = type;
 
 	bindings.push_back(newbind);
+
+	return *this;
 }
 
 void Vulkan::DescriptorLayoutBuilder::clear() {
@@ -59,16 +61,16 @@ void Vulkan::DescriptorAllocator::destroy_pool(VkDevice device) {
 }
 
 VkDescriptorSet Vulkan::DescriptorAllocator::allocate(VkDevice device, VkDescriptorSetLayout layout) {
-	VkDescriptorSetAllocateInfo allocInfo = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
-	allocInfo.pNext = nullptr;
-	allocInfo.descriptorPool = pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &layout;
+	VkDescriptorSetAllocateInfo allocation_info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+	allocation_info.pNext = nullptr;
+	allocation_info.descriptorPool = pool;
+	allocation_info.descriptorSetCount = 1;
+	allocation_info.pSetLayouts = &layout;
 
-	VkDescriptorSet ds;
-	VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, &ds));
+	VkDescriptorSet descriptor_set;
+	VK_CHECK(vkAllocateDescriptorSets(device, &allocation_info, &descriptor_set));
 
-	return ds;
+	return descriptor_set;
 }
 
 void Vulkan::DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type) {

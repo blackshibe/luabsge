@@ -10,10 +10,13 @@ namespace Vulkan::pipeline {
 		DeletionQueue queue;
 
 	  public:
+		std::string name;
+
 		VkPipeline vk_pipeline = VK_NULL_HANDLE;
 		VkPipelineLayout vk_layout = VK_NULL_HANDLE;
+		VkDescriptorSetLayout vk_descriptor_layout = VK_NULL_HANDLE;
 
-		GraphicsPipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format);
+		GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format);
 
 		void destroy();
 	};
@@ -35,7 +38,7 @@ namespace Vulkan::pipeline {
 		VkPipelineRenderingCreateInfo render_info;
 
 		GraphicsPipelineBuilder() { clear(); }
-		VkPipeline build_pipeline(VkDevice device);
+		VkPipeline build_pipeline(std::string name, VkDevice device);
 		void set_shaders(VkShaderModule vertexShader, VkShaderModule fragmentShader);
 		void set_input_topology(VkPrimitiveTopology topology);
 		void set_polygon_mode(VkPolygonMode mode);

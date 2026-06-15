@@ -1,0 +1,15 @@
+#version 450
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(set = 0, binding = 0) uniform sampler2D displayTexture;
+layout(set = 0, binding = 1) uniform sampler2D depthTexture;
+layout(set = 0, binding = 2, rgba16f) uniform writeonly image2D outImage;
+
+void main() {
+    ivec2 coord = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size  = imageSize(outImage);
+    if (coord.x >= size.x || coord.y >= size.y) return;
+
+    vec2 uv = (vec2(coord) + 0.5) / vec2(size);
+    imageStore(outImage, coord, texture(displayTexture, uv) + texture(depthTexture, uv));
+}

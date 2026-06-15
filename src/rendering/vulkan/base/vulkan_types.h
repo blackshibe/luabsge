@@ -31,10 +31,14 @@ namespace Vulkan {
 	};
 
 	// push constants for our mesh object draws
-	struct GPUDrawPushConstants {
+	struct GPUDrawPrepassConstants {
 		glm::mat4 camera_transform;
 		glm::mat4 object_transform;
 		VkDeviceAddress vertexBuffer;
+	};
+
+	struct GPUDrawLightingConstants {
+		glm::mat4 camera_transform;
 	};
 
 }

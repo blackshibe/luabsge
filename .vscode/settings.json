@@ -3,6 +3,7 @@
 	"cmake.configureOnOpen": false,
 	"cmake.configureOnEdit": false,
 	"cmake.automaticReconfigure": false,
+	"glsllint.glslangValidatorArgs": ["--target-env", "vulkan1.2"],
 	"[cpp]": {
 		"editor.defaultFormatter": "KylinIdeTeam.kylin-clangd",
 		"editor.formatOnSave": true

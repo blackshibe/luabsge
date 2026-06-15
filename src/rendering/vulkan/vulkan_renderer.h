@@ -20,6 +20,21 @@ namespace Vulkan {
 
 	constexpr unsigned int FRAME_OVERLAP = 2;
 
+	// todo move
+	struct EnginePipelines {
+	  public:
+		AllocatedImage image_depth;
+		Vulkan::pipeline::GraphicsPipeline prepass_depth;
+		// Vulkan::pipeline::GraphicsPipeline prepass_position;
+		// Vulkan::pipeline::GraphicsPipeline prepass_normal;
+
+		AllocatedImage image_albedo;
+		Vulkan::pipeline::GraphicsPipeline prepass_albedo;
+
+		AllocatedImage image_lighting;
+		Vulkan::pipeline::ComputePipeline pass_lighting;
+	};
+
 	struct Frame {
 		VkCommandPool _commandPool = VK_NULL_HANDLE;
 		VkCommandBuffer _mainCommandBuffer = VK_NULL_HANDLE;
@@ -33,11 +48,11 @@ namespace Vulkan {
 
 		// per-frame descriptor pool, reset at the start of the frame so transient sets
 		// (like the texture bound for a draw) don't accumulate across frames
-		DescriptorAllocator _frameDescriptors;
+		DescriptorAllocator frame_descriptors;
 	};
 
 	class Renderer : AbstractRenderer {
-		// the engine owns the ECS registry and the mesh resource bank we draw from
+		// the engine owns the ECS registry and the mesh resource bank
 		EngineInstance *engine = nullptr;
 
 		Vulkan::Instance instance;
@@ -65,9 +80,6 @@ namespace Vulkan {
 		VkExtent2D draw_extent = {};
 
 		DescriptorAllocator global_descriptor_allocator;
-		VkDescriptorSet draw_image_descriptors = VK_NULL_HANDLE;
-		VkDescriptorSetLayout draw_image_descriptor_layout = VK_NULL_HANDLE;
-		VkDescriptorSetLayout _singleImageDescriptorLayout;
 
 		// nearest-filter sampler used when binding textures for mesh draws
 		VkSampler _defaultSamplerNearest = VK_NULL_HANDLE;
@@ -75,9 +87,9 @@ namespace Vulkan {
 		// magenta/black checkerboard bound when a mesh has no texture to sample
 		AllocatedImage _errorCheckerboardImage;
 
-		std::unique_ptr<Vulkan::pipeline::ComputePipeline> gradient_pipeline;
-		std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> triangle_pipeline;
-		std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> mesh_pipeline;
+		std::unique_ptr<EnginePipelines> pipelines;
+		// std::unique_ptr<Vulkan::pipeline::ComputePipeline> gradient_pipeline;
+		// std::unique_ptr<Vulkan::pipeline::GraphicsPipeline> triangle_pipeline;
 
 		// immediate-submit structures: a one-off command buffer + fence used to run
 		// GPU work (like staging-buffer copies) synchronously, outside the frame loop
@@ -106,8 +118,8 @@ namespace Vulkan {
 		void init_imgui(GLFWwindow *glfw_window);
 
 		// drawing
-		void draw_pipeline(VkCommandBuffer vk_buffer, Vulkan::pipeline::ComputePipeline pipeline);
-		void draw_geometry(VkCommandBuffer cmd);
+		void draw_pipeline(VkCommandBuffer vk_buffer, Vulkan::pipeline::ComputePipeline pipeline, VkDescriptorSet descriptor_set);
+		void draw_geometry_pipeline(VkCommandBuffer vk_buffer, VkImageView target_view, Vulkan::pipeline::GraphicsPipeline pipeline);
 		void draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view);
 
 		// buffer

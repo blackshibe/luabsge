@@ -4,9 +4,10 @@ Vulkan game engine with Lua backend.
 
 ## TODO
 
-- https://vkguide.dev/docs/new_chapter_1/vulkan_commands_code/
 - Write this README
 - Sensible namespacing for engine elements
+- Skybox
+- Lighting
 
 ## Autocomplete
 

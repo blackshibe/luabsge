@@ -240,9 +240,9 @@ if(NOT USE_EMSCRIPTEN)
         fetchcontent_makeavailable(glslang)
 
         file(GLOB_RECURSE SHADER_SOURCES
-                "${CMAKE_SOURCE_DIR}/projects/*.comp"
-                "${CMAKE_SOURCE_DIR}/projects/*.vert"
-                "${CMAKE_SOURCE_DIR}/projects/*.frag")
+                "${CMAKE_SOURCE_DIR}/projects/**.comp"
+                "${CMAKE_SOURCE_DIR}/projects/**.vert"
+                "${CMAKE_SOURCE_DIR}/projects/**.frag")
 
         set(SPV_OUTPUTS "")
         foreach(SHADER ${SHADER_SOURCES})

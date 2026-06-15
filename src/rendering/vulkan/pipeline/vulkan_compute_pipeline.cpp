@@ -2,15 +2,25 @@
 
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
 #include "rendering/vulkan/pipeline/vulkan_pipeline_shading.h"
+#include "util/output.h"
 #include "vulkan/vulkan_core.h"
 
-Vulkan::pipeline::ComputePipeline::ComputePipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *shader_path) {
+static Output output;
+
+Vulkan::pipeline::ComputePipeline::ComputePipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *shader_path) {
+	output.mark();
+
+	this->name = name;
+
 	VkShaderModule vk_draw_shader;
 	if (!Vulkan::pipeline::shading::load_shader_module(shader_path, device.vk_device, &vk_draw_shader)) {
 		throw std::runtime_error("failed to load shader/gradient.comp.spv (was the Shaders target built?)");
 	}
 
+	// create layout
 	VK_CHECK(vkCreatePipelineLayout(device.vk_device, &vk_layout_info, nullptr, &vk_layout));
+
+	vk_descriptor_layout = *vk_layout_info.pSetLayouts;
 
 	// connect the shader module into a compute stage. pName is the entry point.
 	VkPipelineShaderStageCreateInfo stage_info = {};
@@ -26,6 +36,7 @@ Vulkan::pipeline::ComputePipeline::ComputePipeline(Vulkan::Device device, VkPipe
 	create_info.layout = vk_layout;
 	create_info.stage = stage_info;
 
+	output.info("creating pipeline %s", name.data());
 	VK_CHECK(vkCreateComputePipelines(device.vk_device, VK_NULL_HANDLE, 1, &create_info, nullptr, &vk_pipeline));
 
 	// destroy the layout (and the pipeline, if it gets created) at shutdown

@@ -8,12 +8,15 @@ namespace Vulkan::pipeline {
 
 	class ComputePipeline {
 		DeletionQueue queue;
+		std::string name;
 
 	  public:
 		VkPipeline vk_pipeline = VK_NULL_HANDLE;
 		VkPipelineLayout vk_layout = VK_NULL_HANDLE;
+		VkDescriptorSet vk_descriptor = VK_NULL_HANDLE;
+		VkDescriptorSetLayout vk_descriptor_layout = VK_NULL_HANDLE;
 
-		ComputePipeline(Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout, const char *shader_path);
+		ComputePipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout, const char *shader_path);
 
 		void destroy();
 	};

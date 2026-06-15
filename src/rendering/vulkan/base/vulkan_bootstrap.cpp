@@ -1,11 +1,13 @@
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
 
 #include "util/output.h"
+#include "vulkan/vulkan_core.h"
 
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <set>
+#include <stdexcept>
 
 static Output output;
 
@@ -30,12 +32,15 @@ namespace Vulkan::Bootstrap {
 	    const VkDebugUtilsMessengerCallbackDataEXT *data,
 	    void *user_data) {
 
-		if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
+		if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
 			output.error("%s", data->pMessage);
-		else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
+		} else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 			output.warn("%s", data->pMessage);
-		else
+		else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
 			output.info("%s", data->pMessage);
+		} else if (severity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
+			output.comment("%s", data->pMessage);
+		}
 
 		return VK_FALSE;
 	}

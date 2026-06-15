@@ -2,6 +2,9 @@
 
 -- https://pthom.github.io/imgui_explorer/
 
+-- https://google.github.io/filament/Filament.md.html
+-- https://learnopengl.com/Advanced-Lighting/Deferred-Shading
+
 local import = GLTF.import("asset/scene.glb")
 import.parent = Scene
 
@@ -56,21 +59,16 @@ TODO_RENDER = function()
 
 			local _, x = ImGui.SliderFloat("X", camera_position.x, -1.0, 1.0)
 			local _, y = ImGui.SliderFloat("Y", camera_position.y, -1.0, 1.0)
-			local _, z = ImGui.SliderFloat("Z", camera_position.z, -100.0, 100.0)
+			local _, z = ImGui.SliderFloat("Z", camera_position.z, -10.0, 10.0)
 			camera_position.x, camera_position.y, camera_position.z = x, y, z
 
 			if camera then
-				-- camera.transform = Transform.new(Vec3.new(x, y, z))
+				camera.transform = Transform.new(Vec3.new(x, y, z))
 			end
 		end
 	end
 	ImGui.End()
 end
-
--- local primary_camera = Camera.new()
--- primary_camera.fov = 90 -- degrees
--- primary_camera.near_clip = 0.1
--- primary_camera.far_clip = 100
 
 -- local box_object = Object.new()
 -- box_object.transform = Mat4.new(1):translate(Vec3.new(0, 4, 0))
@@ -83,12 +81,6 @@ end
 -- top_object:add_component(ECS_MESH_COMPONENT, { mesh = box, color = Vec4.new(1, 1, 1, 0.5) })
 -- top_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture })
 -- top_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box, is_dynamic = true })
-
--- local floor_object = Object.new()
--- floor_object.transform = Mat4.new(1):scale(Vec3.new(4, 0.1, 4))
--- floor_object:add_component(ECS_MESH_COMPONENT, { mesh = box })
--- floor_object:add_component(ECS_MESH_TEXTURE_COMPONENT, { texture = texture_grid })
--- floor_object:add_component(ECS_PHYSICS_COMPONENT, { mesh = box, is_dynamic = false })
 
 -- local framebuffer = Framebuffer.new(512, 512)
 -- local base_matrix = Mat4.new(1)
@@ -120,17 +112,6 @@ end
 
 -- 	secondary_camera.transform =
 -- 		Mat4.new(1):translate(Vec3.new(0, 0, -10)):rotate(0.25, Vec3.new(1, 0, 0)):rotate(0.25, Vec3.new(0, 0.5, 0))
-
--- 	framebuffer:clear()
-
--- 	-- TODO bind(function() end) instead
--- 	World.rendering.camera = secondary_camera
--- 	framebuffer:bind(function()
--- 		render_pass()
--- 	end)
-
--- 	World.rendering.camera = primary_camera
--- 	render_pass()
 
 -- 	if ImGui.Begin("LuaBSGE ImGui Demo") then
 -- 		ImGui.Image(framebuffer.texture_id, Vec2.new(300, 300), false)

@@ -1,11 +1,11 @@
+#include "rendering/vulkan/base/image/vulkan_image.h"
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
 #include "rendering/vulkan/base/vulkan_descriptors.h"
-#include "rendering/vulkan/base/vulkan_images.h"
 #include "rendering/vulkan/base/vulkan_init.h"
 #include "rendering/vulkan/base/vulkan_types.h"
 
-#include <volk.h>
 #include <stdexcept>
+#include <volk.h>
 
 #define VK_CHECK(x)                                                                 \
 	do {                                                                            \

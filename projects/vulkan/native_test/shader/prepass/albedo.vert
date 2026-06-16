@@ -3,7 +3,8 @@
 #extension GL_EXT_buffer_reference : require
 
 layout (location = 0) out vec3 outColor;
-layout (location = 1) out vec2 outUV;
+layout (location = 1) out float outHasTexture;
+layout (location = 2) out vec2 outUV;
 
 struct Vertex {
 	vec3 position;
@@ -21,6 +22,8 @@ layout( push_constant ) uniform constants {
 	mat4 camera_matrix;
 	mat4 object_matrix;
 	VertexBuffer vertexBuffer;
+	bool has_texture;
+	vec3 color;
 } PushConstants;
 
 void main() {
@@ -28,7 +31,8 @@ void main() {
 	Vertex v = PushConstants.vertexBuffer.vertices[gl_VertexIndex];
 
 	gl_Position = PushConstants.camera_matrix * PushConstants.object_matrix * vec4(v.position, 1.0f);
-	outColor = v.color.xyz;
+	outColor = PushConstants.color; // v.color.xyz *
+	outHasTexture = PushConstants.has_texture ? 1.0f : 0.0f;
 	outUV.x = v.uv_x;
 	outUV.y = v.uv_y;
 }

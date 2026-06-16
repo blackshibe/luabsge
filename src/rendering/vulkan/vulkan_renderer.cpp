@@ -1,6 +1,7 @@
 #include "rendering/vulkan/vulkan_renderer.h"
 
 #include "engine/engine.h"
+#include "vulkan/vulkan_core.h"
 
 #include <stdexcept>
 
@@ -15,8 +16,7 @@ Vulkan::Renderer::~Renderer() {
 		// free any per-frame resources before destroying the frame data
 		_frames[i]._deletionQueue.flush();
 
-		if (_frames[i].frame_descriptors.pool != VK_NULL_HANDLE)
-			_frames[i].frame_descriptors.destroy_pool(device.vk_device);
+		_frames[i].frame_descriptors.destroy_pools(device.vk_device);
 
 		if (_frames[i]._commandPool != VK_NULL_HANDLE)
 			vkDestroyCommandPool(device.vk_device, _frames[i]._commandPool, nullptr);
@@ -144,7 +144,7 @@ void Vulkan::Renderer::create_swapchain(uint32_t width, uint32_t height) {
 	Vulkan::Bootstrap::SwapchainBuilder swapchain_builder(device, surface);
 
 	auto swapchain_return = swapchain_builder
-	                            .set_desired_format(VkSurfaceFormatKHR{.format = VK_FORMAT_B8G8R8A8_UNORM, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
+	                            .set_desired_format(VkSurfaceFormatKHR{.format = VK_FORMAT_R8G8B8A8_UNORM, .colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR})
 	                            .set_desired_present_mode(VK_PRESENT_MODE_FIFO_KHR)
 	                            .set_desired_extent(width, height)
 	                            .set_image_usage_flags(VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT)

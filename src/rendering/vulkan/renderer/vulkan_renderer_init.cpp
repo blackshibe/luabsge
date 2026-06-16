@@ -3,8 +3,8 @@
 
 #include "include/imgui/imgui_impl_glfw.h"
 #include "include/imgui/imgui_impl_vulkan.h"
-#include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
-#include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
+#include "rendering/vulkan/pipeline/compute/vulkan_compute_pipeline.h"
+#include "rendering/vulkan/pipeline/geometry/vulkan_geometry_pipeline.h"
 #include "vulkan/vulkan_core.h"
 #include <array>
 #include <cstddef>
@@ -107,10 +107,11 @@ void Vulkan::Renderer::init_descriptors() {
 
 	// each frame gets its own pool for the transient combined-image-sampler sets we
 	// allocate while recording draws; it is reset at the start of every frame
-	std::vector<DescriptorAllocator::PoolSizeRatio> frame_sizes = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1},
-	                                                               {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1}};
+	std::vector<DescriptorAllocatorGrowable::PoolSizeRatio> frame_sizes = {{VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1},
+	                                                                       {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1},
+	                                                                       {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 2}};
 	for (int i = 0; i < FRAME_OVERLAP; i++) {
-		_frames[i].frame_descriptors.init_pool(device.vk_device, 1000, frame_sizes);
+		_frames[i].frame_descriptors.init(device.vk_device, 1000, frame_sizes);
 	}
 
 	// nearest-filter sampler shared by every texture bind
@@ -146,12 +147,15 @@ void Vulkan::Renderer::init_pipelines() {
 	                                                 .add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 	                                                 .build(device.vk_device, VK_SHADER_STAGE_FRAGMENT_BIT);
 
-	// binding 0: sampled input texture, binding 1: storage image written by the shader
+	// binding 0/1: sampled albedo+depth prepass, binding 2: storage image written by the
+	// shader, binding 3: directional lights buffer, binding 4: point lights buffer
 	DescriptorLayoutBuilder lighting_builder;
 	VkDescriptorSetLayout lighting_image_layout = lighting_builder
 	                                                  .add_binding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 	                                                  .add_binding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER)
 	                                                  .add_binding(2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE)
+	                                                  .add_binding(3, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
+	                                                  .add_binding(4, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER)
 	                                                  .build(device.vk_device, VK_SHADER_STAGE_COMPUTE_BIT);
 
 	// We change the vertex shader to load colored_triangle_mesh.vert.spv, and we modify the pipeline layout to give
@@ -174,24 +178,54 @@ void Vulkan::Renderer::init_pipelines() {
 
 	VkExtent3D extent = draw_image.extent;
 
+	// for prepasses:
+	// 	vkCmdBindPipeline(vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.vk_pipeline);
+
+	// // bind a texture: use the first imported texture if there is one, otherwise fall
+	// // back to the magenta/black checkerboard
+	// VkImageView texture_view = gpu_textures.empty() ? _errorCheckerboardImage.vk_view : gpu_textures[0].vk_view;
+
+	// VkDescriptorSet imageSet = get_current_frame().frame_descriptors.allocate(device.vk_device, pipeline.vk_descriptor_layout);
+	// {
+	// 	Vulkan::DescriptorWriter writer;
+	// 	writer.write_image(0, texture_view, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+
+	// 	writer.update_set(device.vk_device, imageSet);
+	// }
+
+	// vkCmdBindDescriptorSets(vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline.vk_layout, 0, 1, &imageSet, 0, nullptr);
+
+	// Vulkan::image::transition_image(vk_command_buffer, pipelines.get()->image_depth.vk_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	// Vulkan::Renderer::draw_geometry_pipeline(vk_command_buffer, pipelines.get()->image_depth.vk_view, pipelines.get()->prepass_depth);
+
+	// for main
+
+	// pipelines->pass_lighting.descriptor.write_image(0, pipelines.get()->image_albedo.vk_view, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	// pipelines->pass_lighting.descriptor.write_image(1, pipelines.get()->image_depth.vk_view, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
+	// pipelines->pass_lighting.descriptor.write_image(2, draw_image.vk_view, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE);
+
+	// Vulkan::image::transition_image(vk_command_buffer, pipelines.get()->image_albedo.vk_image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	// Vulkan::image::transition_image(vk_command_buffer, pipelines.get()->image_depth.vk_image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	// Vulkan::image::transition_image(vk_command_buffer, draw_image.vk_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+
 	// TODO draw image format dependent on pipeline
 	pipelines = std::unique_ptr<Vulkan::EnginePipelines>(new Vulkan::EnginePipelines{
-	    .image_depth = create_image(extent,
-		                            VK_FORMAT_R8G8B8A8_UNORM,
-		                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-		                            false),
 	    .prepass_depth = Vulkan::pipeline::GraphicsPipeline(
 	        "depth_prepass",
 	        device,
 	        prepass_draw_geometry_layout,
 	        "shader/prepass/depth.vert.spv",
 	        "shader/prepass/depth.frag.spv",
-	        VK_FORMAT_R8G8B8A8_UNORM),
+	        create_image(extent,
+			             VK_FORMAT_R8G8B8A8_UNORM,
+			             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			             false),
+	        create_image(extent,
+			             VK_FORMAT_D32_SFLOAT,
+			             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			             false)
 
-	    .image_albedo = create_image(extent,
-		                             VK_FORMAT_R8G8B8A8_UNORM,
-		                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
-		                             false),
+	            ),
 
 	    .prepass_albedo = Vulkan::pipeline::GraphicsPipeline(
 	        "albedo_prepass",
@@ -199,13 +233,14 @@ void Vulkan::Renderer::init_pipelines() {
 	        prepass_draw_geometry_layout,
 	        "shader/prepass/albedo.vert.spv",
 	        "shader/prepass/albedo.frag.spv",
-	        VK_FORMAT_R8G8B8A8_UNORM),
-
-	    .image_lighting = create_image(
-	        extent,
-	        VK_FORMAT_R8G8B8A8_UNORM,
-	        VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-	        false),
+	        create_image(extent,
+			             VK_FORMAT_R8G8B8A8_UNORM,
+			             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			             false),
+	        create_image(extent,
+			             VK_FORMAT_D32_SFLOAT,
+			             VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT,
+			             false)),
 
 	    .pass_lighting = Vulkan::pipeline::ComputePipeline(
 	        "lighting_pass",
@@ -213,6 +248,14 @@ void Vulkan::Renderer::init_pipelines() {
 	        pass_draw_lighting_layout,
 	        "shader/pass/lighting.comp.spv"),
 	});
+
+	pipelines->pass_lighting.bindings = {
+	    Vulkan::pipeline::ImageBinding(0, &pipelines->prepass_albedo.color_image, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER),
+	    Vulkan::pipeline::ImageBinding(1, &pipelines->prepass_depth.depth_image, _defaultSamplerNearest, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER),
+	    Vulkan::pipeline::ImageBinding(2, &draw_image, VK_NULL_HANDLE, VK_IMAGE_LAYOUT_GENERAL, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE),
+	};
+
+	// configure sampling for the lighting pass
 
 	// lifetime_deletion_queue.push_function([this]() {
 	// 	Vulkan::pipeline::GraphicsPipeline *pipeline = this->mesh_pipeline.get();

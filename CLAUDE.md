@@ -2,9 +2,11 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Comments
+## Behavior
 
-Comments are banned
+- Comments are banned unless the user is actively asking for them
+- Do not use empty emphasis words like "real", "genuinely"
+- Do not ask to implement anything or give advice
 
 ## What this is
 

@@ -1,24 +1,34 @@
 #pragma once
 
 #include "engine/queue.h"
+#include "rendering/vulkan/pipeline/vulkan_pipeline.h"
 #include "rendering/vulkan/vulkan.h"
 #include "vulkan/vulkan_core.h"
 
 namespace Vulkan::pipeline {
 
-	class GraphicsPipeline {
+	class GraphicsPipeline : public BasePipeline {
 		DeletionQueue queue;
 
 	  public:
 		std::string name;
 
-		VkPipeline vk_pipeline = VK_NULL_HANDLE;
-		VkPipelineLayout vk_layout = VK_NULL_HANDLE;
-		VkDescriptorSetLayout vk_descriptor_layout = VK_NULL_HANDLE;
+		// todo should this be here?
+		void transition_color_image(VkCommandBuffer vk_command_buffer, VkImageLayout next_layout);
+		AllocatedImage color_image;
+		VkImageLayout color_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-		GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format);
+		void transition_depth_image(VkCommandBuffer vk_command_buffer, VkImageLayout next_layout);
+		AllocatedImage depth_image;
+		VkImageLayout depth_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+		GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, AllocatedImage color_image, AllocatedImage depth_image);
+
+		void bind_for_render(VkCommandBuffer vk_command_buffer, VkExtent2D draw_extent);
 
 		void destroy();
+
+		VkPipelineBindPoint point = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	};
 
 	class GraphicsPipelineBuilder {

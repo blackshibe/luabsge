@@ -46,7 +46,7 @@ Vulkan::AllocatedImage Vulkan::Renderer::create_image(void *data, VkExtent3D siz
 	AllocatedImage new_image = create_image(size, format, usage | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, mipmapped);
 
 	immediate_submit([&](VkCommandBuffer cmd) {
-		Vulkan::util::transition_image(cmd, new_image.vk_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		Vulkan::image::transition_image(cmd, new_image.vk_image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
 		VkBufferImageCopy copyRegion = {};
 		copyRegion.bufferOffset = 0;
@@ -63,8 +63,8 @@ Vulkan::AllocatedImage Vulkan::Renderer::create_image(void *data, VkExtent3D siz
 		vkCmdCopyBufferToImage(cmd, upload_buffer.buffer, new_image.vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
 		                       &copyRegion);
 
-		Vulkan::util::transition_image(cmd, new_image.vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-		                               VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		Vulkan::image::transition_image(cmd, new_image.vk_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	});
 
 	destroy_buffer(upload_buffer);
@@ -90,6 +90,6 @@ void Vulkan::Renderer::upload_pending_textures() {
 		extent.height = (uint32_t)image.height;
 		extent.depth = 1;
 
-		gpu_textures.push_back(create_image(image.pixels.data(), extent, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_SAMPLED_BIT));
+		gpu_textures.push_back(create_image(image.pixels.data(), extent, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_USAGE_SAMPLED_BIT));
 	}
 }

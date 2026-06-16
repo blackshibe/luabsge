@@ -9,7 +9,7 @@
 #include <set>
 #include <stdexcept>
 
-static Output output;
+static Output output(LogDomain::Vulkan);
 
 namespace Vulkan::Bootstrap {
 	static bool has_layer(const std::vector<VkLayerProperties> &available, const char *name) {

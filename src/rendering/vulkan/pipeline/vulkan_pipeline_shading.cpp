@@ -4,7 +4,7 @@
 #include <vector>
 #include <volk.h>
 
-
+// todo why is this here
 // path is relative to the working directory (projects/<project>) the engine runs in
 bool Vulkan::pipeline::shading::load_shader_module(const char *filePath, VkDevice device, VkShaderModule *outShaderModule) {
 	// open the file with the cursor at the end so tellg gives the size directly

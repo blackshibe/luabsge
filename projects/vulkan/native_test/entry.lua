@@ -44,10 +44,7 @@ TODO_RENDER = function()
 			end
 		end
 
-		local flags = ImGui.TableFlags_RowBg
-			+ ImGui.TableFlags_Borders
-			+ ImGui.TableFlags_Resizable
-			+ ImGui.TableFlags_ScrollY
+		local flags = ImGui.TableFlags_RowBg + ImGui.TableFlags_Borders + ImGui.TableFlags_Resizable
 
 		if ImGui.BeginTable("datamodel", 3, flags) then
 			ImGui.TableSetupColumn("Name")
@@ -63,7 +60,7 @@ TODO_RENDER = function()
 			camera_position.x, camera_position.y, camera_position.z = x, y, z
 
 			if camera then
-				camera.transform = Transform.new(Vec3.new(x, y, z))
+				-- camera.transform = Transform.new(Vec3.new(x, y, z))
 			end
 		end
 	end

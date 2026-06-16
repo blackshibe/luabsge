@@ -73,6 +73,106 @@ VkDescriptorSet Vulkan::DescriptorAllocator::allocate(VkDevice device, VkDescrip
 	return descriptor_set;
 }
 
+// AI SLOP BEGIN
+VkDescriptorPool Vulkan::DescriptorAllocatorGrowable::create_pool(VkDevice device, uint32_t set_count,
+                                                                  std::span<PoolSizeRatio> pool_ratios) {
+	std::vector<VkDescriptorPoolSize> pool_sizes;
+	for (PoolSizeRatio ratio : pool_ratios) {
+		pool_sizes.push_back(VkDescriptorPoolSize{.type = ratio.type, .descriptorCount = uint32_t(ratio.ratio * set_count)});
+	}
+
+	VkDescriptorPoolCreateInfo pool_info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO};
+	pool_info.flags = 0;
+	pool_info.maxSets = set_count;
+	pool_info.poolSizeCount = (uint32_t)pool_sizes.size();
+	pool_info.pPoolSizes = pool_sizes.data();
+
+	VkDescriptorPool pool;
+	vkCreateDescriptorPool(device, &pool_info, nullptr, &pool);
+	return pool;
+}
+
+VkDescriptorPool Vulkan::DescriptorAllocatorGrowable::get_pool(VkDevice device) {
+	VkDescriptorPool pool;
+	if (ready_pools.size() != 0) {
+		pool = ready_pools.back();
+		ready_pools.pop_back();
+	} else {
+		pool = create_pool(device, sets_per_pool, ratios);
+
+		sets_per_pool = sets_per_pool * 1.5;
+		if (sets_per_pool > 4092) {
+			sets_per_pool = 4092;
+		}
+	}
+
+	return pool;
+}
+
+void Vulkan::DescriptorAllocatorGrowable::init(VkDevice device, uint32_t initial_sets, std::span<PoolSizeRatio> pool_ratios) {
+	ratios.clear();
+	for (PoolSizeRatio ratio : pool_ratios) {
+		ratios.push_back(ratio);
+	}
+
+	VkDescriptorPool new_pool = create_pool(device, initial_sets, pool_ratios);
+
+	sets_per_pool = initial_sets * 1.5;
+	ready_pools.push_back(new_pool);
+}
+
+void Vulkan::DescriptorAllocatorGrowable::clear_pools(VkDevice device) {
+	for (VkDescriptorPool pool : ready_pools) {
+		vkResetDescriptorPool(device, pool, 0);
+	}
+
+	for (VkDescriptorPool pool : full_pools) {
+		vkResetDescriptorPool(device, pool, 0);
+		ready_pools.push_back(pool);
+	}
+
+	full_pools.clear();
+}
+
+void Vulkan::DescriptorAllocatorGrowable::destroy_pools(VkDevice device) {
+	for (VkDescriptorPool pool : ready_pools) {
+		vkDestroyDescriptorPool(device, pool, nullptr);
+	}
+	ready_pools.clear();
+
+	for (VkDescriptorPool pool : full_pools) {
+		vkDestroyDescriptorPool(device, pool, nullptr);
+	}
+	full_pools.clear();
+}
+
+VkDescriptorSet Vulkan::DescriptorAllocatorGrowable::allocate(VkDevice device, VkDescriptorSetLayout layout, void *pNext) {
+	VkDescriptorPool pool = get_pool(device);
+
+	VkDescriptorSetAllocateInfo allocation_info = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
+	allocation_info.pNext = pNext;
+	allocation_info.descriptorPool = pool;
+	allocation_info.descriptorSetCount = 1;
+	allocation_info.pSetLayouts = &layout;
+
+	VkDescriptorSet descriptor_set;
+	VkResult result = vkAllocateDescriptorSets(device, &allocation_info, &descriptor_set);
+
+	// the pool ran out of room: retry against a fresh pool and mark the old one full
+	if (result == VK_ERROR_OUT_OF_POOL_MEMORY || result == VK_ERROR_FRAGMENTED_POOL) {
+		full_pools.push_back(pool);
+
+		pool = get_pool(device);
+		allocation_info.descriptorPool = pool;
+
+		VK_CHECK(vkAllocateDescriptorSets(device, &allocation_info, &descriptor_set));
+	}
+
+	ready_pools.push_back(pool);
+	return descriptor_set;
+}
+// AI SLOP END
+
 void Vulkan::DescriptorWriter::write_image(int binding, VkImageView image, VkSampler sampler, VkImageLayout layout, VkDescriptorType type) {
 	VkDescriptorImageInfo &info = image_infos.emplace_back(VkDescriptorImageInfo{
 	    .sampler = sampler,

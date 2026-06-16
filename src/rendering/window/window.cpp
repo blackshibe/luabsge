@@ -168,35 +168,10 @@ void VulkanWindowInstance::render_loop_init() {
 
 // 	set_current_buffer_dimensions(get_window_dimensions());
 
-// 	BSGECameraMetadata* camera = camera_opt.value();
-// 	glm::mat4 camera_projection = camera_get_projection_matrix(*camera);
-
-// 	// Create dockspace over the entire viewport (PassthruCentralNode allows 3D rendering to show through)
-// 	ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-
-// 	// gizmo
-// 	lua_bsge_gizmo_begin_frame(camera_projection, camera->transform);
-
-// 	// lua
 // 	bsge_call_lua_render(lua, delta_time);
 
 // 	// physics system update
 // 	BSGE::Physics::update(delta_time);
-
-// 	lua_bsge_gizmo_end_frame();
-// 	ImGui::Render();
-
-// 	// Check lua stack size for potential leaks
-// 	lua_State *L = lua->lua_state();
-// 	int stack_size = lua_gettop(L);
-// 	if (stack_warning_threshold < stack_size) {
-// 		printf("Stack size over limit! Is there a leak? size: %i\n", stack_size);
-// 		should_break = true;
-// 	}
-
-// 	// frame end
-// 	float calc_time = glfwGetTime() - current_frame;
-// 	last_frame = current_frame;
 
 // 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -369,8 +344,3 @@ void VulkanWindowInstance::render_loop_init() {
 
 // 		mesh_render(*lua, final_transform, mesh_component.mesh);
 // 	}
-
-// 	// reset opengl state
-// 	glDisable(GL_BLEND);
-// 	glDepthMask(GL_TRUE);
-// }

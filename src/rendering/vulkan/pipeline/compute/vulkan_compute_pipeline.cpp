@@ -1,11 +1,11 @@
-#include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
+#include "vulkan_compute_pipeline.h"
 
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
 #include "rendering/vulkan/pipeline/vulkan_pipeline_shading.h"
 #include "util/output.h"
 #include "vulkan/vulkan_core.h"
 
-static Output output;
+static Output output(LogDomain::Vulkan);
 
 Vulkan::pipeline::ComputePipeline::ComputePipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *shader_path) {
 	output.mark();

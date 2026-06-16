@@ -1,8 +1,8 @@
 #pragma once
 
 #include "rendering/vulkan/base/vulkan_types.h"
-#include "rendering/vulkan/pipeline/vulkan_compute_pipeline.h"
-#include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
+#include "rendering/vulkan/pipeline/compute/vulkan_compute_pipeline.h"
+#include "rendering/vulkan/pipeline/geometry/vulkan_geometry_pipeline.h"
 #include "rendering/vulkan/vulkan.h"
 #include "resource/mesh/mesh.h"
 
@@ -23,15 +23,10 @@ namespace Vulkan {
 	// todo move
 	struct EnginePipelines {
 	  public:
-		AllocatedImage image_depth;
 		Vulkan::pipeline::GraphicsPipeline prepass_depth;
 		// Vulkan::pipeline::GraphicsPipeline prepass_position;
 		// Vulkan::pipeline::GraphicsPipeline prepass_normal;
-
-		AllocatedImage image_albedo;
 		Vulkan::pipeline::GraphicsPipeline prepass_albedo;
-
-		AllocatedImage image_lighting;
 		Vulkan::pipeline::ComputePipeline pass_lighting;
 	};
 
@@ -48,7 +43,7 @@ namespace Vulkan {
 
 		// per-frame descriptor pool, reset at the start of the frame so transient sets
 		// (like the texture bound for a draw) don't accumulate across frames
-		DescriptorAllocator frame_descriptors;
+		DescriptorAllocatorGrowable frame_descriptors;
 	};
 
 	class Renderer : AbstractRenderer {
@@ -118,9 +113,14 @@ namespace Vulkan {
 		void init_imgui(GLFWwindow *glfw_window);
 
 		// drawing
-		void draw_pipeline(VkCommandBuffer vk_buffer, Vulkan::pipeline::ComputePipeline pipeline, VkDescriptorSet descriptor_set);
-		void draw_geometry_pipeline(VkCommandBuffer vk_buffer, VkImageView target_view, Vulkan::pipeline::GraphicsPipeline pipeline);
-		void draw_imgui(VkCommandBuffer cmd, VkImageView target_image_view);
+		void draw_compute(VkCommandBuffer vk_buffer,
+		                  Vulkan::pipeline::ComputePipeline pipeline);
+		void draw_light_compute(VkCommandBuffer vk_buffer,
+		                        Vulkan::pipeline::ComputePipeline pipeline);
+		void draw_geometry(VkCommandBuffer vk_command_buffer,
+		                   Vulkan::pipeline::BasePipeline pipeline);
+		void draw_imgui(VkCommandBuffer cmd,
+		                VkImageView target_image_view);
 
 		// buffer
 		AllocatedBuffer allocate_buffer(size_t allocSize, VkBufferUsageFlags usage, VmaMemoryUsage memoryUsage);

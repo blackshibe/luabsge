@@ -19,7 +19,7 @@ done
 setup() {
 	command -v gcc >/dev/null 2>&1 || {
 		echo "[build.sh] gcc not found on PATH"
-		echo "Install MinGW-w64 (MSYS2 UCRT64 recommended) and add its bin dir to PATH"
+		echo "Install MinGW-wuild.64 (MSYS2 UCRT64 recommended) and add its bin dir to PATH"
 		echo "e.g. C:\\msys64\\ucrt64\\bin"
 		return 1
 	}

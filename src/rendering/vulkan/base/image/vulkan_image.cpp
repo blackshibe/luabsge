@@ -1,6 +1,6 @@
 #include "rendering/vulkan/vulkan.h"
 
-void Vulkan::util::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout) {
+void Vulkan::image::transition_image(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout, VkImageAspectFlags aspect_mask) {
 	// VkImageMemoryBarrier2 contains the information for a given image barrier.
 	// Here is where we set the old and new layouts.
 	VkImageMemoryBarrier2 imageBarrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
@@ -19,9 +19,11 @@ void Vulkan::util::transition_image(VkCommandBuffer cmd, VkImage image, VkImageL
 	imageBarrier.oldLayout = currentLayout;
 	imageBarrier.newLayout = newLayout;
 
-	// COLOR aspect under all cases except when transitioning to a depth attachment.
-	VkImageAspectFlags aspectMask =
-	    (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+	// COLOR aspect under all cases except when transitioning to a depth attachment,
+	// unless the caller passed an explicit aspect.
+	VkImageAspectFlags aspectMask = aspect_mask;
+	if (aspectMask == 0)
+		aspectMask = (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
 	imageBarrier.subresourceRange = Vulkan::init::image_subresource_range(aspectMask);
 	imageBarrier.image = image;
 
@@ -36,7 +38,7 @@ void Vulkan::util::transition_image(VkCommandBuffer cmd, VkImage image, VkImageL
 	vkCmdPipelineBarrier2(cmd, &depInfo);
 }
 
-void Vulkan::util::copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destination, VkExtent2D srcSize, VkExtent2D dstSize) {
+void Vulkan::image::copy_image_to_image(VkCommandBuffer cmd, VkImage source, VkImage destination, VkExtent2D srcSize, VkExtent2D dstSize) {
 	VkImageBlit2 blitRegion = {.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2, .pNext = nullptr};
 
 	// offsets[1] is the opposite corner of the region; offsets[0] defaults to origin

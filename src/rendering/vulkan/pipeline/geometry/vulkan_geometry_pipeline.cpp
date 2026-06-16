@@ -1,14 +1,15 @@
-#include "rendering/vulkan/pipeline/vulkan_graphics_pipeline.h"
+#include "rendering/vulkan/pipeline/geometry/vulkan_geometry_pipeline.h"
 
 #include "rendering/vulkan/base/vulkan_bootstrap.h"
+#include "rendering/vulkan/pipeline/geometry/vulkan_geometry_pipeline.h"
 #include "rendering/vulkan/pipeline/vulkan_pipeline_shading.h"
 #include "util/output.h"
 #include "vulkan/vulkan_core.h"
 #include <stdexcept>
 
-static Output output;
+static Output output(LogDomain::Vulkan);
 
-Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, VkFormat color_attachment_format) {
+Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(std::string name, Vulkan::Device device, VkPipelineLayoutCreateInfo vk_layout_info, const char *vertex_shader_path, const char *fragment_shader_path, AllocatedImage color_image, AllocatedImage depth_image) {
 	output.mark();
 
 	this->name = name;
@@ -25,6 +26,9 @@ Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(std::string name, Vulkan::D
 		throw std::runtime_error("failed to load triangle fragment shader (was the Shaders target built?)");
 	}
 
+	this->color_image = color_image;
+	this->depth_image = depth_image;
+
 	// We also create the pipeline layout. Unlike with the compute shader before, this
 	// time we have no push constants and no descriptor bindings on here, so its really
 	// just a completely empty layout.
@@ -34,28 +38,22 @@ Vulkan::pipeline::GraphicsPipeline::GraphicsPipeline(std::string name, Vulkan::D
 	GraphicsPipelineBuilder builder;
 	// use the triangle layout we created
 	builder.vk_layout = vk_layout;
-	// connecting the vertex and pixel shaders to the pipeline
 	builder.set_shaders(vertex_shader, fragment_shader);
-	// it will draw triangles
 	builder.set_input_topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
 	// filled triangles
 	builder.set_polygon_mode(VK_POLYGON_MODE_FILL);
 	// no backface culling
 	builder.set_cull_mode(VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
-	// no multisampling
 	builder.set_multisampling_none();
-	// no blending
 	builder.disable_blending();
-	// no depth testing
 	builder.disable_depthtest();
 
 	// connect the image format we will draw into, from draw image
-	builder.set_color_attachment_format(color_attachment_format);
-	builder.set_depth_format(VK_FORMAT_UNDEFINED);
+	builder.set_color_attachment_format(color_image.format);
+	builder.set_depth_format(depth_image.format);
 
 	// finally build the pipeline
 	vk_pipeline = builder.build_pipeline(name, device.vk_device);
-
 	vk_descriptor_layout = *vk_layout_info.pSetLayouts;
 
 	// clean structures: the shader modules are only needed to build the pipeline
@@ -189,9 +187,9 @@ void Vulkan::pipeline::GraphicsPipelineBuilder::set_depth_format(VkFormat format
 }
 
 void Vulkan::pipeline::GraphicsPipelineBuilder::disable_depthtest() {
-	depth_stencil_info.depthTestEnable = VK_FALSE;
-	depth_stencil_info.depthWriteEnable = VK_FALSE;
-	depth_stencil_info.depthCompareOp = VK_COMPARE_OP_NEVER;
+	depth_stencil_info.depthTestEnable = VK_TRUE;
+	depth_stencil_info.depthWriteEnable = VK_TRUE;
+	depth_stencil_info.depthCompareOp = VK_COMPARE_OP_LESS;
 	depth_stencil_info.depthBoundsTestEnable = VK_FALSE;
 	depth_stencil_info.stencilTestEnable = VK_FALSE;
 	depth_stencil_info.front = {};
@@ -216,4 +214,63 @@ void Vulkan::pipeline::GraphicsPipelineBuilder::destroy() {
 
 void Vulkan::pipeline::GraphicsPipeline::destroy() {
 	queue.flush();
+}
+
+// begin a render pass connected to this pass's target image (e.g. the depth or
+// albedo prepass image), which the caller has already transitioned to
+// COLOR_ATTACHMENT_OPTIMAL.
+
+void Vulkan::pipeline::GraphicsPipeline::transition_color_image(VkCommandBuffer vk_command_buffer, VkImageLayout next_layout) {
+	Vulkan::image::transition_image(vk_command_buffer, color_image.vk_image, color_image_layout, next_layout, VK_IMAGE_ASPECT_COLOR_BIT);
+	color_image_layout = next_layout;
+}
+
+void Vulkan::pipeline::GraphicsPipeline::transition_depth_image(VkCommandBuffer vk_command_buffer, VkImageLayout next_layout) {
+	Vulkan::image::transition_image(vk_command_buffer, depth_image.vk_image, depth_image_layout, next_layout, VK_IMAGE_ASPECT_DEPTH_BIT);
+	depth_image_layout = next_layout;
+}
+
+// pipelines hold the images for them which have different lifetimes, so draw_extent has to be passed here
+// for the future create a pass class
+void Vulkan::pipeline::GraphicsPipeline::bind_for_render(VkCommandBuffer vk_command_buffer, VkExtent2D draw_extent) {
+	// output.mark();
+
+	transition_color_image(vk_command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	transition_depth_image(vk_command_buffer, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+
+	VkClearValue clear = {};
+	clear.color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+
+	VkClearValue depth_clear = {};
+	depth_clear.depthStencil.depth = 1.0f;
+
+	VkRenderingAttachmentInfo color_attachment = Vulkan::init::attachment_info(color_image.vk_view, &clear, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+	VkRenderingAttachmentInfo depth_attachment = Vulkan::init::attachment_info(depth_image.vk_view, &depth_clear, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+	VkRenderingInfo render_info = Vulkan::init::rendering_info(
+	    draw_extent,
+	    &color_attachment,
+	    &depth_attachment);
+
+	// output.info("beginning render");
+	vkCmdBeginRendering(vk_command_buffer, &render_info);
+
+	// output.info("binding pipeline");
+	vkCmdBindPipeline(vk_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline);
+
+	// AI SLOP BEGIN
+	// the pipeline was built with dynamic viewport/scissor, so they must be set per draw
+	VkViewport viewport = {};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = (float)draw_extent.width;
+	viewport.height = (float)draw_extent.height;
+	viewport.minDepth = 0.f;
+	viewport.maxDepth = 1.f;
+	vkCmdSetViewport(vk_command_buffer, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset = {0, 0};
+	scissor.extent = draw_extent;
+	vkCmdSetScissor(vk_command_buffer, 0, 1, &scissor);
+	// AI SLOP END
 }

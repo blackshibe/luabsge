@@ -30,15 +30,34 @@ namespace Vulkan {
 		VkDeviceAddress vertex_buffer_address;
 	};
 
-	// push constants for our mesh object draws
+	// push constants for our mesh object draws. Layout matches the shader's std430
+	// push_constant block: vec3 aligns to 16, so color starts at offset 144 (the int +
+	// pad keep has_texture at 136 as a 4-byte value, then 4 bytes of padding to 144).
 	struct GPUDrawPrepassConstants {
 		glm::mat4 camera_transform;
 		glm::mat4 object_transform;
 		VkDeviceAddress vertexBuffer;
+
+		int has_texture;
+		int _pad;
+		glm::vec3 color;
+	};
+
+	// std430-friendly directional light, uploaded as an array to the lighting pass
+	struct GPUDirectionalLight {
+		glm::vec4 direction;
+		glm::vec4 color;
+	};
+
+	// std430-friendly point light, uploaded as an array to the lighting pass
+	struct GPUPointLight {
+		glm::vec4 position;
+		glm::vec4 color;
 	};
 
 	struct GPUDrawLightingConstants {
-		glm::mat4 camera_transform;
+		int light_count;
+		int point_light_count;
 	};
 
 }
